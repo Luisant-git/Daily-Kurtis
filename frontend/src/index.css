@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #800000;
+  --color-primary-dark: #5c0000;
+  --color-primary-light: #a83232;
+  --color-secondary: #FFF8F8;
+  --color-accent: #D4AF37;
+  --color-accent-dark: #b8932c;
+  --color-section: #FAF6F4;
+  --color-ink: #333333;
+  --color-line: #E9E5E5;
+  --color-success: #16A34A;
+  --color-danger: #DC2626;
+
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #faf6f4;
+}
+::-webkit-scrollbar-thumb {
+  background: #e9e5e5;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
+
+/* Utility helpers */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.text-balance { text-wrap: balance; }
+
+/* Hover zoom for product image */
+.zoom-img {
+  transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.zoom-wrap:hover .zoom-img {
+  transform: scale(1.08);
+}
+
+/* Premium gradient text */
+.gold-text {
+  background: linear-gradient(90deg, #D4AF37 0%, #f3d572 50%, #b8932c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Loading shimmer */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #f5efec 0%, #faf6f4 50%, #f5efec 100%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}

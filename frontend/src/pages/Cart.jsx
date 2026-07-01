@@ -1,0 +1,138 @@
+import { Link, useNavigate } from "react-router-dom";
+import { Minus, Plus, Trash2, ShoppingBag, Tag, ArrowRight } from "lucide-react";
+import { useCart } from "../context/CartContext";
+import Breadcrumb from "../components/ui/Breadcrumb";
+import Empty from "../components/ui/Empty";
+import Button from "../components/ui/Button";
+import { formatINR } from "../components/ui/Price";
+import { useState } from "react";
+import toast from "react-hot-toast";
+
+export default function Cart() {
+  const { items, updateQty, removeFromCart, subtotal } = useCart();
+  const nav = useNavigate();
+  const [coupon, setCoupon] = useState("");
+  const [discount, setDiscount] = useState(0);
+
+  const apply = () => {
+    if (coupon.toUpperCase() === "DAILY10") {
+      const d = Math.round(subtotal * 0.1);
+      setDiscount(d);
+      toast.success(`Coupon applied! You saved ${formatINR(d)}`);
+    } else {
+      toast.error("Invalid coupon. Try DAILY10");
+    }
+  };
+
+  const shipping = subtotal > 1499 ? 0 : subtotal > 0 ? 99 : 0;
+  const total = subtotal - discount + shipping;
+
+  if (items.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <Breadcrumb items={[{ label: "Home", to: "/" }, { label: "Cart" }]} />
+        <Empty icon={<ShoppingBag size={28} />} title="Your bag is empty" subtitle="Looks like you haven't added anything yet — let's fix that!" cta="Shop Now" />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="bg-[#FAF6F4] border-b border-[#E9E5E5]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <Breadcrumb items={[{ label: "Home", to: "/" }, { label: "Shopping Bag" }]} />
+          <h1 className="font-display text-3xl sm:text-4xl mt-3">Shopping Bag</h1>
+          <p className="text-sm text-neutral-600 mt-2">{items.length} item{items.length > 1 ? "s" : ""} in your bag</p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid lg:grid-cols-[1fr_380px] gap-8">
+        {/* Items */}
+        <div className="space-y-4">
+          {items.map((item) => (
+            <div
+              key={`${item.product.id}-${item.size}-${item.color}`}
+              className="bg-white border border-[#E9E5E5] rounded-2xl p-4 sm:p-5 flex gap-4"
+            >
+              <Link to={`/product/${item.product.slug}`} className="shrink-0">
+                <img src={item.product.images[0]} alt={item.product.name} className="w-24 sm:w-32 aspect-[4/5] object-cover rounded-xl" />
+              </Link>
+              <div className="flex-1 min-w-0 flex flex-col">
+                <div className="flex justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-500">{item.product.category}</p>
+                    <Link to={`/product/${item.product.slug}`} className="font-display text-base sm:text-lg text-[#1c1c1c] hover:text-[#800000]">
+                      {item.product.name}
+                    </Link>
+                    <p className="text-xs text-neutral-500 mt-1">Size: {item.size} · Color: {item.color}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-[#800000]">{formatINR(item.product.discountPrice * item.quantity)}</p>
+                    <p className="text-xs text-neutral-400 line-through">{formatINR(item.product.price * item.quantity)}</p>
+                  </div>
+                </div>
+                <div className="mt-auto pt-3 flex items-center justify-between">
+                  <div className="inline-flex items-center border border-[#E9E5E5] rounded-full">
+                    <button onClick={() => updateQty(item.product.id, item.size, item.color, item.quantity - 1)} className="h-9 w-9 flex items-center justify-center text-[#800000]"><Minus size={12} /></button>
+                    <span className="w-8 text-center text-sm">{item.quantity}</span>
+                    <button onClick={() => updateQty(item.product.id, item.size, item.color, item.quantity + 1)} className="h-9 w-9 flex items-center justify-center text-[#800000]"><Plus size={12} /></button>
+                  </div>
+                  <button onClick={() => removeFromCart(item.product.id, item.size, item.color)} className="text-xs text-neutral-500 hover:text-[#DC2626] inline-flex items-center gap-1.5">
+                    <Trash2 size={13} /> Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Summary */}
+        <aside className="bg-white border border-[#E9E5E5] rounded-2xl p-6 h-fit sticky top-28">
+          <h3 className="font-display text-xl">Order Summary</h3>
+
+          <div className="mt-5">
+            <p className="text-xs uppercase tracking-wider text-neutral-500 mb-2">Promo Code</p>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <input
+                  value={coupon}
+                  onChange={(e) => setCoupon(e.target.value)}
+                  placeholder="Enter code"
+                  className="w-full h-10 pl-9 pr-3 rounded-full border border-[#E9E5E5] text-sm outline-none focus:border-[#800000] uppercase"
+                />
+              </div>
+              <button onClick={apply} className="h-10 px-4 rounded-full bg-[#FFF8F8] border border-[#E9E5E5] text-sm font-medium text-[#800000] hover:bg-[#f5e7e7]">Apply</button>
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-1.5">Try DAILY10 for 10% off</p>
+          </div>
+
+          <div className="mt-5 space-y-2.5 text-sm">
+            <Row k="Subtotal" v={formatINR(subtotal)} />
+            {discount > 0 && <Row k="Discount" v={`- ${formatINR(discount)}`} highlight />}
+            <Row k="Shipping" v={shipping === 0 ? "Free" : formatINR(shipping)} />
+            <Row k="Estimated Tax" v={formatINR(Math.round(subtotal * 0.05))} muted />
+          </div>
+
+          <div className="border-t border-[#E9E5E5] mt-5 pt-5 flex items-center justify-between">
+            <span className="text-sm uppercase tracking-wider text-neutral-500">Total Payable</span>
+            <span className="font-display text-2xl text-[#800000]">{formatINR(total + Math.round(subtotal * 0.05))}</span>
+          </div>
+
+          <Button onClick={() => nav("/checkout")} className="w-full mt-5">Checkout <ArrowRight size={14} /></Button>
+
+          <p className="text-[11px] text-center text-neutral-500 mt-4">Secure checkout · Free 15-day returns</p>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function Row({ k, v, muted, highlight }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className={muted ? "text-neutral-500" : "text-neutral-700"}>{k}</span>
+      <span className={highlight ? "text-[#16A34A] font-medium" : "text-[#1c1c1c] font-medium"}>{v}</span>
+    </div>
+  );
+}
