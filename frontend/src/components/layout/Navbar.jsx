@@ -24,8 +24,6 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isHome = location.pathname === "/";
-
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
     onScroll();
@@ -38,7 +36,7 @@ export default function Navbar() {
     setSearchOpen(false);
   }, [location.pathname]);
 
-  const solid = !isHome || scrolled;
+  const solid = true;
 
   const navTextColor = solid ? "text-[#333]" : "text-white";
   const headerBg = solid
@@ -56,11 +54,21 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Announcement bar */}
-      <div className="bg-[#800000] text-white text-[11px] sm:text-xs tracking-wider uppercase py-2 text-center">
-        <span className="opacity-90">Free shipping on orders over ₹1,499 · Use code </span>
-        <span className="font-semibold text-[#D4AF37]">DAILY10</span>
-        <span className="opacity-90"> for 10% off your first order</span>
+      {/* Announcement bar - auto scroll */}
+      <div className="bg-[#800000] text-white text-[11px] sm:text-xs tracking-wider uppercase py-2 overflow-hidden">
+        <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
+          <span className="opacity-90">Free shipping on orders over ₹1,499 · Use code </span>
+          <span className="font-semibold text-[#D4AF37]">DAILY10</span>
+          <span className="opacity-90"> for 10% off your first order</span>
+          <span className="opacity-30 mx-4">✦</span>
+          <span className="opacity-90">Free shipping on orders over ₹1,499 · Use code </span>
+          <span className="font-semibold text-[#D4AF37]">DAILY10</span>
+          <span className="opacity-90"> for 10% off your first order</span>
+          <span className="opacity-30 mx-4">✦</span>
+          <span className="opacity-90">Free shipping on orders over ₹1,499 · Use code </span>
+          <span className="font-semibold text-[#D4AF37]">DAILY10</span>
+          <span className="opacity-90"> for 10% off your first order</span>
+        </div>
       </div>
 
       <header

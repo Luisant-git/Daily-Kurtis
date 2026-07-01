@@ -1,6 +1,7 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Gift, Sparkles, Star, Camera } from "lucide-react";
+import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Gift, Star, Camera } from "lucide-react";
 import { PRODUCTS } from "../data/products.js";
 import { FEATURED_CATEGORIES, REVIEWS, INSTAGRAM, OCCASIONS_HOME } from "../data/site.js";
 import ProductCard from "../components/product/ProductCard";
@@ -8,77 +9,53 @@ import SectionHeading from "../components/ui/SectionHeading";
 import Button from "../components/ui/Button";
 import Rating from "../components/ui/Rating";
 
-const HERO_IMG =
-  "https://www.amukti.in/cdn/shop/files/7_6ebbaf76-f402-48b7-b592-1d2be94fdabb.png?v=1781587840";
+const HERO_SLIDES = [
+  "https://zola.in/cdn/shop/articles/CLassssssKS.jpg?v=1689671595",
+  "https://zola.in/cdn/shop/articles/marron_kurta_banner.jpg?v=1686203627",
+  "https://zola.in/cdn/shop/articles/MLSS.jpg?v=1688119716",
+];
 
 export default function Home() {
+  const [current, setCurrent] = useState(0);
   const trending = PRODUCTS.filter((p) => p.featured).slice(0, 8);
   const newArrivals = PRODUCTS.filter((p) => p.newArrival).slice(0, 4);
   const bestSellers = PRODUCTS.filter((p) => p.bestSeller).slice(0, 4);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div>
-      {/* HERO */}
-      <section className="relative h-[88vh] min-h-[600px] -mt-16 sm:-mt-20 overflow-hidden">
-        <img
-          src={HERO_IMG}
-          alt="Daily Kurtis Hero"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
-        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center pt-24">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-xl text-white"
-          >
-            <span className="inline-flex items-center gap-2 bg-[#D4AF37]/95 text-white text-[11px] tracking-[0.25em] uppercase font-medium px-3 py-1.5 rounded-full">
-              <Sparkles size={12} /> Festive Edit · 2026
-            </span>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl leading-[1.05] mt-6 font-medium">
-              Timeless Ethnic,
-              <br />
-              <span className="italic gold-text">Crafted Daily.</span>
-            </h1>
-            <p className="text-white/85 mt-6 text-base sm:text-lg leading-relaxed max-w-md">
-              Discover our handpicked kurthis, anarkalis and festive sets — designed for the
-              woman who carries heritage with quiet confidence.
-            </p>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Link to="/shop">
-                <Button variant="gold" size="lg">
-                  Shop Collection <ArrowRight size={16} />
-                </Button>
-              </Link>
-              <Link to="/about">
-                <Button
-                  size="lg"
-                  className="bg-white/10 backdrop-blur border border-white/40 text-white hover:bg-white/20"
-                >
-                  Our Story
-                </Button>
-              </Link>
-            </div>
+      {/* HERO CAROUSEL */}
+      <section className="relative h-[88vh] min-h-[600px] overflow-hidden">
+        {HERO_SLIDES.map((src, i) => (
+          <img
+            key={i}
+            src={src}
+            alt={`Daily Kurtis ${i + 1}`}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+              i === current ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-black/10 to-transparent" />
 
-            <div className="mt-10 flex items-center gap-6 text-xs text-white/80">
-              <div className="flex items-center gap-2">
-                <Rating value={5} size={12} />
-                <span>4.9 · 12,000+ reviews</span>
-              </div>
-              <div className="hidden sm:block w-px h-4 bg-white/30" />
-              <div className="hidden sm:flex items-center gap-2">
-                <ShieldCheck size={14} />
-                <span>Trusted by 50,000+ women</span>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Scroll hint */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-2 text-white/70">
-          <span className="text-[10px] tracking-[0.3em] uppercase">Scroll</span>
-          <div className="w-px h-8 bg-white/40 animate-pulse" />
+        {/* Carousel dots - bottom right */}
+        <div className="absolute bottom-8 right-8 flex items-center gap-2 z-10">
+          {HERO_SLIDES.map((_, i) => (
+            <span
+              key={i}
+              className={`rounded-full shadow-md transition-all duration-300 ${
+                i === current
+                  ? "w-2.5 h-2.5 bg-white"
+                  : "w-2 h-2 bg-white/50"
+              }`}
+            />
+          ))}
         </div>
       </section>
 
