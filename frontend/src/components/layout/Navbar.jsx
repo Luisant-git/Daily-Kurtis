@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Menu, Search, ShoppingBag, User, X, ChevronRight } from "lucide-react";
 import Logo from "../ui/Logo";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { CATEGORY_LIST } from "../../data/products";
 
 const LINKS = [
   { to: "/", label: "Home" },
@@ -20,6 +21,8 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [catHover, setCatHover] = useState(false);
+  const catTimer = useRef(null);
   const { totalQuantity } = useCart();
   const { items: wish } = useWishlist();
   const location = useLocation();
@@ -107,20 +110,72 @@ export default function Navbar() {
 
             {/* Nav */}
             <nav className="hidden lg:flex items-center gap-7">
-              {LINKS.map((l) => (
-                <NavLink
-                  key={l.to}
-                  to={l.to}
-                  end={false}
-                  className={() =>
-                    `relative text-[13px] tracking-wide font-medium transition-colors ${
-                      isLinkActive(l) ? "text-[#D4AF37]" : navTextColor + " hover:text-[#D4AF37]"
-                    }`
-                  }
-                >
-                  {l.label}
-                </NavLink>
-              ))}
+              {LINKS.map((l) => {
+                const isCat = l.label === "Categories";
+                return (
+                  <div
+                    key={l.to}
+                    className="relative"
+                    onMouseEnter={() => {
+                      if (isCat) {
+                        clearTimeout(catTimer.current);
+                        setCatHover(true);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      if (isCat) {
+                        catTimer.current = setTimeout(() => setCatHover(false), 80);
+                      }
+                    }}
+                  >
+                    <NavLink
+                      to={l.to}
+                      end={false}
+                      className={() =>
+                        `relative text-[13px] tracking-wide font-medium transition-colors ${
+                          isLinkActive(l) ? "text-[#D4AF37]" : navTextColor + " hover:text-[#D4AF37]"
+                        }`
+                      }
+                    >
+                      {l.label}
+                    </NavLink>
+
+                    {isCat && (
+                      <AnimatePresence>
+                        {catHover && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 6 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white border border-[#E9E5E5] rounded-2xl shadow-xl z-50"
+                            onMouseEnter={() => {
+                              clearTimeout(catTimer.current);
+                              setCatHover(true);
+                            }}
+                            onMouseLeave={() => {
+                              catTimer.current = setTimeout(() => setCatHover(false), 80);
+                            }}
+                          >
+                            <div className="p-2">
+                              {CATEGORY_LIST.map((cat) => (
+                                <Link
+                                  key={cat}
+                                  to={`/shop?category=${encodeURIComponent(cat)}`}
+                                  className="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-[#1c1c1c] hover:bg-[#FAF6F4]"
+                                >
+                                  <span>{cat}</span>
+                                  <ChevronRight size={14} className="text-neutral-400" />
+                                </Link>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    )}
+                  </div>
+                );
+              })}
             </nav>
 
             {/* Icons */}
