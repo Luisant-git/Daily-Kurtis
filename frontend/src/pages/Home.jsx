@@ -171,7 +171,7 @@ export default function Home() {
             </div>
             <div className="relative hidden md:block">
               <img
-                src={FEATURED_CATEGORIES[2]?.image || ""}
+                src="https://www.aachho.com/cdn/shop/files/8_1dc18193-4971-46cb-9f07-421e5ebd85d0_540x.jpg?v=1768904018"
                 className="rounded-2xl object-cover aspect-[4/5] w-full max-w-sm mx-auto shadow-2xl"
                 alt={FEATURED_CATEGORIES[2]?.name || "Offer"}
               />
@@ -247,7 +247,7 @@ export default function Home() {
           >
             <div className="aspect-[4/5] rounded-3xl overflow-hidden">
               <img
-                src={FEATURED_CATEGORIES[3]?.image || ""}
+                src="https://www.libas.in/cdn/shop/files/51109A_6MainLibasArtYellowWovenDesignSilkBlendAnarkaliSuitSetWithDupatta.jpg?v=1761399107&width=360"
                 alt="Why Daily Kurtis"
                 className="w-full h-full object-cover"
               />

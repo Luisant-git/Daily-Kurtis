@@ -91,6 +91,12 @@ export const REVIEWS = [
 ];
 
 export const INSTAGRAM = [
+"https://byshree.com/cdn/shop/files/26220KBCREAM_main.jpg?v=1782498479&width=800",
+"https://www.libas.in/cdn/shop/files/51109A_6MainLibasArtYellowWovenDesignSilkBlendAnarkaliSuitSetWithDupatta.jpg?v=1761399107&width=360",
+ "https://www.aachho.com/cdn/shop/files/2_e37a2a76-088f-4aa6-b9b3-a5701ac9c6f5_1800x1800.jpg?v=1777123392" ,
+ "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcS_BvYcqw80LgBJtp-aeTnTfvmJycNN_WuTnq3B1OelPx8WlvfkSSEnydmJK8SxIoCelWYcDmKFksHXIQ8JW6fvCRH46CpRj7D3MQt2yoxbLhrSd4Md916j",
+"https://www.aachho.com/cdn/shop/files/8_1dc18193-4971-46cb-9f07-421e5ebd85d0_540x.jpg?v=1768904018",
+"https://www.libas.in/cdn/shop/files/99147A_1Main.jpg?v=1755946149&width=360"
 
 ];
 
