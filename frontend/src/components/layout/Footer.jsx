@@ -43,7 +43,7 @@ export default function Footer() {
                 setEmail("");
               }
             }}
-            className="flex flex-col sm:flex-row gap-3 w-full"
+            className="flex flex-col sm:flex-row gap-3 w-full items-stretch"
           >
             <input
               type="email"
@@ -51,9 +51,9 @@ export default function Footer() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email address"
-              className="flex-1 h-12 px-5 rounded-full bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm outline-none focus:border-[#D4AF37]/60"
+              className="flex-1 min-w-0 h-12 px-5 rounded-full bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm outline-none focus:border-[#D4AF37]/60"
             />
-            <button className="h-12 px-7 rounded-full bg-[#D4AF37] hover:bg-[#b8932c] text-white text-sm uppercase tracking-wider transition">
+            <button className="h-12 px-7 rounded-full bg-[#D4AF37] hover:bg-[#b8932c] text-white text-sm uppercase tracking-wider transition min-w-[140px]">
               Subscribe
             </button>
           </form>
@@ -61,8 +61,8 @@ export default function Footer() {
       </div>
 
       {/* Main */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid grid-cols-2 lg:grid-cols-5 gap-10">
-        <div className="col-span-2 max-w-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
+        <div className="lg:col-span-2">
           <div className="[&_*]:text-white">
             <Logo variant="light" />
           </div>
@@ -144,9 +144,9 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-500">
-          <p>© {new Date().getFullYear()} Daily Kurtis. All rights reserved. Crafted with love in India.</p>
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-neutral-500">
+          <p className="max-w-full">© {new Date().getFullYear()} Daily Kurtis. All rights reserved. Crafted with love in India.</p>
+          <div className="flex flex-wrap items-center gap-4">
             <Link to="/privacy" className="hover:text-white">Privacy</Link>
             <Link to="/terms" className="hover:text-white">Terms</Link>
             <Link to="/shipping-policy" className="hover:text-white">Shipping</Link>

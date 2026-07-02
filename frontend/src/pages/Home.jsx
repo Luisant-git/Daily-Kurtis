@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <div>
       {/* HERO CAROUSEL */}
-      <section className="relative h-[70vh] sm:h-[80vh] lg:h-[88vh] min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] overflow-hidden">
+      <section className="relative h-[55vh] sm:h-[60vh] md:h-[70vh] lg:h-[88vh] min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] overflow-hidden">
         {HERO_SLIDES.map((src, i) => (
           <img
             key={i}
@@ -47,7 +47,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-black/10 to-transparent" />
 
         {/* Carousel dots - bottom right */}
-        <div className="absolute bottom-8 right-8 flex items-center gap-2 z-10">
+        <div className="absolute bottom-6 right-4 flex items-center gap-2 z-10">
           {HERO_SLIDES.map((_, i) => (
             <span
               key={i}
@@ -63,15 +63,15 @@ export default function Home() {
 
       {/* USP STRIP */}
       <section className="border-b border-[#E9E5E5] bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-y-6 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 py-6">
           {[
             { Icon: Truck, t: "Free Shipping", s: "On orders over ₹1,499" },
             { Icon: RefreshCcw, t: "Easy 15-Day Returns", s: "No questions asked" },
             { Icon: ShieldCheck, t: "Secure Payments", s: "100% SSL encrypted" },
             { Icon: Gift, t: "Premium Packaging", s: "Gift-ready always" },
           ].map(({ Icon, t, s }) => (
-            <div key={t} className="flex items-center gap-3 px-4">
-              <Icon className="text-[#800000]" size={22} strokeWidth={1.5} />
+            <div key={t} className="flex items-start gap-3 px-4 py-4 rounded-3xl border border-[#F1ECEC] shadow-sm bg-white">
+              <Icon className="text-[#800000] mt-1" size={22} strokeWidth={1.5} />
               <div>
                 <p className="text-sm font-medium text-[#1c1c1c]">{t}</p>
                 <p className="text-xs text-neutral-500">{s}</p>

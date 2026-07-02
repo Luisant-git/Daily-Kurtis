@@ -6,22 +6,17 @@ import SectionHeading from "../components/ui/SectionHeading";
 export default function About() {
   return (
     <div>
-      {/* Hero */}
-      <section className="relative h-[55vh] min-h-[420px] overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&q=85"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/60" />
-        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center text-white">
+      <div className="bg-[#FAF6F4] border-b border-[#E9E5E5]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <Breadcrumb items={[{ label: "Home", to: "/" }, { label: "About Us" }]} />
-          <h1 className="font-display text-4xl sm:text-6xl mt-4">Our Story</h1>
-          <p className="mt-4 text-white/85 max-w-xl">
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl mt-3">Our Story</h1>
+          <p className="text-sm text-neutral-600 mt-3 max-w-xl">
             Crafting timeless ethnic elegance for the modern Indian woman — one kurthi at a time.
           </p>
         </div>
-      </section>
+      </div>
+
+      
 
       <section className="py-20 max-w-4xl mx-auto px-4">
         <SectionHeading
