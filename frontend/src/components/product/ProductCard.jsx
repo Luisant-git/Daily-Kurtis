@@ -37,17 +37,17 @@ export default function ProductCard({ product, onQuickView }) {
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {product.discount > 0 && (
-            <span className="bg-[#800000] text-white text-[9px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full">
+            <span className="bg-[#800000] text-white text-[8px] sm:text-[9px] tracking-wider uppercase font-medium px-2 py-1 rounded-full">
               {product.discount}% Off
             </span>
           )}
           {product.newArrival && (
-            <span className="bg-[#D4AF37] text-white text-[9px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full">
+            <span className="bg-[#D4AF37] text-white text-[8px] sm:text-[9px] tracking-wider uppercase font-medium px-2 py-1 rounded-full">
               New
             </span>
           )}
           {product.bestSeller && (
-            <span className="bg-white text-[#800000] border border-[#800000]/20 text-[9px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full">
+            <span className="bg-white text-[#800000] border border-[#800000]/20 text-[8px] sm:text-[9px] tracking-wider uppercase font-medium px-2 py-1 rounded-full">
               Top Selling
             </span>
           )}
@@ -67,13 +67,13 @@ export default function ProductCard({ product, onQuickView }) {
           />
         </button>
         {/* Quick actions */}
-        <div className="absolute inset-x-3 bottom-3 z-10 flex flex-col gap-2 sm:flex-row sm:gap-2 opacity-100 translate-y-0 sm:opacity-0 sm:group-hover:opacity-100 sm:translate-y-2 sm:group-hover:translate-y-0 transition-all duration-500">
+        <div className="absolute inset-x-3 bottom-3 z-10 hidden sm:flex flex-row gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500">
           <button
             onClick={(e) => {
               e.preventDefault();
               addToCart(product, product.sizes[0], product.colors[0].name, 1);
             }}
-            className="flex-1 h-10 rounded-full bg-[#800000] text-white text-xs tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-[#5c0000] transition"
+            className="flex-1 h-9 rounded-full bg-[#800000] text-white text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-[#5c0000] transition"
           >
             <ShoppingBag size={14} /> Add
           </button>
@@ -83,7 +83,7 @@ export default function ProductCard({ product, onQuickView }) {
                 e.preventDefault();
                 onQuickView(product);
               }}
-              className="h-10 w-10 rounded-full bg-white text-[#800000] flex items-center justify-center hover:bg-[#FFF8F8] transition self-center sm:self-auto"
+              className="h-9 w-9 rounded-full bg-white text-[#800000] flex items-center justify-center hover:bg-[#FFF8F8] transition self-center"
               aria-label="Quick view"
             >
               <Eye size={16} />
@@ -102,20 +102,31 @@ export default function ProductCard({ product, onQuickView }) {
         <div className="mt-1.5">
           <Rating value={product.rating} size={12} showValue />
         </div>
-          <div className="mt-2 flex items-center justify-between">
-          <Price price={product.price} discountPrice={product.discountPrice} size="sm" />
-          <div className="flex items-center gap-1">
-            {product.colors.slice(0, 4).map((c) => (
-              <span
-                key={c.name}
-                title={c.name}
-                className="w-3 h-3 sm:w-3 sm:h-3 rounded-full border border-[#E9E5E5]"
-                style={{ backgroundColor: c.hex }}
-              />
-            ))}
+          <div className="mt-2 flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <Price price={product.price} discountPrice={product.discountPrice} size="sm" />
+              <div className="flex items-center gap-1 min-w-0">
+                {product.colors.slice(0, 3).map((c) => (
+                  <span
+                    key={c.name}
+                    title={c.name}
+                    className="w-3 h-3 rounded-full border border-[#E9E5E5]"
+                    style={{ backgroundColor: c.hex }}
+                  />
+                ))}
+                {product.colors.length > 3 && (
+                  <span className="text-[10px] text-neutral-500">+{product.colors.length - 3}</span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => addToCart(product, product.sizes[0], product.colors[0].name, 1)}
+              className="sm:hidden w-full h-10 rounded-full bg-[#800000] text-white text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-[#5c0000] transition"
+            >
+              <ShoppingBag size={14} /> Add to bag
+            </button>
           </div>
         </div>
-      </div>
     </motion.div>
   );
 }

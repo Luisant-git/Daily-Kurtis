@@ -97,7 +97,7 @@ export const INSTAGRAM = [
 export const OCCASIONS_HOME = [
   {
     name: "Wedding",
-    img: "",
+    img: "https://byshree.com/cdn/shop/files/26220KBCREAM_main.jpg?v=1782498479&width=800",
   },
   {
     name: "Office",
@@ -105,7 +105,7 @@ export const OCCASIONS_HOME = [
   },
   {
     name: "Festive",
-    img: "",
+    img: "https://www.libas.in/cdn/shop/files/51109A_6MainLibasArtYellowWovenDesignSilkBlendAnarkaliSuitSetWithDupatta.jpg?v=1761399107&width=360",
   },
   {
     name: "Daily",

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ScrollToTop from "./ScrollToTop";
+import CartDrawer from "./CartDrawer";
 
 export default function Layout() {
   const location = useLocation();
@@ -23,6 +24,7 @@ export default function Layout() {
         </AnimatePresence>
       </main>
       <Footer />
+      <CartDrawer />
       <ScrollToTop />
     </div>
   );

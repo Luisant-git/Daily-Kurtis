@@ -14,10 +14,14 @@ export function CartProvider({ children }) {
       return [];
     }
   });
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(KEY, JSON.stringify(items));
   }, [items]);
+
+  const openDrawer = () => setDrawerOpen(true);
+  const closeDrawer = () => setDrawerOpen(false);
 
   const addToCart = (p, size, color, qty = 1, options = {}) => {
     const { showToast = true } = options;
@@ -38,6 +42,10 @@ export function CartProvider({ children }) {
     if (showToast) {
       toast.dismiss(toastId);
       toast.success(`${p.name} added to bag`, { id: toastId, duration: 1800 });
+    }
+
+    if (options.openDrawer !== false) {
+      openDrawer();
     }
   };
 
@@ -73,7 +81,18 @@ export function CartProvider({ children }) {
 
   return (
     <Ctx.Provider
-      value={{ items, addToCart, removeFromCart, updateQty, clearCart, subtotal, totalQuantity }}
+      value={{
+        items,
+        addToCart,
+        removeFromCart,
+        updateQty,
+        clearCart,
+        subtotal,
+        totalQuantity,
+        drawerOpen,
+        openDrawer,
+        closeDrawer,
+      }}
     >
       {children}
     </Ctx.Provider>
