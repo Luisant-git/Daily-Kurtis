@@ -46,7 +46,7 @@ export default function ProductCard({ product, onQuickView }) {
           )}
           {product.bestSeller && (
             <span className="bg-white text-[#800000] border border-[#800000]/20 text-[10px] tracking-wider uppercase font-medium px-2.5 py-1 rounded-full">
-              Bestseller
+              Top Selling
             </span>
           )}
         </div>

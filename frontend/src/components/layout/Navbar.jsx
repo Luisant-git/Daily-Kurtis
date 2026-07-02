@@ -11,7 +11,7 @@ const LINKS = [
   { to: "/shop", label: "Shop" },
   { to: "/categories", label: "Categories" },
   { to: "/shop?filter=new", label: "New Arrivals" },
-  { to: "/shop?filter=bestseller", label: "Best Sellers" },
+  { to: "/shop?filter=bestseller", label: "Top Selling" },
 ];
 
 export default function Navbar() {

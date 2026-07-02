@@ -2,24 +2,9 @@ const img = (id, w = 800, h = 1000) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
 
 // Curated photo ids of women's ethnic fashion / kurtis from Unsplash
-const PHOTOS = [
-  "1610030469983-98e550d6193c",
-  "1583391733956-6c78276477e3",
-  "1610030469668-8e4a72f24e26",
-  "1583391733981-8498408ee3a4",
-  "1614252369475-531eba835be6",
-  "1602810318383-e386cc2a3ccf",
-  "1592301933927-35b597393c0a",
-  "1596993100471-c3905dafa78e",
-  "1583391733975-b21142b3aa3a",
-  "1631233859262-0d7f6c895a3c",
-  "1623625434462-e5e42318ae49",
-  "1617922001439-4a2e6562f328",
-  "1610189025609-bb6b3b3a9e7d",
-  "1583391733956-6c78276477e3",
-  "1602810316693-3667c854239a",
-  "1610030469983-98e550d6193c",
-];
+const PHOTOS = ["https://www.libas.in/cdn/shop/files/GS1116_7Main_f86d0135-5f7d-4e7e-ac85-45f765c60117.jpg?v=1771334654&width=360"
+  ,"https://www.libas.in/cdn/shop/files/49789A_1Main_26b6b944-db62-4be9-a68e-ff65f87cd6a8.jpg?v=1761741125&width=360",
+  ]
 
 const CATEGORIES = [
   "Cotton Kurthis",
@@ -49,35 +34,8 @@ const NAMES = [
   "Kavya Block Print Kurti",
   "Tara Embroidered Anarkali",
   "Mira Rayon Straight",
-  "Diya Festive Silk",
-  "Aarohi Casual Cotton",
-  "Reva Office Crepe",
-  "Saanvi Party Georgette",
-  "Inaya Linen Lounge",
-  "Pari Plus Size Anarkali",
-  "Sia Pastel A-Line",
-  "Myra Festive Chanderi",
-  "Avni Cotton Daily Wear",
-  "Lavanya Royal Anarkali",
-  "Kiara Silk Wonder",
-  "Vanya Block Printed",
-  "Hiya Mirror Magic",
-  "Eira Embroidered Kurti",
-  "Trisha Festive Set",
-  "Roopa Office Essential",
-  "Pihu Cotton Comfort",
-  "Saanchi Plus A-Line",
-  "Anika Straight Cut",
-  "Misha Rayon Print",
-  "Yara Linen Slouchy",
-  "Niyati Wedding Anarkali",
-  "Aadhya Festive Silk",
-  "Suhana Casual Cotton",
-  "Mahira Crepe Office",
-  "Aaradhya Party Wear",
-  "Nitya Daily Kurti",
-  "Bhavya Block Print",
-  "Reyansi Festive Set",
+  
+  
 ];
 
 const COLOR_PALETTE = [

@@ -14,7 +14,6 @@ const HERO_SLIDES = [
   "https://zola.in/cdn/shop/articles/marron_kurta_banner.jpg?v=1686203627",
   "https://zola.in/cdn/shop/articles/MLSS.jpg?v=1688119716",
 ];
-
 export default function Home() {
   const [current, setCurrent] = useState(0);
   const trending = PRODUCTS.filter((p) => p.featured).slice(0, 8);
@@ -31,7 +30,7 @@ export default function Home() {
   return (
     <div>
       {/* HERO CAROUSEL */}
-      <section className="relative h-[88vh] min-h-[600px] overflow-hidden">
+      <section className="relative h-[70vh] sm:h-[80vh] lg:h-[88vh] min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] overflow-hidden">
         {HERO_SLIDES.map((src, i) => (
           <img
             key={i}
@@ -104,7 +103,7 @@ export default function Home() {
                     <img
                       src={c.image}
                       alt={c.name}
-                      className="zoom-img w-full h-full object-cover"
+                      className="zoom-img w-full h-full object-cover object-top"
                     />
                   </div>
                   <h3 className="font-display text-lg mt-4 text-[#1c1c1c] group-hover:text-[#800000] transition">
@@ -127,7 +126,7 @@ export default function Home() {
             <SectionHeading
               align="left"
               eyebrow="Trending Now"
-              title={<>The <span className="italic">Bestseller</span> List</>}
+              title={<>The <span className="italic">Top Selling</span> List</>}
               subtitle="Hand-picked by our style team — pieces that define this season's mood."
             />
             <Link
@@ -169,9 +168,9 @@ export default function Home() {
             </div>
             <div className="relative hidden md:block">
               <img
-                src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=80"
-                alt="Festive sale"
+                src={FEATURED_CATEGORIES[2]?.image || ""}
                 className="rounded-2xl object-cover aspect-[4/5] w-full max-w-sm mx-auto shadow-2xl"
+                alt={FEATURED_CATEGORIES[2]?.name || "Offer"}
               />
             </div>
           </div>
@@ -199,24 +198,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BEST SELLERS */}
-      <section className="py-20 lg:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="Customer Favourites"
-            title={<>Best <span className="italic">Sellers</span></>}
-            subtitle="The pieces our community keeps coming back for."
-          />
-          <div className="mt-12 grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {bestSellers.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        </div>
-      </section>
-
+      
       {/* SHOP BY OCCASION */}
-      <section className="py-20 lg:py-28 bg-[#FAF6F4]">
+      <section className="py-20 lg:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading
             eyebrow="Dressed for the moment"
@@ -235,7 +219,7 @@ export default function Home() {
                   to={`/shop?occasion=${encodeURIComponent(o.name)}`}
                   className="group relative block aspect-[3/4] overflow-hidden rounded-2xl zoom-wrap"
                 >
-                  <img src={o.img} alt={o.name} className="zoom-img w-full h-full object-cover" />
+                  <img src={FEATURED_CATEGORIES[i % FEATURED_CATEGORIES.length]?.image || o.img} alt={o.name} className="zoom-img w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0" />
                   <div className="absolute bottom-5 left-5 right-5 text-white">
                     <p className="text-[10px] tracking-[0.3em] uppercase text-[#D4AF37]">For</p>
@@ -260,7 +244,7 @@ export default function Home() {
           >
             <div className="aspect-[4/5] rounded-3xl overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1631233859262-0d7f6c895a3c?auto=format&fit=crop&w=900&q=80"
+                src={FEATURED_CATEGORIES[3]?.image || ""}
                 alt="Why Daily Kurtis"
                 className="w-full h-full object-cover"
               />

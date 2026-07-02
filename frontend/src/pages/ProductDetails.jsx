@@ -106,7 +106,7 @@ export default function ProductDetails() {
             )}
             {product.bestSeller && (
               <span className="absolute top-4 right-4 bg-[#D4AF37] text-white text-xs px-3 py-1.5 rounded-full uppercase tracking-wider">
-                Bestseller
+                Top Selling
               </span>
             )}
           </div>

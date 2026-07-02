@@ -11,42 +11,42 @@ export const FEATURED_CATEGORIES = [
     name: "Cotton Kurthis",
     tag: "Everyday Comfort",
     image:
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=700&q=80",
+      "https://www.libas.in/cdn/shop/files/GS1116_7Main_f86d0135-5f7d-4e7e-ac85-45f765c60117.jpg?v=1771334654&width=360",
     slug: "cotton-kurthis",
   },
   {
     name: "Anarkali",
     tag: "Festive Flow",
-    image:
-      "https://images.unsplash.com/photo-1583391733956-6c78276477e3?auto=format&fit=crop&w=700&q=80",
+    // https://www.libas.in/cdn/shop/files/51109A_6MainLibasArtYellowWovenDesignSilkBlendAnarkaliSuitSetWithDupatta.jpg?v=1761399107&width=360",
+    image:"https://www.libas.in/cdn/shop/files/49789A_1Main_26b6b944-db62-4be9-a68e-ff65f87cd6a8.jpg?v=1761741125&width=360",
     slug: "anarkali",
-  },
-  {
-    name: "Printed Kurthis",
-    tag: "Artisan Prints",
-    image:
-      "https://images.unsplash.com/photo-1631233859262-0d7f6c895a3c?auto=format&fit=crop&w=700&q=80",
-    slug: "printed-kurthis",
   },
   {
     name: "Office Wear",
     tag: "Polished Daily",
     image:
-      "https://images.unsplash.com/photo-1623625434462-e5e42318ae49?auto=format&fit=crop&w=700&q=80",
+    "https://www.amukti.in/cdn/shop/files/N200039.png?v=1781255149&width=493",
     slug: "office-wear",
   },
+  {
+    name: "Printed Kurthis",
+    tag: "Artisan Prints",
+    image:
+      "https://www.libas.in/cdn/shop/files/99147A_1Main.jpg?v=1755946149&width=360",
+    slug: "printed-kurthis",
+  },
+  
   {
     name: "Festival",
     tag: "Celebration Ready",
     image:
-      "https://images.unsplash.com/photo-1614252369475-531eba835be6?auto=format&fit=crop&w=700&q=80",
-    slug: "festival-collection",
+      "https://www.libas.in/cdn/shop/files/51109A_6MainLibasArtYellowWovenDesignSilkBlendAnarkaliSuitSetWithDupatta.jpg?v=1761399107&width=360"
   },
   {
     name: "Plus Size",
     tag: "Made For All",
     image:
-      "https://images.unsplash.com/photo-1610189025609-bb6b3b3a9e7d?auto=format&fit=crop&w=700&q=80",
+      "https://www.aachho.com/cdn/shop/files/8_1dc18193-4971-46cb-9f07-421e5ebd85d0_540x.jpg?v=1768904018",
     slug: "plus-size",
   },
 ];
@@ -91,30 +91,25 @@ export const REVIEWS = [
 ];
 
 export const INSTAGRAM = [
-  "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=500&q=80",
-  "https://images.unsplash.com/photo-1583391733956-6c78276477e3?auto=format&fit=crop&w=500&q=80",
-  "https://images.unsplash.com/photo-1614252369475-531eba835be6?auto=format&fit=crop&w=500&q=80",
-  "https://images.unsplash.com/photo-1631233859262-0d7f6c895a3c?auto=format&fit=crop&w=500&q=80",
-  "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=500&q=80",
-  "https://images.unsplash.com/photo-1592301933927-35b597393c0a?auto=format&fit=crop&w=500&q=80",
+
 ];
 
 export const OCCASIONS_HOME = [
   {
     name: "Wedding",
-    img: "https://images.unsplash.com/photo-1583391733956-6c78276477e3?auto=format&fit=crop&w=900&q=80",
+    img: "",
   },
   {
     name: "Office",
-    img: "https://images.unsplash.com/photo-1623625434462-e5e42318ae49?auto=format&fit=crop&w=900&q=80",
+    img: "",
   },
   {
     name: "Festive",
-    img: "https://images.unsplash.com/photo-1614252369475-531eba835be6?auto=format&fit=crop&w=900&q=80",
+    img: "",
   },
   {
     name: "Daily",
-    img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=80",
+    img: "",
   },
 ];
 
