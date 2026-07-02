@@ -337,7 +337,7 @@ export default function Home() {
                 key={i}
                 className="group relative aspect-square overflow-hidden rounded-xl zoom-wrap"
               >
-                <img src={src} alt="instagram" className="zoom-img w-full h-full object-cover" />
+                <img src={src} alt="instagram" className="zoom-img w-full h-full object-cover object-top" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center">
                   <Camera className="text-white opacity-0 group-hover:opacity-100 transition" size={26} />
                 </div>
