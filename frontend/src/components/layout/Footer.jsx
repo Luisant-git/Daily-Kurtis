@@ -43,26 +43,28 @@ export default function Footer() {
                 setEmail("");
               }
             }}
-            className="flex flex-col sm:flex-row gap-3 w-full items-stretch"
+            className="w-full"
           >
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email address"
-              className="flex-1 min-w-0 h-12 px-5 rounded-full bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm outline-none focus:border-[#D4AF37]/60"
-            />
-            <button className="h-12 px-7 rounded-full bg-[#D4AF37] hover:bg-[#b8932c] text-white text-sm uppercase tracking-wider transition min-w-[140px]">
-              Subscribe
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email address"
+                className="h-12 px-5 rounded-full bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm outline-none focus:border-[#D4AF37]/60 w-full sm:flex-1 sm:min-w-0"
+              />
+              <button className="h-12 px-7 rounded-full bg-[#D4AF37] hover:bg-[#b8932c] text-white text-sm uppercase tracking-wider transition w-full sm:w-auto sm:min-w-[140px]">
+                Subscribe
+              </button>
+            </div>
           </form>
         </div>
       </div>
 
       {/* Main */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
-        <div className="lg:col-span-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="lg:col-span-1 self-start">
           <div className="[&_*]:text-white">
             <Logo variant="light" />
           </div>
@@ -84,36 +86,42 @@ export default function Footer() {
           </div>
         </div>
 
-        <FooterCol
-          title="Shop"
-          items={[
-            { l: "All Kurthis", to: "/shop" },
-            { l: "Anarkali", to: "/categories" },
-            { l: "Cotton Kurthis", to: "/categories" },
-            { l: "Festive", to: "/categories" },
-            { l: "Plus Size", to: "/categories" },
-          ]}
-        />
-        <FooterCol
-          title="Customer Service"
-          items={[
-            { l: "Contact Us", to: "/contact" },
-            { l: "FAQs", to: "/faq" },
-            { l: "Shipping Policy", to: "/shipping-policy" },
-            { l: "Returns & Refunds", to: "/returns" },
-            { l: "Size Guide", to: "/faq" },
-          ]}
-        />
-        <FooterCol
-          title="Company"
-          items={[
-            { l: "About Us", to: "/about" },
-            { l: "Privacy Policy", to: "/privacy" },
-            { l: "Terms & Conditions", to: "/terms" },
-            { l: "My Orders", to: "/orders" },
-            { l: "Wishlist", to: "/wishlist" },
-          ]}
-        />
+        <div className="lg:col-span-1">
+          <FooterCol
+            title="Shop"
+            items={[
+              { l: "All Kurthis", to: "/shop" },
+              { l: "Anarkali", to: "/categories" },
+              { l: "Cotton Kurthis", to: "/categories" },
+              { l: "Festive", to: "/categories" },
+              { l: "Plus Size", to: "/categories" },
+            ]}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <FooterCol
+            title="Customer Service"
+            items={[
+              { l: "Contact Us", to: "/contact" },
+              { l: "FAQs", to: "/faq" },
+              { l: "Shipping Policy", to: "/shipping-policy" },
+              { l: "Returns & Refunds", to: "/returns" },
+              { l: "Size Guide", to: "/faq" },
+            ]}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <FooterCol
+            title="Company"
+            items={[
+              { l: "About Us", to: "/about" },
+              { l: "Privacy Policy", to: "/privacy" },
+              { l: "Terms & Conditions", to: "/terms" },
+              { l: "My Orders", to: "/orders" },
+              { l: "Wishlist", to: "/wishlist" },
+            ]}
+          />
+        </div>
       </div>
 
       {/* Contact strip */}
