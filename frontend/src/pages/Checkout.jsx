@@ -7,7 +7,7 @@ import { useCart } from "../context/CartContext";
 import Button from "../components/ui/Button";
 import { formatINR } from "../components/ui/Price";
 import Empty from "../components/ui/Empty";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 
 export default function Checkout() {
   const { items, subtotal, clearCart } = useCart();

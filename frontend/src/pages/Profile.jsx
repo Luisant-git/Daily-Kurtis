@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, MapPin, Package, Heart, Edit2, Plus, LogOut } from "lucide-react";
+import { toast } from "react-toastify";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import { useWishlist } from "../context/WishlistContext";
 import ProductCard from "../components/product/ProductCard";
@@ -38,6 +39,7 @@ export default function Profile() {
   const saveProfile = () => {
     setProfileData(editProfileForm.values);
     closeEditProfile();
+    toast.success("Profile updated successfully");
   };
 
   const openAddressForm = (index = null) => {
@@ -53,6 +55,7 @@ export default function Profile() {
     if (index === null) setAddresses((s) => [values, ...s]);
     else setAddresses((s) => s.map((a, i) => (i === index ? values : a)));
     setAddressForm({ open: false, index: null, values: {} });
+    toast.success(index === null ? "New address added" : "Address updated");
   };
 
   const closeAddressForm = () => setAddressForm({ open: false, index: null, values: {} });

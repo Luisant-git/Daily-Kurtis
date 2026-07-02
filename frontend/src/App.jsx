@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { RecentProvider } from "./context/RecentContext";
@@ -48,23 +49,7 @@ export default function App() {
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
-            <Toaster
-              position="bottom-right"
-              toastOptions={{
-                style: {
-                  background: "#ffffff",
-                  color: "#1c1c1c",
-                  border: "1px solid #E9E5E5",
-                  borderRadius: "12px",
-                  padding: "12px 16px",
-                  fontSize: "13px",
-                  fontFamily: "Poppins, sans-serif",
-                  boxShadow: "0 10px 30px -10px rgba(128,0,0,0.15)",
-                },
-                success: { iconTheme: { primary: "#16A34A", secondary: "#ffffff" } },
-                error: { iconTheme: { primary: "#DC2626", secondary: "#ffffff" } },
-              }}
-            />
+            <ToastContainer position="top-right" autoClose={2000} />
           </RecentProvider>
         </WishlistProvider>
       </CartProvider>

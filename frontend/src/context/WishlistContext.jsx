@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 
 const WishlistCtx = createContext(null);
 const KEY = "dk_wishlist_v1";

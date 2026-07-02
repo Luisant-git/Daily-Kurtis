@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { Mail, Phone, MapPin, Send, MessageCircle } from "lucide-react";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import Button from "../components/ui/Button";
 import { SITE } from "../data/site.js";

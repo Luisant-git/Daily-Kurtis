@@ -16,7 +16,7 @@ const SOCIALS = [
 import Logo from "../ui/Logo";
 import { SITE } from "../../data/site.js";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 
 export default function Footer() {
   const [email, setEmail] = useState("");

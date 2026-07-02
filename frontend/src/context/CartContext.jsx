@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 
 const Ctx = createContext(null);
 

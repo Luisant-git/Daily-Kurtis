@@ -6,7 +6,7 @@ import Empty from "../components/ui/Empty";
 import Button from "../components/ui/Button";
 import { formatINR } from "../components/ui/Price";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 
 export default function Cart() {
   const { items, updateQty, removeFromCart, subtotal } = useCart();

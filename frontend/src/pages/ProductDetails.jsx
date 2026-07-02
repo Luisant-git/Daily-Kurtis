@@ -12,7 +12,7 @@ import ProductCard from "../components/product/ProductCard";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useRecent } from "../context/RecentContext";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import { REVIEWS } from "../data/site.js";
 
 export default function ProductDetails() {
