@@ -8,7 +8,6 @@ import { useWishlist } from "../../context/WishlistContext";
 
 const LINKS = [
   { to: "/", label: "Home" },
-  { to: "/shop", label: "Shop" },
   { to: "/categories", label: "Categories" },
   { to: "/shop?filter=new", label: "New Arrivals" },
   { to: "/shop?filter=bestseller", label: "Top Selling" },
@@ -42,6 +41,20 @@ export default function Navbar() {
   const headerBg = solid
     ? "bg-white/95 backdrop-blur border-b border-[#E9E5E5] shadow-sm"
     : "bg-transparent";
+
+  const isLinkActive = (link) => {
+    const pathname = location.pathname;
+    const search = location.search;
+
+    if (link.to === "/") return pathname === "/";
+    if (link.to.startsWith("/shop")) {
+      if (search.includes("filter=new")) return link.to.includes("filter=new");
+      if (search.includes("filter=bestseller")) return link.to.includes("filter=bestseller");
+      return pathname === "/shop";
+    }
+
+    return pathname === link.to;
+  };
 
   const submit = (e) => {
     e.preventDefault();
@@ -96,10 +109,10 @@ export default function Navbar() {
                 <NavLink
                   key={l.to}
                   to={l.to}
-                  end={l.to === "/"}
-                  className={({ isActive }) =>
+                  end={false}
+                  className={() =>
                     `relative text-[13px] tracking-wide font-medium transition-colors ${
-                      isActive ? "text-[#D4AF37]" : navTextColor + " hover:text-[#D4AF37]"
+                      isLinkActive(l) ? "text-[#D4AF37]" : navTextColor + " hover:text-[#D4AF37]"
                     }`
                   }
                 >

@@ -10,6 +10,8 @@ export default function ProductCard({ product, onQuickView }) {
   const { toggle, has } = useWishlist();
   const { addToCart } = useCart();
   const liked = has(product.id);
+  const primaryImage = product.images?.[0] || product.thumbnail || "";
+  const secondaryImage = product.images?.[1] || primaryImage;
 
   return (
     <motion.div
@@ -21,13 +23,13 @@ export default function ProductCard({ product, onQuickView }) {
     >
       <Link to={`/product/${product.slug}`} className="block relative aspect-[4/5] overflow-hidden zoom-wrap bg-[#FAF6F4]">
         <img
-          src={product.images[0]}
+          src={primaryImage}
           alt={product.name}
           loading="lazy"
           className="zoom-img absolute inset-0 w-full h-full object-cover"
         />
         <img
-          src={product.images[1]}
+          src={secondaryImage}
           alt=""
           loading="lazy"
           className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700"

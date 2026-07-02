@@ -16,9 +16,12 @@ const HERO_SLIDES = [
 ];
 export default function Home() {
   const [current, setCurrent] = useState(0);
-  const trending = PRODUCTS.filter((p) => p.featured).slice(0, 8);
   const newArrivals = PRODUCTS.filter((p) => p.newArrival).slice(0, 4);
-  const bestSellers = PRODUCTS.filter((p) => p.bestSeller).slice(0, 4);
+  const bestSellers = [
+    ...PRODUCTS.filter((p) => p.name === "Naina Office Essential"),
+    ...PRODUCTS.filter((p) => p.bestSeller && p.name !== "Naina Office Essential"),
+    ...PRODUCTS.filter((p) => p.featured && !p.bestSeller && p.name !== "Naina Office Essential"),
+  ].slice(0, 4);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -137,7 +140,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {trending.slice(0, 4).map((p) => (
+            {bestSellers.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>

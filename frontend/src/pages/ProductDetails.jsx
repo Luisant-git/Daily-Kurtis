@@ -47,6 +47,8 @@ export default function ProductDetails() {
 
   const related = getRelatedProducts(product, 4);
   const liked = has(product.id);
+  const galleryImages = product.images?.length ? product.images : [product.thumbnail || ""];
+  const activeImage = galleryImages[activeImg] || galleryImages[0];
 
   const handleAdd = () => {
     if (!size || !color) return toast.error("Please select size and color");
@@ -70,7 +72,7 @@ export default function ProductDetails() {
         {/* Gallery */}
         <div className="flex flex-col-reverse lg:flex-row gap-4">
           <div className="lg:w-20 flex lg:flex-col gap-3 overflow-x-auto no-scrollbar">
-            {product.images.map((img, i) => (
+            {galleryImages.map((img, i) => (
               <button
                 key={i}
                 onClick={() => setActiveImg(i)}
@@ -91,7 +93,7 @@ export default function ProductDetails() {
             onMouseLeave={() => setZoom((z) => ({ ...z, active: false }))}
           >
             <img
-              src={product.images[activeImg]}
+              src={activeImage}
               alt={product.name}
               className="w-full h-full object-cover transition-transform duration-300"
               style={{
