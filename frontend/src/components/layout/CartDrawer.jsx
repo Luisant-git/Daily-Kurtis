@@ -97,10 +97,10 @@ export default function CartDrawer() {
                   <span className="font-semibold text-[#1c1c1c]">₹{subtotal.toLocaleString("en-IN")}</span>
                 </div>
                 <div className="mt-3 sm:mt-4 grid gap-2 sm:gap-3">
-                  <Link to="/cart" className="block text-center rounded-full bg-[#800000] text-white py-2 sm:py-3 text-xs sm:text-sm font-medium">
+                  <Link to="/cart" onClick={closeDrawer} className="block text-center rounded-full bg-[#800000] text-white py-2 sm:py-3 text-xs sm:text-sm font-medium">
                     View Bag
                   </Link>
-                  <Link to="/checkout" className="block text-center rounded-full border border-[#800000] text-[#800000] py-2 sm:py-3 text-xs sm:text-sm font-medium">
+                  <Link to="/checkout" onClick={closeDrawer} className="block text-center rounded-full border border-[#800000] text-[#800000] py-2 sm:py-3 text-xs sm:text-sm font-medium">
                     Checkout
                   </Link>
                 </div>

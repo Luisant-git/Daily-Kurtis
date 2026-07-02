@@ -53,7 +53,7 @@ export default function ProductDetails() {
 
   const handleAdd = ({ showToast = true, goToCheckout = false } = {}) => {
     if (!size || !color) return toast.error("Please select size and color");
-    addToCart(product, size, color, qty, { showToast });
+    addToCart(product, size, color, qty, { showToast, openDrawer: !goToCheckout });
     if (goToCheckout) navigate("/checkout");
   };
 

@@ -63,64 +63,72 @@ export default function Footer() {
       </div>
 
       {/* Main */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-        <div className="lg:col-span-1 self-start">
-          <div className="[&_*]:text-white">
-            <Logo variant="light" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          {/* Column 1 - Logo Section with top padding to align with others */}
+          <div className="pt-[5px]">
+            <div className="[&_*]:text-white">
+              <Logo variant="light" />
+            </div>
+            <p className="text-sm text-neutral-400 mt-5 leading-relaxed">
+              Crafting timeless ethnic elegance for the modern woman. Discover our
+              handpicked collection of kurthis, anarkalis and festive sets.
+            </p>
+            <div className="flex items-center gap-3 mt-6">
+              {SOCIALS.map((s) => (
+                <a
+                  href="#"
+                  key={s.label}
+                  aria-label={s.label}
+                  className="h-9 w-9 rounded-full border border-white/15 flex items-center justify-center hover:bg-[#D4AF37] hover:border-[#D4AF37] transition"
+                >
+                  <SocialIcon d={s.d} label={s.label} />
+                </a>
+              ))}
+            </div>
           </div>
-          <p className="text-sm text-neutral-400 mt-5 leading-relaxed">
-            Crafting timeless ethnic elegance for the modern woman. Discover our
-            handpicked collection of kurthis, anarkalis and festive sets.
-          </p>
-          <div className="flex items-center gap-3 mt-6">
-            {SOCIALS.map((s) => (
-              <a
-                href="#"
-                key={s.label}
-                aria-label={s.label}
-                className="h-9 w-9 rounded-full border border-white/15 flex items-center justify-center hover:bg-[#D4AF37] hover:border-[#D4AF37] transition"
-              >
-                <SocialIcon d={s.d} label={s.label} />
-              </a>
-            ))}
-          </div>
-        </div>
 
-        <div className="lg:col-span-1">
-          <FooterCol
-            title="Shop"
-            items={[
-              { l: "All Kurthis", to: "/shop" },
-              { l: "Anarkali", to: "/categories" },
-              { l: "Cotton Kurthis", to: "/categories" },
-              { l: "Festive", to: "/categories" },
-              { l: "Plus Size", to: "/categories" },
-            ]}
-          />
-        </div>
-        <div className="lg:col-span-1">
-          <FooterCol
-            title="Customer Service"
-            items={[
-              { l: "Contact Us", to: "/contact" },
-              { l: "FAQs", to: "/faq" },
-              { l: "Shipping Policy", to: "/shipping-policy" },
-              { l: "Returns & Refunds", to: "/returns" },
-              { l: "Size Guide", to: "/faq" },
-            ]}
-          />
-        </div>
-        <div className="lg:col-span-1">
-          <FooterCol
-            title="Company"
-            items={[
-              { l: "About Us", to: "/about" },
-              { l: "Privacy Policy", to: "/privacy" },
-              { l: "Terms & Conditions", to: "/terms" },
-              { l: "My Orders", to: "/orders" },
-              { l: "Wishlist", to: "/wishlist" },
-            ]}
-          />
+          {/* Column 2 */}
+          <div>
+            <FooterCol
+              title="Shop"
+              items={[
+                { l: "All Kurthis", to: "/shop" },
+                { l: "Anarkali", to: "/categories" },
+                { l: "Cotton Kurthis", to: "/categories" },
+                { l: "Festive", to: "/categories" },
+                { l: "Plus Size", to: "/categories" },
+              ]}
+            />
+          </div>
+
+          {/* Column 3 */}
+          <div>
+            <FooterCol
+              title="Customer Service"
+              items={[
+                { l: "Contact Us", to: "/contact" },
+                { l: "FAQs", to: "/faq" },
+                { l: "Shipping Policy", to: "/shipping-policy" },
+                { l: "Returns & Refunds", to: "/returns" },
+                { l: "Size Guide", to: "/faq" },
+              ]}
+            />
+          </div>
+
+          {/* Column 4 */}
+          <div>
+            <FooterCol
+              title="Company"
+              items={[
+                { l: "About Us", to: "/about" },
+                { l: "Privacy Policy", to: "/privacy" },
+                { l: "Terms & Conditions", to: "/terms" },
+                { l: "My Orders", to: "/orders" },
+                { l: "Wishlist", to: "/wishlist" },
+              ]}
+            />
+          </div>
         </div>
       </div>
 
@@ -167,7 +175,7 @@ export default function Footer() {
 
 function FooterCol({ title, items }) {
   return (
-    <div>
+    <>
       <h4 className="text-white text-sm uppercase tracking-wider font-medium mb-4">{title}</h4>
       <ul className="space-y-3">
         {items.map((i) => (
@@ -178,6 +186,6 @@ function FooterCol({ title, items }) {
           </li>
         ))}
       </ul>
-    </div>
+    </>
   );
 }
