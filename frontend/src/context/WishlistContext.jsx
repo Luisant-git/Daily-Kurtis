@@ -18,15 +18,22 @@ export function WishlistProvider({ children }) {
     localStorage.setItem(KEY, JSON.stringify(items));
   }, [items]);
 
-  const toggle = (p) => {
-    setItems((prev) => {
-      if (prev.find((x) => x.id === p.id)) {
-        toast("Removed from wishlist", { icon: "💔" });
-        return prev.filter((x) => x.id !== p.id);
-      }
-      toast.success("Saved to wishlist");
-      return [...prev, p];
-    });
+  const toggle = (p, options = {}) => {
+    const { showToast = true } = options;
+    const toastId = "wishlist-toast";
+    const exists = items.some((x) => x.id === p.id);
+    const nextItems = exists ? items.filter((x) => x.id !== p.id) : [...items, p];
+
+    setItems(nextItems);
+
+    if (!showToast) return;
+
+    toast.dismiss(toastId);
+    if (exists) {
+      toast("Removed from wishlist", { id: toastId, icon: "💔" });
+    } else {
+      toast.success("Saved to wishlist", { id: toastId });
+    }
   };
 
   const has = (id) => items.some((x) => x.id === id);

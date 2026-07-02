@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Heart, Minus, Plus, Truck, ShieldCheck, RefreshCcw, Share2, Check, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { getProductBySlug, getRelatedProducts } from "../data/products.js";
@@ -21,6 +21,7 @@ export default function ProductDetails() {
   const { addToCart } = useCart();
   const { toggle, has } = useWishlist();
   const { push } = useRecent();
+  const navigate = useNavigate();
   const [activeImg, setActiveImg] = useState(0);
   const [size, setSize] = useState(null);
   const [color, setColor] = useState(null);
@@ -50,9 +51,10 @@ export default function ProductDetails() {
   const galleryImages = product.images?.length ? product.images : [product.thumbnail || ""];
   const activeImage = galleryImages[activeImg] || galleryImages[0];
 
-  const handleAdd = () => {
+  const handleAdd = ({ showToast = true, goToCheckout = false } = {}) => {
     if (!size || !color) return toast.error("Please select size and color");
-    addToCart(product, size, color, qty);
+    addToCart(product, size, color, qty, { showToast });
+    if (goToCheckout) navigate("/checkout");
   };
 
   return (
@@ -189,23 +191,27 @@ export default function ProductDetails() {
           </div>
 
           {/* Actions */}
-          <div className="mt-7 flex flex-col sm:flex-row gap-3">
-            <Button size="lg" onClick={handleAdd} className="flex-1">Add to Bag</Button>
-            <Button size="lg" variant="gold" onClick={() => { handleAdd(); }}>Buy Now</Button>
-            <button
-              onClick={() => toggle(product)}
-              className="h-14 w-14 rounded-full border border-[#E9E5E5] flex items-center justify-center hover:border-[#800000] transition"
-              aria-label="Wishlist"
-            >
-              <Heart size={18} className={liked ? "fill-[#800000] text-[#800000]" : "text-[#800000]"} />
-            </button>
-            <button
-              onClick={() => { navigator.clipboard?.writeText(window.location.href); toast.success("Link copied"); }}
-              className="h-14 w-14 rounded-full border border-[#E9E5E5] flex items-center justify-center hover:border-[#800000] transition"
-              aria-label="Share"
-            >
-              <Share2 size={16} />
-            </button>
+          <div className="mt-7 flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button size="lg" onClick={() => handleAdd({ showToast: true })} className="w-full sm:flex-1">Add to Bag</Button>
+              <Button size="lg" variant="gold" onClick={() => handleAdd({ showToast: false, goToCheckout: true })} className="w-full sm:flex-1">Buy Now</Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => toggle(product)}
+                className="h-14 flex-1 rounded-full border border-[#E9E5E5] flex items-center justify-center hover:border-[#800000] transition"
+                aria-label="Wishlist"
+              >
+                <Heart size={18} className={liked ? "fill-[#800000] text-[#800000]" : "text-[#800000]"} />
+              </button>
+              <button
+                onClick={() => { navigator.clipboard?.writeText(window.location.href); toast.success("Link copied"); }}
+                className="h-14 flex-1 rounded-full border border-[#E9E5E5] flex items-center justify-center hover:border-[#800000] transition"
+                aria-label="Share"
+              >
+                <Share2 size={16} />
+              </button>
+            </div>
           </div>
 
           {/* USPs */}

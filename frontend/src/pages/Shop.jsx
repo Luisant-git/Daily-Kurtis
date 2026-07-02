@@ -150,7 +150,17 @@ export default function Shop() {
       {/* Header */}
       <div className="bg-[#FAF6F4] border-b border-[#E9E5E5]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
-          <Breadcrumb items={[{ label: "Home", to: "/" }, { label: "Shop" }]} />
+          {
+            (() => {
+              const crumbs = [{ label: "Home", to: "/" }];
+              if (initialFilter === "new") crumbs.push({ label: "New Arrivals" });
+              else if (initialFilter === "bestseller") crumbs.push({ label: "Top Selling" });
+              else if (initialCategory) crumbs.push({ label: initialCategory });
+              else if (initialOccasion) crumbs.push({ label: initialOccasion });
+              else crumbs.push({ label: "Collection" });
+              return <Breadcrumb items={crumbs} />;
+            })()
+          }
           <div className="mt-4 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
             <div>
               <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-[#1c1c1c]">Our Collection</h1>

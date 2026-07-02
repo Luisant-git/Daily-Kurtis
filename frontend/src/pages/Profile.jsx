@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { User, MapPin, Package, Heart, Edit2, Plus, LogOut } from "lucide-react";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import { useWishlist } from "../context/WishlistContext";
@@ -18,8 +18,44 @@ const ADDRESSES = [
 ];
 
 export default function Profile() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState("profile");
   const { items: wishlist } = useWishlist();
+  const [profileData, setProfileData] = useState({
+    fullName: "Anaya Sharma",
+    email: "anaya@example.com",
+    phone: "+91 98765 43210",
+    dob: "14 Aug 1995",
+    gender: "Female",
+    currency: "₹ INR",
+  });
+  const [editProfileForm, setEditProfileForm] = useState({ open: false, values: { ...profileData } });
+  const [addresses, setAddresses] = useState(ADDRESSES);
+  const [addressForm, setAddressForm] = useState({ open: false, index: null, values: {} });
+
+  const openEditProfile = () => setEditProfileForm({ open: true, values: { ...profileData } });
+  const closeEditProfile = () => setEditProfileForm({ open: false, values: { ...profileData } });
+  const saveProfile = () => {
+    setProfileData(editProfileForm.values);
+    closeEditProfile();
+  };
+
+  const openAddressForm = (index = null) => {
+    if (index === null) {
+      setAddressForm({ open: true, index: null, values: { type: "Home", name: "", line: "", city: "", phone: "" } });
+    } else {
+      setAddressForm({ open: true, index, values: { ...addresses[index] } });
+    }
+  };
+
+  const saveAddress = () => {
+    const { index, values } = addressForm;
+    if (index === null) setAddresses((s) => [values, ...s]);
+    else setAddresses((s) => s.map((a, i) => (i === index ? values : a)));
+    setAddressForm({ open: false, index: null, values: {} });
+  };
+
+  const closeAddressForm = () => setAddressForm({ open: false, index: null, values: {} });
 
   return (
     <div>
@@ -27,7 +63,7 @@ export default function Profile() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <Breadcrumb items={[{ label: "Home", to: "/" }, { label: "My Account" }]} />
           <h1 className="font-display text-3xl sm:text-4xl mt-3">My Account</h1>
-          <p className="text-sm text-neutral-600 mt-2">Welcome back, Anaya ✨</p>
+          <p className="text-sm text-neutral-600 mt-2">Welcome back, {profileData.fullName} ✨</p>
         </div>
       </div>
 
@@ -37,7 +73,7 @@ export default function Profile() {
           <div className="flex items-center gap-3 pb-5 border-b border-[#E9E5E5]">
             <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" className="w-12 h-12 rounded-full object-cover" alt="" />
             <div>
-              <p className="font-medium">Anaya Sharma</p>
+              <p className="font-medium">{profileData.fullName}</p>
               <p className="text-xs text-neutral-500">Member since 2024</p>
             </div>
           </div>
@@ -45,7 +81,10 @@ export default function Profile() {
             {TABS.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setTab(t.id)}
+                onClick={() => {
+                  if (t.id === "orders") return navigate("/orders");
+                  setTab(t.id);
+                }}
                 className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${
                   tab === t.id ? "bg-[#FFF8F8] text-[#800000] font-medium" : "text-neutral-600 hover:bg-[#FAF6F4]"
                 }`}
@@ -65,22 +104,78 @@ export default function Profile() {
             <div className="bg-white border border-[#E9E5E5] rounded-2xl p-6 sm:p-8">
               <h2 className="font-display text-2xl">Personal Information</h2>
               <div className="mt-6 grid sm:grid-cols-2 gap-5">
-                <Info label="Full Name" value="Anaya Sharma" />
-                <Info label="Email" value="anaya@example.com" />
-                <Info label="Phone" value="+91 98765 43210" />
-                <Info label="Date of Birth" value="14 Aug 1995" />
-                <Info label="Gender" value="Female" />
-                <Info label="Default Currency" value="₹ INR" />
+                <Info label="Full Name" value={profileData.fullName} />
+                <Info label="Email" value={profileData.email} />
+                <Info label="Phone" value={profileData.phone} />
+                <Info label="Date of Birth" value={profileData.dob} />
+                <Info label="Gender" value={profileData.gender} />
+                <Info label="Default Currency" value={profileData.currency} />
               </div>
-              <button className="mt-6 inline-flex items-center gap-2 text-sm text-[#800000] font-medium hover:underline">
+              <button onClick={openEditProfile} className="mt-6 inline-flex items-center gap-2 text-sm text-[#800000] font-medium hover:underline">
                 <Edit2 size={14} /> Edit Profile
               </button>
+
+              {editProfileForm.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
+                  <div className="w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl">
+                    <div className="flex items-center justify-between gap-4 mb-5">
+                      <div>
+                        <h3 className="font-display text-xl">Edit Profile</h3>
+                        <p className="text-sm text-neutral-500">Update your account details.</p>
+                      </div>
+                      <button onClick={closeEditProfile} className="text-neutral-500 hover:text-[#800000]">Cancel</button>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <input
+                        className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
+                        placeholder="Full name"
+                        value={editProfileForm.values.fullName}
+                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, fullName: e.target.value } }))}
+                      />
+                      <input
+                        className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
+                        placeholder="Email"
+                        value={editProfileForm.values.email}
+                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, email: e.target.value } }))}
+                      />
+                      <input
+                        className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
+                        placeholder="Phone"
+                        value={editProfileForm.values.phone}
+                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, phone: e.target.value } }))}
+                      />
+                      <input
+                        className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
+                        placeholder="Date of Birth"
+                        value={editProfileForm.values.dob}
+                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, dob: e.target.value } }))}
+                      />
+                      <input
+                        className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
+                        placeholder="Gender"
+                        value={editProfileForm.values.gender}
+                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, gender: e.target.value } }))}
+                      />
+                      <input
+                        className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
+                        placeholder="Currency"
+                        value={editProfileForm.values.currency}
+                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, currency: e.target.value } }))}
+                      />
+                    </div>
+                    <div className="mt-5 flex justify-end gap-2">
+                      <button onClick={closeEditProfile} className="px-4 py-2 border rounded">Cancel</button>
+                      <button onClick={saveProfile} className="px-4 py-2 bg-[#800000] text-white rounded">Save Changes</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {tab === "address" && (
             <div className="space-y-4">
-              {ADDRESSES.map((a, i) => (
+              {addresses.map((a, i) => (
                 <div key={i} className="bg-white border border-[#E9E5E5] rounded-2xl p-6">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -90,19 +185,38 @@ export default function Profile() {
                       <p className="text-sm text-neutral-600">{a.city}</p>
                       <p className="text-sm text-neutral-500 mt-1">{a.phone}</p>
                     </div>
-                    <button className="text-sm text-[#800000] flex items-center gap-1.5"><Edit2 size={13} /> Edit</button>
+                    <button onClick={() => openAddressForm(i)} className="text-sm text-[#800000] flex items-center gap-1.5"><Edit2 size={13} /> Edit</button>
                   </div>
                 </div>
               ))}
-              <button className="w-full bg-white border-2 border-dashed border-[#E9E5E5] rounded-2xl py-6 text-sm text-[#800000] inline-flex items-center justify-center gap-2 hover:border-[#800000]">
+              <button onClick={() => openAddressForm(null)} className="w-full bg-white border-2 border-dashed border-[#E9E5E5] rounded-2xl py-6 text-sm text-[#800000] inline-flex items-center justify-center gap-2 hover:border-[#800000]">
                 <Plus size={16} /> Add New Address
               </button>
+
+              {addressForm.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                  <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                    <h3 className="font-medium mb-3">{addressForm.index === null ? "Add Address" : "Edit Address"}</h3>
+                    <div className="space-y-2">
+                      <input className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]" placeholder="Type (Home/Office)" value={addressForm.values.type} onChange={(e) => setAddressForm((s) => ({ ...s, values: { ...s.values, type: e.target.value } }))} />
+                      <input className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]" placeholder="Name" value={addressForm.values.name} onChange={(e) => setAddressForm((s) => ({ ...s, values: { ...s.values, name: e.target.value } }))} />
+                      <input className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]" placeholder="Street / Line" value={addressForm.values.line} onChange={(e) => setAddressForm((s) => ({ ...s, values: { ...s.values, line: e.target.value } }))} />
+                      <input className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]" placeholder="City, State PIN" value={addressForm.values.city} onChange={(e) => setAddressForm((s) => ({ ...s, values: { ...s.values, city: e.target.value } }))} />
+                      <input className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]" placeholder="Phone" value={addressForm.values.phone} onChange={(e) => setAddressForm((s) => ({ ...s, values: { ...s.values, phone: e.target.value } }))} />
+                    </div>
+                    <div className="mt-4 flex justify-end gap-2">
+                      <button onClick={closeAddressForm} className="px-4 py-2 border rounded">Cancel</button>
+                      <button onClick={saveAddress} className="px-4 py-2 bg-[#800000] text-white rounded">Save</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {tab === "orders" && (
             <div className="bg-white border border-[#E9E5E5] rounded-2xl p-6">
-              <p className="text-sm text-neutral-600">View your complete order history.</p>
+              <p className="text-sm text-neutral-600">Redirecting to your orders page...</p>
               <Link to="/orders" className="inline-block mt-4 text-sm text-[#800000] font-medium underline">Go to My Orders →</Link>
             </div>
           )}
@@ -112,7 +226,7 @@ export default function Profile() {
               {wishlist.length === 0 ? (
                 <div className="bg-white border border-[#E9E5E5] rounded-2xl p-10 text-center">
                   <p className="text-neutral-500">No items in wishlist yet.</p>
-                  <Link to="/shop" className="inline-block mt-4 text-sm text-[#800000] underline">Start shopping</Link>
+                    <Link to="/shop?filter=bestseller" className="inline-block mt-4 text-sm text-[#800000] underline">Start shopping</Link>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">

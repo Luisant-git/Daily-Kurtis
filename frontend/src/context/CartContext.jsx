@@ -19,7 +19,10 @@ export function CartProvider({ children }) {
     localStorage.setItem(KEY, JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (p, size, color, qty = 1) => {
+  const addToCart = (p, size, color, qty = 1, options = {}) => {
+    const { showToast = true } = options;
+    const toastId = "cart-toast";
+
     setItems((prev) => {
       const idx = prev.findIndex(
         (i) => i.product.id === p.id && i.size === size && i.color === color
@@ -31,14 +34,19 @@ export function CartProvider({ children }) {
       }
       return [...prev, { product: p, size, color, quantity: qty }];
     });
-    toast.success(`${p.name} added to bag`);
+
+    if (showToast) {
+      toast.dismiss(toastId);
+      toast.success(`${p.name} added to bag`, { id: toastId, duration: 1800 });
+    }
   };
 
   const removeFromCart = (id, size, color) => {
     setItems((prev) =>
       prev.filter((i) => !(i.product.id === id && i.size === size && i.color === color))
     );
-    toast("Removed from bag", { icon: "🗑️" });
+    toast.dismiss("cart-toast");
+    toast("Removed from bag", { id: "cart-toast", icon: "🗑️" });
   };
 
   const updateQty = (id, size, color, qty) => {

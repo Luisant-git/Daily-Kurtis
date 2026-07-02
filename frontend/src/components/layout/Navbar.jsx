@@ -8,9 +8,11 @@ import { useWishlist } from "../../context/WishlistContext";
 
 const LINKS = [
   { to: "/", label: "Home" },
+  { to: "/about", label: "About" },
   { to: "/categories", label: "Categories" },
   { to: "/shop?filter=new", label: "New Arrivals" },
   { to: "/shop?filter=bestseller", label: "Top Selling" },
+  { to: "/contact", label: "Contact" },
 ];
 
 export default function Navbar() {

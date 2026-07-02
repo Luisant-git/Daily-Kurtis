@@ -79,6 +79,8 @@ export default function Orders() {
         {DUMMY_ORDERS.map((o) => {
           const Icon = STATUS_ICONS[o.status];
           const isOpen = open === o.id;
+          const items = (o.items || []).filter(Boolean);
+          const displayItems = items.slice(0, 2);
           return (
             <div key={o.id} className="bg-white border border-[#E9E5E5] rounded-2xl overflow-hidden">
               <button
@@ -86,8 +88,13 @@ export default function Orders() {
                 className="w-full p-5 sm:p-6 flex items-center gap-4 text-left hover:bg-[#FAF6F4] transition"
               >
                 <div className="flex -space-x-3">
-                  {o.items.slice(0, 2).map((p) => (
-                    <img key={p.id} src={p.images[0]} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white" alt="" />
+                  {displayItems.map((p) => (
+                    <img
+                      key={p.id || p.name}
+                      src={p?.images?.[0] || p?.thumbnail || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=200&q=80"}
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white"
+                      alt=""
+                    />
                   ))}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -97,7 +104,7 @@ export default function Orders() {
                       <Icon size={11} /> {o.status}
                     </span>
                   </div>
-                  <p className="text-xs text-neutral-500 mt-0.5">{o.items.length} items · {o.date}</p>
+                  <p className="text-xs text-neutral-500 mt-0.5">{items.length} items · {o.date}</p>
                 </div>
                 <div className="hidden sm:block text-right">
                   <p className="font-semibold text-[#800000]">{formatINR(o.total)}</p>
@@ -114,14 +121,18 @@ export default function Orders() {
                       <div>
                         <p className="text-xs uppercase tracking-wider text-neutral-500 mb-3">Items</p>
                         <div className="space-y-3">
-                          {o.items.map((i) => (
-                            <div key={i.id} className="flex gap-3">
-                              <img src={i.images[0]} className="w-14 aspect-[4/5] object-cover rounded-lg" alt="" />
+                          {items.map((i) => (
+                            <div key={i.id || i.name} className="flex gap-3">
+                              <img
+                                src={i?.images?.[0] || i?.thumbnail || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=200&q=80"}
+                                className="w-14 aspect-[4/5] object-cover rounded-lg"
+                                alt=""
+                              />
                               <div className="flex-1">
-                                <p className="text-sm font-medium">{i.name}</p>
-                                <p className="text-xs text-neutral-500">{i.category}</p>
+                                <p className="text-sm font-medium">{i?.name || "Product"}</p>
+                                <p className="text-xs text-neutral-500">{i?.category || "Curated item"}</p>
                               </div>
-                              <p className="text-sm font-semibold text-[#800000]">{formatINR(i.discountPrice)}</p>
+                              <p className="text-sm font-semibold text-[#800000]">{formatINR(i?.discountPrice || 0)}</p>
                             </div>
                           ))}
                         </div>

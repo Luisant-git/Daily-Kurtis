@@ -133,7 +133,7 @@ export default function Home() {
               subtitle="Hand-picked by our style team — pieces that define this season's mood."
             />
             <Link
-              to="/shop"
+              to="/shop?filter=popular"
               className="hidden sm:inline-flex items-center gap-2 text-sm text-[#800000] hover:text-[#5c0000] font-medium"
             >
               View all <ArrowRight size={14} />
@@ -165,8 +165,8 @@ export default function Home() {
                 Refresh your festive wardrobe with our hand-picked sale edit.
                 Use code <span className="font-semibold text-[#D4AF37]">DAILY30</span> at checkout.
               </p>
-              <Link to="/shop" className="inline-block mt-7">
-                <Button variant="gold">Shop the Sale</Button>
+              <Link to="/shop?filter=bestseller" className="inline-block mt-7">
+                <Button variant="gold">View the Sale</Button>
               </Link>
             </div>
             <div className="relative hidden md:block">
@@ -194,7 +194,7 @@ export default function Home() {
             ))}
           </div>
           <div className="text-center mt-10">
-            <Link to="/shop">
+            <Link to="/shop?filter=new">
               <Button variant="outline">Explore All</Button>
             </Link>
           </div>
