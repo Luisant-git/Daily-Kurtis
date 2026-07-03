@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { useAuth } from "./AuthContext";
 
 const Ctx = createContext(null);
 
@@ -15,6 +16,7 @@ export function CartProvider({ children }) {
     }
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { isLoggedIn, openLoginModal } = useAuth();
 
   useEffect(() => {
     localStorage.setItem(KEY, JSON.stringify(items));
@@ -26,6 +28,11 @@ export function CartProvider({ children }) {
   const addToCart = (p, size, color, qty = 1, options = {}) => {
     const { showToast = true } = options;
     const toastId = "cart-toast";
+
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
 
     setItems((prev) => {
       const idx = prev.findIndex(
@@ -50,6 +57,10 @@ export function CartProvider({ children }) {
   };
 
   const removeFromCart = (id, size, color) => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
     setItems((prev) =>
       prev.filter((i) => !(i.product.id === id && i.size === size && i.color === color))
     );
@@ -58,6 +69,10 @@ export function CartProvider({ children }) {
   };
 
   const updateQty = (id, size, color, qty) => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
     setItems((prev) =>
       prev
         .map((i) =>
@@ -68,7 +83,13 @@ export function CartProvider({ children }) {
     );
   };
 
-  const clearCart = () => setItems([]);
+  const clearCart = () => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+    setItems([]);
+  };
 
   const subtotal = useMemo(
     () => items.reduce((s, i) => s + i.product.discountPrice * i.quantity, 0),

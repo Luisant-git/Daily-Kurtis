@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useAuth } from "./AuthContext";
 
 const WishlistCtx = createContext(null);
 const KEY = "dk_wishlist_v1";
@@ -13,6 +14,7 @@ export function WishlistProvider({ children }) {
       return [];
     }
   });
+  const { isLoggedIn, openLoginModal } = useAuth();
 
   useEffect(() => {
     localStorage.setItem(KEY, JSON.stringify(items));
@@ -21,6 +23,12 @@ export function WishlistProvider({ children }) {
   const toggle = (p, options = {}) => {
     const { showToast = true } = options;
     const toastId = "wishlist-toast";
+
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+
     const exists = items.some((x) => x.id === p.id);
     const nextItems = exists ? items.filter((x) => x.id !== p.id) : [...items, p];
 
@@ -37,8 +45,20 @@ export function WishlistProvider({ children }) {
   };
 
   const has = (id) => items.some((x) => x.id === id);
-  const remove = (id) => setItems((p) => p.filter((x) => x.id !== id));
-  const clear = () => setItems([]);
+  const remove = (id) => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+    setItems((p) => p.filter((x) => x.id !== id));
+  };
+  const clear = () => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+    setItems([]);
+  };
 
   return (
     <WishlistCtx.Provider value={{ items, toggle, has, remove, clear }}>

@@ -202,7 +202,7 @@ export default function Home() {
       </section>
 
       
-      {/* SHOP BY OCCASION */}
+      {/* SHOP BY OCCASION
       <section className="py-20 lg:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading
@@ -233,7 +233,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* WHY CHOOSE US */}
       <section className="py-20 lg:py-28 bg-white">

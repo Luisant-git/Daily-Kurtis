@@ -12,7 +12,7 @@ import ProductCard from "../components/product/ProductCard";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useRecent } from "../context/RecentContext";
-import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 import { REVIEWS } from "../data/site.js";
 
 export default function ProductDetails() {
@@ -21,6 +21,7 @@ export default function ProductDetails() {
   const { addToCart } = useCart();
   const { toggle, has } = useWishlist();
   const { push } = useRecent();
+  const { isLoggedIn, openLoginModal } = useAuth();
   const navigate = useNavigate();
   const [activeImg, setActiveImg] = useState(0);
   const [size, setSize] = useState(null);
@@ -52,7 +53,11 @@ export default function ProductDetails() {
   const activeImage = galleryImages[activeImg] || galleryImages[0];
 
   const handleAdd = ({ showToast = true, goToCheckout = false } = {}) => {
-    if (!size || !color) return toast.error("Please select size and color");
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+    if (!size || !color) return;
     addToCart(product, size, color, qty, { showToast, openDrawer: !goToCheckout });
     if (goToCheckout) navigate("/checkout");
   };
@@ -198,7 +203,13 @@ export default function ProductDetails() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => toggle(product)}
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    openLoginModal();
+                    return;
+                  }
+                  toggle(product);
+                }}
                 className="h-14 flex-1 rounded-full border border-[#E9E5E5] flex items-center justify-center hover:border-[#800000] transition"
                 aria-label="Wishlist"
               >

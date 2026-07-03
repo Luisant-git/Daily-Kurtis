@@ -3,12 +3,14 @@ import { motion } from "framer-motion";
 import { Heart, ShoppingBag, Eye } from "lucide-react";
 import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 import Rating from "../ui/Rating";
 import Price from "../ui/Price";
 
 export default function ProductCard({ product, onQuickView }) {
   const { toggle, has } = useWishlist();
   const { addToCart } = useCart();
+  const { isLoggedIn, openLoginModal } = useAuth();
   const liked = has(product.id);
   const primaryImage = product.images?.[0] || product.thumbnail || "";
   const secondaryImage = product.images?.[1] || primaryImage;
@@ -57,6 +59,10 @@ export default function ProductCard({ product, onQuickView }) {
           aria-label="Toggle wishlist"
           onClick={(e) => {
             e.preventDefault();
+            if (!isLoggedIn) {
+              openLoginModal();
+              return;
+            }
             toggle(product);
           }}
           className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-sm hover:bg-white transition-colors"
@@ -71,6 +77,10 @@ export default function ProductCard({ product, onQuickView }) {
           <button
             onClick={(e) => {
               e.preventDefault();
+              if (!isLoggedIn) {
+                openLoginModal();
+                return;
+              }
               addToCart(product, product.sizes[0], product.colors[0].name, 1);
             }}
             className="flex-1 h-9 rounded-full bg-[#800000] text-white text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-[#5c0000] transition"
@@ -120,7 +130,13 @@ export default function ProductCard({ product, onQuickView }) {
               </div>
             </div>
             <button
-              onClick={() => addToCart(product, product.sizes[0], product.colors[0].name, 1)}
+              onClick={() => {
+                if (!isLoggedIn) {
+                  openLoginModal();
+                  return;
+                }
+                addToCart(product, product.sizes[0], product.colors[0].name, 1);
+              }}
               className="sm:hidden w-full h-10 rounded-full bg-[#800000] text-white text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-[#5c0000] transition"
             >
               <ShoppingBag size={14} /> Add to bag
