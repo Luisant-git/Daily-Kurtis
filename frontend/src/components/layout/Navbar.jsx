@@ -7,6 +7,7 @@ import Logo from "../ui/Logo";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useAuth } from "../../context/AuthContext";
+import { authApi } from "../../api/auth";
 import { CATEGORY_LIST } from "../../data/products";
 
 const LINKS = [
@@ -117,15 +118,21 @@ export default function Navbar() {
   const sendOtp = async () => {
     if (mobile.length !== 10) return;
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    if (!isMobileRegistered()) {
-      setIsNewUser(true);
+    try {
+      // Call backend API to request OTP
+      await authApi.requestOtp(mobile);
+      if (!isMobileRegistered()) {
+        setIsNewUser(true);
+      }
+      setOtpSent(true);
+      setLoginStep("otp");
+      setResendTimer(180);
+      toast.success("OTP sent to +91 " + mobile);
+    } catch (error) {
+      toast.error(error.message || "Failed to send OTP");
+    } finally {
+      setIsLoading(false);
     }
-    setOtpSent(true);
-    setLoginStep("otp");
-    setResendTimer(180);
-    toast.success("OTP sent to +91 " + mobile);
-    setIsLoading(false);
   };
 
   const resendOtp = async () => {
@@ -168,10 +175,19 @@ export default function Navbar() {
     const code = otp.join("");
     if (code.length < 4) return;
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    if (code === "1234") {
+    try {
+      // Call backend API to verify OTP and save user to database
+      const response = await authApi.verifyOtp(mobile, code, regName.trim(), regEmail.trim());
+      
+      // Extract user data from response
+      const userName = regName.trim() || response.user?.name || "";
+      const userEmail = regEmail.trim() || response.user?.email || "";
+      
+      // Login with the returned token and user data
+      await login(mobile, userName, userEmail);
+      
+      // Save to registered users list
       if (isNewUser) {
-        login(mobile, regName.trim(), regEmail.trim());
         toast.success("Account created successfully! ✨");
         try {
           const registered = JSON.parse(localStorage.getItem("dk_registered_users") || "[]");
@@ -181,17 +197,18 @@ export default function Navbar() {
           // ignore
         }
       } else {
-        login(mobile);
         toast.success("Welcome back! ✨");
       }
+      
       closeLogin();
       navigate("/profile");
-    } else {
-      toast.error("Invalid OTP. Please try again");
+    } catch (error) {
+      toast.error(error.message || "Invalid OTP. Please try again");
       setOtp(["", "", "", ""]);
       otpRefs.current[0]?.focus();
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleLogout = () => {

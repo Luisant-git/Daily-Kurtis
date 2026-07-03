@@ -50,30 +50,57 @@ export class AuthService {
   }
  
   async requestOtp(phone: string) {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // DEV MODE: Hardcoded OTP for testing - bypass WhatsApp
+    const otp = '1234'; // Hardcoded OTP for development
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
- 
+  
     await this.prisma.otp.deleteMany({ where: { phone, verified: false } });
     await this.prisma.otp.create({ data: { phone, otp, expiresAt } });
- 
-    const sent = await this.whatsappService.sendOtp(phone, otp);
-    if (!sent) throw new BadRequestException('Failed to send OTP');
- 
+  
+    // TODO: Re-enable WhatsApp OTP sending when ready
+    // const sent = await this.whatsappService.sendOtp(phone, otp);
+    // if (!sent) throw new BadRequestException('Failed to send OTP');
+  
+    // DEV: Log OTP to console for testing
+    console.log(`[DEV MODE] OTP for ${phone}: ${otp}`);
+  
     const existingUser = await this.prisma.user.findUnique({ where: { phone } });
     return { message: 'OTP sent successfully', isNewUser: !existingUser };
   }
- 
+  
   async verifyOtpAndLogin(phone: string, otp: string, name?: string, email?: string) {
-    const otpRecord = await this.prisma.otp.findFirst({
-      where: { phone, otp, verified: false },
+    // DEV MODE: Accept hardcoded OTP 1234 or any OTP from database
+    let otpRecord = await this.prisma.otp.findFirst({
+      where: { 
+        phone, 
+        verified: false 
+      },
       orderBy: { createdAt: 'desc' }
     });
- 
-    if (!otpRecord) throw new UnauthorizedException('Invalid OTP');
-    if (otpRecord.expiresAt < new Date()) throw new UnauthorizedException('OTP expired');
- 
-    await this.prisma.otp.update({ where: { id: otpRecord.id }, data: { verified: true } });
- 
+  
+    // DEV: Accept hardcoded OTP 1234
+    const isValidOtp = otp === '1234' || (otpRecord && otpRecord.otp === otp);
+    
+    if (!isValidOtp) throw new UnauthorizedException('Invalid OTP');
+    
+    // If OTP matches hardcoded value but not in DB, create/verify record
+    if (otp === '1234' && (!otpRecord || otpRecord.otp !== '1234')) {
+      await this.prisma.otp.deleteMany({ where: { phone, verified: false } });
+      const newOtpRecord = await this.prisma.otp.create({ 
+        data: { 
+          phone, 
+          otp: '1234', 
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+          verified: true 
+        } 
+      });
+      otpRecord = newOtpRecord;
+    } else if (otpRecord) {
+      // Check expiration for DB OTP
+      if (otpRecord.expiresAt < new Date()) throw new UnauthorizedException('OTP expired');
+      await this.prisma.otp.update({ where: { id: otpRecord.id }, data: { verified: true } });
+    }
+  
     let user = await this.prisma.user.findUnique({ where: { phone } });
     const isNewUser = !user;
     
@@ -87,7 +114,7 @@ export class AuthService {
         user = await this.prisma.user.update({ where: { id: user.id }, data: updateData });
       }
     }
- 
+  
     return this.generateToken(user.id, user.email || '', 'user', user.phone || undefined, user.name || undefined);
   }
 }

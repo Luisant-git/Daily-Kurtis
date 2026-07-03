@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { authApi } from "../api/auth";
+import API_BASE_URL from "../api/config";
 
 const AuthCtx = createContext(null);
 const KEY = "dk_auth_v1";
@@ -25,8 +27,17 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   const login = (mobile, name = "", email = "") => {
-    setUser({ mobile, name, email, loggedInAt: Date.now() });
-    toast.success(`Welcome ${name ? name : ""}! ✨`);
+    // User data is already verified by Navbar's verifyOtp function
+    // This function just sets the user state
+    const userData = {
+      mobile,
+      name,
+      email,
+      loggedInAt: Date.now(),
+    };
+    
+    setUser(userData);
+    toast.success(`Welcome ${name || ""}! ✨`);
   };
 
   const logout = () => {
@@ -34,9 +45,30 @@ export function AuthProvider({ children }) {
     toast.success("Logged out successfully");
   };
 
-  const updateProfile = (name, email) => {
-    setUser((prev) => ({ ...prev, name, email }));
-    toast.success("Profile updated");
+  const updateProfile = async (name, email) => {
+    try {
+      // Call backend API to update profile
+      const response = await fetch(`${API_BASE_URL}/user/profile`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify({ name, email }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
+      
+      setUser((prev) => ({ ...prev, name, email }));
+      toast.success("Profile updated");
+    } catch (error) {
+      console.error("Profile update error:", error);
+      // Fallback to local update if API fails
+      setUser((prev) => ({ ...prev, name, email }));
+      toast.success("Profile updated locally");
+    }
   };
 
   const isLoggedIn = !!user;
