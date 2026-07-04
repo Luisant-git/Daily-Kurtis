@@ -22,6 +22,7 @@ export default function Shop() {
   const initialOccasion = params.get("occasion") || "";
   const initialQuery = params.get("q") || "";
   const initialFilter = params.get("filter") || "";
+  const initialSize = params.get("size") || "";
 
   const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState(initialCategory ? [initialCategory] : []);
@@ -34,10 +35,16 @@ export default function Shop() {
   const [page, setPage] = useState(1);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Sync simple filter from URL (new / bestseller)
+  // Sync URL parameters to state
   useEffect(() => {
     if (initialFilter) setSort(initialFilter === "new" ? "new" : "popular");
   }, [initialFilter]);
+
+  useEffect(() => {
+    if (initialSize && !size.includes(initialSize)) {
+      setSize([initialSize]);
+    }
+  }, [initialSize]);
 
   const filtered = useMemo(() => {
     let list = PRODUCTS.slice();
@@ -156,6 +163,7 @@ export default function Shop() {
               if (initialFilter === "new") crumbs.push({ label: "New Arrivals" });
               else if (initialFilter === "bestseller") crumbs.push({ label: "Top Selling" });
               else if (initialCategory) crumbs.push({ label: initialCategory });
+              else if (initialSize) crumbs.push({ label: `Size: ${initialSize}` });
               else if (initialOccasion) crumbs.push({ label: initialOccasion });
               else crumbs.push({ label: "Collection" });
               return <Breadcrumb items={crumbs} />;

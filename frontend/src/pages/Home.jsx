@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Gift, Star, Camera } from "lucide-react";
-import { PRODUCTS } from "../data/products.js";
+import { PRODUCTS, SIZE_LIST } from "../data/products.js";
 import { FEATURED_CATEGORIES, REVIEWS, INSTAGRAM, OCCASIONS_HOME } from "../data/site.js";
 import ProductCard from "../components/product/ProductCard";
 import SectionHeading from "../components/ui/SectionHeading";
@@ -82,7 +82,7 @@ export default function Home() {
       </section>
 
       {/* FEATURED CATEGORIES */}
-      <section className="py-20 lg:py-28 bg-[#FAF6F4]">
+      <section className="py-20 lg:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading
             eyebrow="Curated"
@@ -115,6 +115,44 @@ export default function Home() {
                   <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-500 mt-0.5">
                     {c.tag}
                   </p>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SHOP BY SIZE */}
+      <section className="py-20 lg:py-28 bg-[#FAF6F4]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeading
+            eyebrow="Perfect Fit"
+            title={<>Shop by <span className="italic">Size</span></>}
+            subtitle="Find your perfect fit across all our styles. XS to XXL available."
+          />
+          <div className="mt-12 grid grid-cols-2 lg:grid-cols-6 gap-5">
+            {SIZE_LIST.map((size, i) => (
+              <motion.div
+                key={size}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, delay: i * 0.05 }}
+              >
+                <Link
+                  to={`/shop?size=${encodeURIComponent(size)}`}
+                  className="group block text-center"
+                >
+                  <div className="relative aspect-square overflow-hidden rounded-full ring-1 ring-[#E9E5E5] group-hover:ring-[#800000] transition zoom-wrap mx-auto bg-white">
+                    <img
+                      src={FEATURED_CATEGORIES[i % FEATURED_CATEGORIES.length]?.image || PRODUCTS[i % PRODUCTS.length]?.thumbnail}
+                      alt={`Size ${size}`}
+                      className="zoom-img w-full h-full object-cover object-top"
+                    />
+                  </div>
+                  <h3 className="font-display text-lg mt-4 text-[#1c1c1c] group-hover:text-[#800000] transition">
+                    {size}
+                  </h3>
                 </Link>
               </motion.div>
             ))}
