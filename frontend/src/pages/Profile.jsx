@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, MapPin, Package, Heart, Edit2, Plus, LogOut } from "lucide-react";
 import { toast } from "react-toastify";
 import Breadcrumb from "../components/ui/Breadcrumb";
+import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 import ProductCard from "../components/product/ProductCard";
+import { authApi } from "../api/auth";
 
 const TABS = [
   { id: "profile", label: "Profile", Icon: User },
@@ -13,33 +15,44 @@ const TABS = [
   { id: "wishlist", label: "Wishlist", Icon: Heart },
 ];
 
-const ADDRESSES = [
-  { type: "Home", name: "Anaya Sharma", line: "301, Heritage Towers, Linking Road", city: "Mumbai, MH 400052", phone: "+91 98765 43210" },
-  { type: "Office", name: "Anaya Sharma", line: "12B, Connaught Place, Block A", city: "New Delhi, DL 110001", phone: "+91 98765 43210" },
-];
+const ADDRESSES = [];
 
 export default function Profile() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("profile");
   const { items: wishlist } = useWishlist();
-  const [profileData, setProfileData] = useState({
-    fullName: "Anaya Sharma",
-    email: "anaya@example.com",
-    phone: "+91 98765 43210",
-    dob: "14 Aug 1995",
-    gender: "Female",
-    currency: "₹ INR",
-  });
-  const [editProfileForm, setEditProfileForm] = useState({ open: false, values: { ...profileData } });
+  const { user, fetchProfile, updateProfile, loading, logout } = useAuth();
+  const [editProfileForm, setEditProfileForm] = useState({ open: false, values: { name: "", email: "" } });
   const [addresses, setAddresses] = useState(ADDRESSES);
   const [addressForm, setAddressForm] = useState({ open: false, index: null, values: {} });
 
-  const openEditProfile = () => setEditProfileForm({ open: true, values: { ...profileData } });
-  const closeEditProfile = () => setEditProfileForm({ open: false, values: { ...profileData } });
-  const saveProfile = () => {
-    setProfileData(editProfileForm.values);
+  // Fetch profile data when user is available
+  useEffect(() => {
+    if (user?.token) {
+      fetchProfile();
+    }
+  }, [user?.token]);
+
+  useEffect(() => {
+    if (user?.shippingAddress) {
+      setAddresses([user.shippingAddress]);
+    }
+  }, [user?.shippingAddress]);
+
+  // Initialize form values when user data is available
+  useEffect(() => {
+    if (user) {
+      setEditProfileForm({ open: false, values: { name: user.name || "", email: user.email || "" } });
+    }
+  }, [user]);
+
+  const openEditProfile = () => setEditProfileForm({ open: true, values: { name: user?.name || "", email: user?.email || "" } });
+  const closeEditProfile = () => setEditProfileForm({ open: false, values: { name: user?.name || "", email: user?.email || "" } });
+
+  const saveProfile = async () => {
+    const { name, email } = editProfileForm.values;
+    await updateProfile(name, email);
     closeEditProfile();
-    toast.success("Profile updated successfully");
   };
 
   const openAddressForm = (index = null) => {
@@ -50,15 +63,36 @@ export default function Profile() {
     }
   };
 
-  const saveAddress = () => {
+  const saveAddress = async () => {
     const { index, values } = addressForm;
-    if (index === null) setAddresses((s) => [values, ...s]);
-    else setAddresses((s) => s.map((a, i) => (i === index ? values : a)));
-    setAddressForm({ open: false, index: null, values: {} });
-    toast.success(index === null ? "New address added" : "Address updated");
+    
+    try {
+      await authApi.updateAddress(user?.token, values);
+      
+      if (index === null) setAddresses((s) => [values, ...s]);
+      else setAddresses((s) => s.map((a, i) => (i === index ? values : a)));
+      setAddressForm({ open: false, index: null, values: {} });
+      toast.success(index === null ? "New address added" : "Address updated");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to save address");
+    }
   };
 
   const closeAddressForm = () => setAddressForm({ open: false, index: null, values: {} });
+
+  // Handle logout with redirect to login
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  // Format phone number for display
+  const formatPhone = (phone) => {
+    if (!phone) return "";
+    const cleaned = phone.replace(/\D/g, "");
+    return cleaned.length === 10 ? `+91 ${cleaned.slice(0, 5)} ${cleaned.slice(5)}` : phone;
+  };
 
   return (
     <div>
@@ -66,7 +100,7 @@ export default function Profile() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <Breadcrumb items={[{ label: "Home", to: "/" }, { label: "My Account" }]} />
           <h1 className="font-display text-3xl sm:text-4xl mt-3">My Account</h1>
-          <p className="text-sm text-neutral-600 mt-2">Welcome back, {profileData.fullName} ✨</p>
+          <p className="text-sm text-neutral-600 mt-2">Welcome back, {user?.name || "User"} ✨</p>
         </div>
       </div>
 
@@ -74,10 +108,10 @@ export default function Profile() {
         {/* Sidebar */}
         <aside className="bg-white border border-[#E9E5E5] rounded-2xl p-5 h-fit">
           <div className="flex items-center gap-3 pb-5 border-b border-[#E9E5E5]">
-            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" className="w-12 h-12 rounded-full object-cover" alt="" />
+            <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=800000&color=fff`} className="w-12 h-12 rounded-full object-cover" alt="" />
             <div>
-              <p className="font-medium">{profileData.fullName}</p>
-              <p className="text-xs text-neutral-500">Member since 2024</p>
+              <p className="font-medium">{user?.name || "User"}</p>
+              <p className="text-xs text-neutral-500">Member since {new Date(user?.createdAt || Date.now()).getFullYear()}</p>
             </div>
           </div>
           <nav className="mt-3 space-y-1">
@@ -95,7 +129,7 @@ export default function Profile() {
                 <t.Icon size={15} /> {t.label}
               </button>
             ))}
-            <button className="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-neutral-500 hover:bg-[#FAF6F4] mt-3 border-t border-[#E9E5E5] pt-4">
+            <button onClick={handleLogout} className="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-neutral-500 hover:bg-[#FAF6F4] mt-3 border-t border-[#E9E5E5] pt-4">
               <LogOut size={15} /> Logout
             </button>
           </nav>
@@ -106,17 +140,23 @@ export default function Profile() {
           {tab === "profile" && (
             <div className="bg-white border border-[#E9E5E5] rounded-2xl p-6 sm:p-8">
               <h2 className="font-display text-2xl">Personal Information</h2>
-              <div className="mt-6 grid sm:grid-cols-2 gap-5">
-                <Info label="Full Name" value={profileData.fullName} />
-                <Info label="Email" value={profileData.email} />
-                <Info label="Phone" value={profileData.phone} />
-                <Info label="Date of Birth" value={profileData.dob} />
-                <Info label="Gender" value={profileData.gender} />
-                <Info label="Default Currency" value={profileData.currency} />
-              </div>
-              <button onClick={openEditProfile} className="mt-6 inline-flex items-center gap-2 text-sm text-[#800000] font-medium hover:underline">
-                <Edit2 size={14} /> Edit Profile
-              </button>
+              {loading ? (
+                <div className="mt-6 text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#800000] mx-auto"></div>
+                  <p className="text-sm text-neutral-500 mt-2">Loading profile...</p>
+                </div>
+              ) : (
+                <>
+                  <div className="mt-6 grid sm:grid-cols-2 gap-5">
+                    <Info label="Full Name" value={user?.name || "Not set"} />
+                    <Info label="Phone" value={formatPhone(user?.mobile) || "Not set"} />
+                    <Info label="Email" value={user?.email || "Not set"} />
+                  </div>
+                  <button onClick={openEditProfile} className="mt-6 inline-flex items-center gap-2 text-sm text-[#800000] font-medium hover:underline">
+                    <Edit2 size={14} /> Edit Profile
+                  </button>
+                </>
+              )}
 
               {editProfileForm.open && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
@@ -128,42 +168,18 @@ export default function Profile() {
                       </div>
                       <button onClick={closeEditProfile} className="text-neutral-500 hover:text-[#800000]">Cancel</button>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="grid sm:grid-cols-1 gap-3">
                       <input
                         className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
                         placeholder="Full name"
-                        value={editProfileForm.values.fullName}
-                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, fullName: e.target.value } }))}
+                        value={editProfileForm.values.name}
+                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, name: e.target.value } }))}
                       />
                       <input
                         className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
                         placeholder="Email"
                         value={editProfileForm.values.email}
                         onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, email: e.target.value } }))}
-                      />
-                      <input
-                        className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
-                        placeholder="Phone"
-                        value={editProfileForm.values.phone}
-                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, phone: e.target.value } }))}
-                      />
-                      <input
-                        className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
-                        placeholder="Date of Birth"
-                        value={editProfileForm.values.dob}
-                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, dob: e.target.value } }))}
-                      />
-                      <input
-                        className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
-                        placeholder="Gender"
-                        value={editProfileForm.values.gender}
-                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, gender: e.target.value } }))}
-                      />
-                      <input
-                        className="w-full h-11 px-4 rounded-full border border-[#E9E5E5] bg-white text-sm outline-none focus:border-[#800000]"
-                        placeholder="Currency"
-                        value={editProfileForm.values.currency}
-                        onChange={(e) => setEditProfileForm((s) => ({ ...s, values: { ...s.values, currency: e.target.value } }))}
                       />
                     </div>
                     <div className="mt-5 flex justify-end gap-2">

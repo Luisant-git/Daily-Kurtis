@@ -115,6 +115,10 @@ export class AuthService {
       }
     }
   
-    return this.generateToken(user.id, user.email || '', 'user', user.phone || undefined, user.name || undefined);
+    const token = this.generateToken(user.id, user.email || '', 'user', user.phone || undefined, user.name || undefined);
+    return {
+      ...token,
+      user
+    };
   }
 }

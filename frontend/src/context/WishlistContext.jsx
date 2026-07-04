@@ -1,26 +1,39 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "./AuthContext";
+import { wishlistApi } from "../api/wishlist";
 
 const WishlistCtx = createContext(null);
 const KEY = "dk_wishlist_v1";
 
 export function WishlistProvider({ children }) {
-  const [items, setItems] = useState(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
-  const { isLoggedIn, openLoginModal } = useAuth();
-
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const { user, isLoggedIn, openLoginModal } = useAuth();
+  
   useEffect(() => {
-    localStorage.setItem(KEY, JSON.stringify(items));
-  }, [items]);
+    if (isLoggedIn && user?.token) {
+      fetchWishlist();
+    } else {
+      setItems([]);
+    }
+  }, [isLoggedIn, user?.token]);
 
-  const toggle = (p, options = {}) => {
+  const fetchWishlist = async () => {
+    if (!user?.token) return;
+    setLoading(true);
+    try {
+      const data = await wishlistApi.getWishlist(user.token);
+      // Backend returns [{ id, userId, productId, product: { ... } }]
+      setItems(data.map(w => w.product || w));
+    } catch (e) {
+      console.error('Failed to fetch wishlist', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggle = async (p, options = {}) => {
     const { showToast = true } = options;
     const toastId = "wishlist-toast";
 
@@ -31,8 +44,21 @@ export function WishlistProvider({ children }) {
 
     const exists = items.some((x) => x.id === p.id);
     const nextItems = exists ? items.filter((x) => x.id !== p.id) : [...items, p];
-
+    
+    // Optimistic update
     setItems(nextItems);
+
+    try {
+      if (exists) {
+        await wishlistApi.removeFromWishlist(user.token, p.id);
+      } else {
+        await wishlistApi.addToWishlist(user.token, p.id);
+      }
+    } catch (e) {
+      console.error("Failed to sync wishlist", e);
+      // Rollback on error
+      setItems(items);
+    }
 
     if (!showToast) return;
 

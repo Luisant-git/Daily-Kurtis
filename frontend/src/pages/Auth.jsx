@@ -112,7 +112,7 @@ export default function Auth() {
       const userName = regName.trim() || response.user?.name || "";
       const userEmail = regEmail.trim() || response.user?.email || "";
       
-      await login(mobile, userName, userEmail);
+      await login(mobile, userName, userEmail, response.access_token);
       
       navigate("/profile", { replace: true });
     } catch (error) {
@@ -222,13 +222,14 @@ export default function Auth() {
                   <div className="space-y-4">
                     <div>
                       <label className="text-xs font-semibold text-neutral-700 block mb-2 uppercase tracking-wider">
-                        Full Name (optional)
+                        Full Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={regName}
                         onChange={(e) => setRegName(e.target.value)}
                         placeholder="e.g. Aditi Sharma"
+                        required
                         className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 bg-neutral-50/50 focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all duration-300 text-sm font-medium text-neutral-900 placeholder:text-neutral-400"
                       />
                     </div>
@@ -248,7 +249,8 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={sendOtp}
-                    className="w-full h-12 rounded-xl bg-[#800000] text-white font-semibold text-sm hover:bg-[#6c0000] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-[#800000]/20 mt-2"
+                    disabled={!regName.trim()}
+                    className="w-full h-12 rounded-xl bg-[#800000] text-white font-semibold text-sm hover:bg-[#6c0000] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-[#800000]/20 mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     Proceed to Verification
                   </button>

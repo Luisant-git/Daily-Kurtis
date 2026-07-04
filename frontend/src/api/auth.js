@@ -45,10 +45,39 @@ export const authApi = {
     });
   },
 
-  loginWithEmail: async (email, password) => {
+loginWithEmail: async (email, password) => {
     return request("/auth/user/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
+    });
+  },
+
+  fetchProfile: async (token) => {
+    return request("/user/profile/me", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  },
+
+  updateProfile: async (token, data) => {
+    return request("/user/profile", {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    });
+  },
+
+  updateAddress: async (token, address) => {
+    return request("/user/profile/address", {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(address)
     });
   },
 };

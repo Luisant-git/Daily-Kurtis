@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { authApi } from "../api/auth";
-import API_BASE_URL from "../api/config";
 
 const AuthCtx = createContext(null);
 const KEY = "dk_auth_v1";
@@ -16,6 +15,28 @@ export function AuthProvider({ children }) {
     }
   });
   const [profileOpen, setProfileOpen] = useState(false);
+  // Loading should be true if user has token but profile not loaded yet (no createdAt)
+  const [loading, setLoading] = useState(() => {
+    const stored = localStorage.getItem(KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return !!(parsed?.token && !parsed?.createdAt);
+    }
+    return false;
+  });
+
+  // Ref to always have access to the latest user state
+  const userRef = useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  // Fetch profile automatically when user logs in
+  useEffect(() => {
+    if (user?.token && !user?.createdAt) {
+      fetchProfile();
+    }
+  }, [user?.token]);
 
   useEffect(() => {
     if (user) {
@@ -25,17 +46,20 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
-  const login = (mobile, name = "", email = "") => {
-    // User data is already verified by Navbar's verifyOtp function
+  const login = (mobile, name = "", email = "", token = "") => {
+    // User data is already verified by Auth's verifyOtp function
     // This function just sets the user state
     const userData = {
       mobile,
       name,
       email,
+      token,
       loggedInAt: Date.now(),
     };
     
     setUser(userData);
+    // Set loading to true since we need to fetch the full profile
+    setLoading(true);
     toast.success(`Welcome ${name || ""}! ✨`);
   };
 
@@ -44,21 +68,34 @@ export function AuthProvider({ children }) {
     toast.success("Logged out successfully");
   };
 
+  const fetchProfile = useCallback(async () => {
+    const currentUser = userRef.current;
+    if (!currentUser?.mobile || !currentUser?.token) return;
+    
+    setLoading(true);
+    try {
+      const response = await authApi.fetchProfile(currentUser.token);
+      if (response) {
+        setUser((prev) => ({ 
+          ...prev, 
+          name: response.name || prev?.name || "",
+          email: response.email || prev?.email || "",
+          mobile: response.phone || prev?.mobile,
+          createdAt: response.createdAt || prev?.createdAt,
+          shippingAddress: response.shippingAddress || prev?.shippingAddress,
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const updateProfile = async (name, email) => {
     try {
       // Call backend API to update profile
-      const response = await fetch(`${API_BASE_URL}/user/profile`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify({ name, email }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update profile');
-      }
+      await authApi.updateProfile(userRef.current?.token, { name, email });
       
       setUser((prev) => ({ ...prev, name, email }));
       toast.success("Profile updated");
@@ -77,8 +114,10 @@ export function AuthProvider({ children }) {
       value={{
         user,
         isLoggedIn,
+        loading,
         login,
         logout,
+        fetchProfile,
         updateProfile,
         profileOpen,
         setProfileOpen,
