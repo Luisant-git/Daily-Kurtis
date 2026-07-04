@@ -16,7 +16,7 @@ export default function Home() {
   const [current, setCurrent] = useState(0);
   const [banners, setBanners] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [categoryPage, setCategoryPage] = useState(0);
+  const [categoryStartIndex, setCategoryStartIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(6);
   const newArrivals = PRODUCTS.filter((p) => p.newArrival).slice(0, 4);
   const bestSellers = [
@@ -78,25 +78,17 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    setCategoryPage(0);
+    setCategoryStartIndex(0);
   }, [visibleCount]);
 
-  const categoryGroups = [];
-  const totalSlides = Math.ceil(displayCategories.length / visibleCount);
-  for (let i = 0; i < totalSlides; i += 1) {
-    const start = i * visibleCount;
-    const end = start + visibleCount;
-    categoryGroups.push(displayCategories.slice(start, end));
-  }
-
-  const maxCategoryPage = Math.max(0, categoryGroups.length - 1);
+  const maxStartIndex = Math.max(0, displayCategories.length - visibleCount);
 
   const handleCategoryPrev = () => {
-    setCategoryPage((prev) => Math.max(0, prev - 1));
+    setCategoryStartIndex((prev) => Math.max(0, prev - 1));
   };
 
   const handleCategoryNext = () => {
-    setCategoryPage((prev) => Math.min(maxCategoryPage, prev + 1));
+    setCategoryStartIndex((prev) => Math.min(maxStartIndex, prev + 1));
   };
 
   return (
@@ -202,40 +194,38 @@ export default function Home() {
             <div className="overflow-hidden rounded-[1.75rem] px-2 py-1 sm:px-0">
               <div
                 className="flex flex-nowrap transition-transform duration-500 ease-out"
-                style={{ transform: `translateX(-${categoryPage * 100}%)` }}
+                style={{ transform: `translateX(-${categoryStartIndex * (100 / visibleCount)}%)` }}
               >
-                {categoryGroups.map((group, groupIndex) => (
-                  <div key={`${groupIndex}-${group[0]?.name || "group"}`} className="w-full shrink-0">
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-5">
-                      {group.map((c, i) => (
-                        <motion.div
-                          key={c.name}
-                          initial={{ opacity: 0, y: 18 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true, amount: 0.3 }}
-                          transition={{ duration: 0.5, delay: i * 0.05 }}
-                        >
-                          <Link
-                            to={`/shop?category=${encodeURIComponent(c.name)}`}
-                            className="group block text-center"
-                          >
-                            <div className="relative aspect-square overflow-hidden rounded-full ring-1 ring-[#E9E5E5] group-hover:ring-[#D4AF37] transition zoom-wrap mx-auto bg-white">
-                              <img
-                                src={c.image}
-                                alt={c.name}
-                                className="zoom-img w-full h-full object-cover object-top"
-                              />
-                            </div>
-                            <h3 className="font-display text-lg mt-4 text-[#1c1c1c] group-hover:text-[#800000] transition">
-                              {c.name}
-                            </h3>
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-500 mt-0.5">
-                              {c.tag}
-                            </p>
-                          </Link>
-                        </motion.div>
-                      ))}
-                    </div>
+                {displayCategories.map((c, i) => (
+                  <div
+                    key={c.name}
+                    className="shrink-0 w-1/2 sm:w-1/4 lg:w-1/6 px-2"
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, y: 18 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: (i - categoryStartIndex) * 0.05 }}
+                    >
+                      <Link
+                        to={`/shop?category=${encodeURIComponent(c.name)}`}
+                        className="group block text-center"
+                      >
+                        <div className="relative aspect-square overflow-hidden rounded-full ring-1 ring-[#E9E5E5] group-hover:ring-[#D4AF37] transition zoom-wrap mx-auto bg-white">
+                          <img
+                            src={c.image}
+                            alt={c.name}
+                            className="zoom-img w-full h-full object-cover object-top"
+                          />
+                        </div>
+                        <h3 className="font-display text-lg mt-4 text-[#1c1c1c] group-hover:text-[#800000] transition">
+                          {c.name}
+                        </h3>
+                        <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-500 mt-0.5">
+                          {c.tag}
+                        </p>
+                      </Link>
+                    </motion.div>
                   </div>
                 ))}
               </div>
