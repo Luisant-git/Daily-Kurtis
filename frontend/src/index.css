@@ -85,14 +85,16 @@ h1, h2, h3, h4, h5, h6, .font-display {
 
 /* Announcement marquee */
 @keyframes marquee {
-  0% { transform: translate3d(-50%, 0, 0); }
-  100% { transform: translate3d(0, 0, 0); }
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
 }
 .animate-marquee {
-  animation: marquee 30s linear infinite;
+  animation: marquee 25s linear infinite;
   will-change: transform;
   backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
+  display: flex;
+  width: fit-content;
 }
 .animate-marquee:hover {
   animation-play-state: paused;

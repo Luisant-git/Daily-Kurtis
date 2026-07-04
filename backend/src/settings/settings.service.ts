@@ -13,13 +13,14 @@ export class SettingsService {
     return settings;
   }
 
-  async updateSettings(signatureUrl?: string, codShippingCharge?: number, maintenanceMode?: boolean, hiddenPages?: any) {
+  async updateSettings(signatureUrl?: string, codShippingCharge?: number, maintenanceMode?: boolean, hiddenPages?: any, announcement?: string) {
     const settings = await this.getSettings();
     const updateData: any = {};
     if (signatureUrl !== undefined) updateData.signatureUrl = signatureUrl;
     if (codShippingCharge !== undefined) updateData.codShippingCharge = codShippingCharge;
     if (maintenanceMode !== undefined) updateData.maintenanceMode = maintenanceMode;
     if (hiddenPages !== undefined) updateData.hiddenPages = hiddenPages;
+    if (announcement !== undefined) updateData.announcement = announcement;
     
     return this.prisma.appSettings.update({
       where: { id: settings.id },

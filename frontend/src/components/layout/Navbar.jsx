@@ -8,6 +8,7 @@ import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useAuth } from "../../context/AuthContext";
 import { authApi } from "../../api/auth";
+import { settingsApi } from "../../api/settings";
 import { CATEGORY_LIST } from "../../data/products";
 
 const LINKS = [
@@ -25,6 +26,7 @@ export default function Navbar() {
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [catHover, setCatHover] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
   const catTimer = useRef(null);
 
 
@@ -76,26 +78,45 @@ export default function Navbar() {
     }
   };
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const data = await settingsApi.getSettings();
+        if (data?.announcement) setAnnouncement(data.announcement);
+      } catch (err) {
+        // ignore
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  // Split announcement by newlines and filter out empty lines
+  const announcementParts = announcement.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+
 
 
   return (
     <>
       {/* Announcement bar */}
-      <div className="bg-[#800000] text-white text-[11px] sm:text-xs tracking-wider uppercase py-2 overflow-hidden">
-        <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
-          <span className="opacity-90">Free shipping on orders over ₹1,499 · Use code </span>
-          <span className="font-semibold text-[#D4AF37]">DAILY10</span>
-          <span className="opacity-90"> for 10% off your first order</span>
-          <span className="opacity-30 mx-4">✦</span>
-          <span className="opacity-90">Free shipping on orders over ₹1,499 · Use code </span>
-          <span className="font-semibold text-[#D4AF37]">DAILY10</span>
-          <span className="opacity-90"> for 10% off your first order</span>
-          <span className="opacity-30 mx-4">✦</span>
-          <span className="opacity-90">Free shipping on orders over ₹1,499 · Use code </span>
-          <span className="font-semibold text-[#D4AF37]">DAILY10</span>
-          <span className="opacity-90"> for 10% off your first order</span>
+      {announcementParts.length > 0 && (
+        <div className="bg-[#800000] text-white text-[11px] sm:text-xs tracking-wider py-2 overflow-hidden">
+          <div className="animate-marquee whitespace-nowrap inline-flex items-center">
+            {announcementParts.map((part, index) => (
+              <span key={index} className="opacity-90">
+                {index > 0 && <span className="mx-4">✦</span>}
+                {part}
+              </span>
+            ))}
+            <span className="opacity-90 mx-8">✦</span>
+            {announcementParts.map((part, index) => (
+              <span key={`dup-${index}`} className="opacity-90">
+                {index > 0 && <span className="mx-4">✦</span>}
+                {part}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <header className={`sticky top-0 z-40 transition-all duration-300 ${headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

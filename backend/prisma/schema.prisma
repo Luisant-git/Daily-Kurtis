@@ -333,6 +333,7 @@ model AppSettings {
   codShippingCharge  Float    @default(0)
   maintenanceMode    Boolean  @default(false)
   hiddenPages        Json     @default("[]")
+  announcement       String?
   updatedAt          DateTime @updatedAt
   createdAt          DateTime @default(now())
 }

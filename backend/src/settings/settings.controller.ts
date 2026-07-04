@@ -11,7 +11,7 @@ export class SettingsController {
   }
 
   @Put()
-  updateSettings(@Body() body: { signatureUrl?: string, codShippingCharge?: number, maintenanceMode?: boolean, hiddenPages?: any }) {
-    return this.settingsService.updateSettings(body.signatureUrl, body.codShippingCharge, body.maintenanceMode, body.hiddenPages);
+  updateSettings(@Body() body: { signatureUrl?: string, codShippingCharge?: number, maintenanceMode?: boolean, hiddenPages?: any, announcement?: string }) {
+    return this.settingsService.updateSettings(body.signatureUrl, body.codShippingCharge, body.maintenanceMode, body.hiddenPages, body.announcement);
   }
 }
