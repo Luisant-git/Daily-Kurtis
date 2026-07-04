@@ -8,14 +8,11 @@ import ProductCard from "../components/product/ProductCard";
 import SectionHeading from "../components/ui/SectionHeading";
 import Button from "../components/ui/Button";
 import Rating from "../components/ui/Rating";
+import { bannerApi } from "../api/banner";
 
-const HERO_SLIDES = [
-  "https://zola.in/cdn/shop/articles/CLassssssKS.jpg?v=1689671595",
-  "https://zola.in/cdn/shop/articles/marron_kurta_banner.jpg?v=1686203627",
-  "https://zola.in/cdn/shop/articles/MLSS.jpg?v=1688119716",
-];
 export default function Home() {
   const [current, setCurrent] = useState(0);
+  const [banners, setBanners] = useState([]);
   const newArrivals = PRODUCTS.filter((p) => p.newArrival).slice(0, 4);
   const bestSellers = [
     ...PRODUCTS.filter((p) => p.name === "Naina Office Essential"),
@@ -23,43 +20,81 @@ export default function Home() {
     ...PRODUCTS.filter((p) => p.featured && !p.bestSeller && p.name !== "Naina Office Essential"),
   ].slice(0, 4);
 
+  // Fetch banners from API
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % HERO_SLIDES.length);
-    }, 4000);
-    return () => clearInterval(timer);
+    const fetchBanners = async () => {
+      try {
+        const data = await bannerApi.getBanners();
+        if (data && data.length > 0) {
+          setBanners(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch banners:", error);
+      }
+    };
+    fetchBanners();
   }, []);
+
+  // Transform banners to heroSlides format
+  const heroSlides = banners.map(b => ({ 
+    desktop: b.image, 
+    mobile: b.mobileImage || b.image 
+  }));
 
   return (
     <div>
       {/* HERO CAROUSEL */}
-      <section className="relative h-[55vh] sm:h-[60vh] md:h-[70vh] lg:h-[88vh] min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] overflow-hidden">
-        {HERO_SLIDES.map((src, i) => (
-          <img
-            key={i}
-            src={src}
-            alt={`Daily Kurtis ${i + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-              i === current ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-black/10 to-transparent" />
+      {heroSlides.length > 0 ? (
+        <section className="relative h-[55vh] sm:h-[60vh] md:h-[70vh] lg:h-[88vh] min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] overflow-hidden">
+          {/* Mobile carousel - centered */}
+          <div className="block lg:hidden relative h-full flex items-center justify-center">
+            {heroSlides.map((slide, i) => (
+              <img
+                key={i}
+                src={slide.mobile}
+                alt={`Daily Kurtis ${i + 1}`}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                  i === current ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            ))}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-black/10 to-transparent" />
+          </div>
+          {/* Desktop carousel */}
+          <div className="hidden lg:block relative h-full">
+            {heroSlides.map((slide, i) => (
+              <img
+                key={i}
+                src={slide.desktop}
+                alt={`Daily Kurtis ${i + 1}`}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                  i === current ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            ))}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-black/10 to-transparent" />
+          </div>
 
-        {/* Carousel dots - bottom right */}
-        <div className="absolute bottom-6 right-4 flex items-center gap-2 z-10">
-          {HERO_SLIDES.map((_, i) => (
-            <span
-              key={i}
-              className={`rounded-full shadow-md transition-all duration-300 ${
-                i === current
-                  ? "w-2.5 h-2.5 bg-white"
-                  : "w-2 h-2 bg-white/50"
-              }`}
-            />
-          ))}
-        </div>
-      </section>
+          {/* Carousel dots - centered on mobile */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 lg:right-4 lg:left-auto flex items-center gap-2 z-10">
+            {heroSlides.map((_, i) => (
+              <span
+                key={i}
+                className={`rounded-full shadow-md transition-all duration-300 ${
+                  i === current
+                    ? "w-2.5 h-2.5 bg-white"
+                    : "w-2 h-2 bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section className="relative h-[55vh] sm:h-[60vh] md:h-[70vh] lg:h-[88vh] min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] bg-[#FAF6F4] flex items-center justify-center">
+          <p className="text-neutral-500">Loading banners...</p>
+        </section>
+      )
+      }
 
       {/* USP STRIP */}
       <section className="border-b border-[#E9E5E5] bg-white">
