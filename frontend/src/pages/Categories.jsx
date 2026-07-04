@@ -1,12 +1,35 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import SectionHeading from "../components/ui/SectionHeading";
-import { CATEGORY_LIST, PRODUCTS } from "../data/products.js";
-import { FEATURED_CATEGORIES } from "../data/site.js";
+import { PRODUCTS } from "../data/products.js";
+import { categoryApi } from "../api/category";
 
 export default function Categories() {
+  const [categories, setCategories] = useState([]);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryApi.getCategories();
+        if (data && data.length > 0) {
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Use API categories or fallback to static categories from products
+  const displayCategories = categories.length > 0 
+    ? categories 
+    : [...new Set(PRODUCTS.map(p => p.category))].map(cat => ({ name: cat, image: "", description: "" }));
+
   return (
     <div>
       <div className="bg-[#FAF6F4] border-b border-[#E9E5E5]">
@@ -22,27 +45,30 @@ export default function Categories() {
       <section className="py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {CATEGORY_LIST.map((cat, i) => {
-              const count = PRODUCTS.filter((p) => p.category === cat).length;
-              const featured = FEATURED_CATEGORIES.find((c) => c.name === cat);
-              const imgSrc = featured ? featured.image : "";
+            {displayCategories.map((cat, i) => {
+              const count = PRODUCTS.filter((p) => p.category === cat.name).length;
+              const imgSrc = cat.image || "";
               return (
                 <motion.div
-                  key={cat}
+                  key={cat.name}
                   initial={{ opacity: 0, y: 18 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.5, delay: i * 0.04 }}
                 >
                   <Link
-                    to={`/shop?category=${encodeURIComponent(cat)}`}
+                    to={`/shop?category=${encodeURIComponent(cat.name)}`}
                     className="group relative block aspect-[4/5] rounded-2xl overflow-hidden zoom-wrap"
                   >
-                    <img src={imgSrc} alt={cat} className="zoom-img absolute inset-0 w-full h-full object-cover" />
+                    {imgSrc ? (
+                      <img src={imgSrc} alt={cat.name} className="zoom-img absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <img src={`https://via.placeholder.com/600x600?text=${encodeURIComponent(cat.name)}`} alt={cat.name} className="zoom-img absolute inset-0 w-full h-full object-cover" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/0" />
                     <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7 text-white">
                       <p className="text-[10px] tracking-[0.3em] uppercase text-[#D4AF37]">{count} pieces</p>
-                      <h3 className="font-display text-2xl sm:text-3xl mt-1">{cat}</h3>
+                      <h3 className="font-display text-2xl sm:text-3xl mt-1">{cat.name}</h3>
                       <span className="mt-3 inline-flex items-center gap-2 text-xs uppercase tracking-wider opacity-90 group-hover:gap-3 transition-all">
                         Shop now <ArrowRight size={12} />
                       </span>

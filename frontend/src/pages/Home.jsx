@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Gift, Star, Camera } from "lucide-react";
+import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Gift, Star, Camera, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
+
 import { PRODUCTS, SIZE_LIST } from "../data/products.js";
 import { FEATURED_CATEGORIES, REVIEWS, INSTAGRAM, OCCASIONS_HOME } from "../data/site.js";
 import ProductCard from "../components/product/ProductCard";
@@ -9,10 +10,14 @@ import SectionHeading from "../components/ui/SectionHeading";
 import Button from "../components/ui/Button";
 import Rating from "../components/ui/Rating";
 import { bannerApi } from "../api/banner";
+import { categoryApi } from "../api/category";
 
 export default function Home() {
   const [current, setCurrent] = useState(0);
   const [banners, setBanners] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [categoryPage, setCategoryPage] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(6);
   const newArrivals = PRODUCTS.filter((p) => p.newArrival).slice(0, 4);
   const bestSellers = [
     ...PRODUCTS.filter((p) => p.name === "Naina Office Essential"),
@@ -20,19 +25,28 @@ export default function Home() {
     ...PRODUCTS.filter((p) => p.featured && !p.bestSeller && p.name !== "Naina Office Essential"),
   ].slice(0, 4);
 
-  // Fetch banners from API
+  // Fetch banners and categories from API
   useEffect(() => {
-    const fetchBanners = async () => {
+    const fetchData = async () => {
       try {
-        const data = await bannerApi.getBanners();
-        if (data && data.length > 0) {
-          setBanners(data);
+        const bannerData = await bannerApi.getBanners();
+        if (bannerData && bannerData.length > 0) {
+          setBanners(bannerData);
         }
       } catch (error) {
         console.error("Failed to fetch banners:", error);
       }
+      
+      try {
+        const categoryData = await categoryApi.getCategories();
+        if (categoryData && categoryData.length > 0) {
+          setCategories(categoryData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
     };
-    fetchBanners();
+    fetchData();
   }, []);
 
   // Transform banners to heroSlides format
@@ -40,6 +54,50 @@ export default function Home() {
     desktop: b.image, 
     mobile: b.mobileImage || b.image 
   }));
+
+  // Use API categories or fallback to FEATURED_CATEGORIES
+  const displayCategories = categories.length > 0 
+    ? categories.map(c => ({ name: c.name, image: c.image, tag: c.description || "" }))
+    : FEATURED_CATEGORIES;
+
+  useEffect(() => {
+    const updateVisibleCount = () => {
+      if (typeof window === "undefined") return;
+      if (window.innerWidth < 640) {
+        setVisibleCount(2);
+      } else if (window.innerWidth < 1024) {
+        setVisibleCount(4);
+      } else {
+        setVisibleCount(6);
+      }
+    };
+
+    updateVisibleCount();
+    window.addEventListener("resize", updateVisibleCount);
+    return () => window.removeEventListener("resize", updateVisibleCount);
+  }, []);
+
+  useEffect(() => {
+    setCategoryPage(0);
+  }, [visibleCount]);
+
+  const categoryGroups = [];
+  const totalSlides = Math.ceil(displayCategories.length / visibleCount);
+  for (let i = 0; i < totalSlides; i += 1) {
+    const start = i * visibleCount;
+    const end = start + visibleCount;
+    categoryGroups.push(displayCategories.slice(start, end));
+  }
+
+  const maxCategoryPage = Math.max(0, categoryGroups.length - 1);
+
+  const handleCategoryPrev = () => {
+    setCategoryPage((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleCategoryNext = () => {
+    setCategoryPage((prev) => Math.min(maxCategoryPage, prev + 1));
+  };
 
   return (
     <div>
@@ -93,8 +151,7 @@ export default function Home() {
         <section className="relative h-[55vh] sm:h-[60vh] md:h-[70vh] lg:h-[88vh] min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] bg-[#FAF6F4] flex items-center justify-center">
           <p className="text-neutral-500">Loading banners...</p>
         </section>
-      )
-      }
+      )}
 
       {/* USP STRIP */}
       <section className="border-b border-[#E9E5E5] bg-white">
@@ -124,35 +181,65 @@ export default function Home() {
             title={<>Shop by <span className="italic">Category</span></>}
             subtitle="Explore our most-loved silhouettes, designed for every mood and moment of your day."
           />
-          <div className="mt-12 grid grid-cols-2 lg:grid-cols-6 gap-5">
-            {FEATURED_CATEGORIES.map((c, i) => (
-              <motion.div
-                key={c.name}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.5, delay: i * 0.05 }}
+          <div className="relative mt-12">
+            <button
+              type="button"
+              onClick={handleCategoryPrev}
+              className="absolute -left-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#E9E5E5] bg-white text-[#1c1c1c] shadow-[0_16px_40px_-20px_rgba(0,0,0,0.45)] transition hover:scale-105 sm:h-10 sm:w-10 sm:-left-3"
+              aria-label="Previous categories"
+            >
+              <ChevronLeft size={20} strokeWidth={1.8} />
+            </button>
+            <button
+              type="button"
+              onClick={handleCategoryNext}
+              className="absolute -right-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#E9E5E5] bg-white text-[#1c1c1c] shadow-[0_16px_40px_-20px_rgba(0,0,0,0.45)] transition hover:scale-105 sm:h-10 sm:w-10 sm:-right-3"
+              aria-label="Next categories"
+            >
+              <ChevronRightIcon size={20} strokeWidth={1.8} />
+            </button>
+
+            <div className="overflow-hidden rounded-[1.75rem] px-2 py-1 sm:px-0">
+              <div
+                className="flex flex-nowrap transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${categoryPage * 100}%)` }}
               >
-                <Link
-                  to={`/shop?category=${encodeURIComponent(c.name)}`}
-                  className="group block text-center"
-                >
-                  <div className="relative aspect-square overflow-hidden rounded-full ring-1 ring-[#E9E5E5] group-hover:ring-[#D4AF37] transition zoom-wrap mx-auto bg-white">
-                    <img
-                      src={c.image}
-                      alt={c.name}
-                      className="zoom-img w-full h-full object-cover object-top"
-                    />
+                {categoryGroups.map((group, groupIndex) => (
+                  <div key={`${groupIndex}-${group[0]?.name || "group"}`} className="w-full shrink-0">
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-5">
+                      {group.map((c, i) => (
+                        <motion.div
+                          key={c.name}
+                          initial={{ opacity: 0, y: 18 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, amount: 0.3 }}
+                          transition={{ duration: 0.5, delay: i * 0.05 }}
+                        >
+                          <Link
+                            to={`/shop?category=${encodeURIComponent(c.name)}`}
+                            className="group block text-center"
+                          >
+                            <div className="relative aspect-square overflow-hidden rounded-full ring-1 ring-[#E9E5E5] group-hover:ring-[#D4AF37] transition zoom-wrap mx-auto bg-white">
+                              <img
+                                src={c.image}
+                                alt={c.name}
+                                className="zoom-img w-full h-full object-cover object-top"
+                              />
+                            </div>
+                            <h3 className="font-display text-lg mt-4 text-[#1c1c1c] group-hover:text-[#800000] transition">
+                              {c.name}
+                            </h3>
+                            <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-500 mt-0.5">
+                              {c.tag}
+                            </p>
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
-                  <h3 className="font-display text-lg mt-4 text-[#1c1c1c] group-hover:text-[#800000] transition">
-                    {c.name}
-                  </h3>
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-500 mt-0.5">
-                    {c.tag}
-                  </p>
-                </Link>
-              </motion.div>
-            ))}
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -180,7 +267,7 @@ export default function Home() {
                 >
                   <div className="relative aspect-square overflow-hidden rounded-full ring-1 ring-[#E9E5E5] group-hover:ring-[#800000] transition zoom-wrap mx-auto bg-white">
                     <img
-                      src={FEATURED_CATEGORIES[i % FEATURED_CATEGORIES.length]?.image || PRODUCTS[i % PRODUCTS.length]?.thumbnail}
+                      src={PRODUCTS[i % PRODUCTS.length]?.thumbnail}
                       alt={`Size ${size}`}
                       className="zoom-img w-full h-full object-cover object-top"
                     />
@@ -246,7 +333,7 @@ export default function Home() {
               <img
                 src="https://www.aachho.com/cdn/shop/files/8_1dc18193-4971-46cb-9f07-421e5ebd85d0_540x.jpg?v=1768904018"
                 className="rounded-2xl object-cover aspect-[4/5] w-full max-w-sm mx-auto shadow-2xl"
-                alt={FEATURED_CATEGORIES[2]?.name || "Offer"}
+                alt={displayCategories[2]?.name || "Offer"}
               />
             </div>
           </div>
@@ -274,9 +361,8 @@ export default function Home() {
         </div>
       </section>
 
-      
-      {/* SHOP BY OCCASION
-      <section className="py-20 lg:py-28 bg-white">
+      {/* SHOP BY OCCASION */}
+      {/* <section className="py-20 lg:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading
             eyebrow="Dressed for the moment"
@@ -295,7 +381,7 @@ export default function Home() {
                   to={`/shop?occasion=${encodeURIComponent(o.name)}`}
                   className="group relative block aspect-[3/4] overflow-hidden rounded-2xl zoom-wrap"
                 >
-                  <img src={FEATURED_CATEGORIES[i % FEATURED_CATEGORIES.length]?.image || o.img} alt={o.name} className="zoom-img w-full h-full object-cover" />
+                  <img src={displayCategories[i % displayCategories.length]?.image || o.img} alt={o.name} className="zoom-img w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0" />
                   <div className="absolute bottom-5 left-5 right-5 text-white">
                     <p className="text-[10px] tracking-[0.3em] uppercase text-[#D4AF37]">For</p>

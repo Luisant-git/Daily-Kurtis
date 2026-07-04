@@ -9,7 +9,7 @@ import { useWishlist } from "../../context/WishlistContext";
 import { useAuth } from "../../context/AuthContext";
 import { authApi } from "../../api/auth";
 import { settingsApi } from "../../api/settings";
-import { CATEGORY_LIST } from "../../data/products";
+import { categoryApi } from "../../api/category";
 
 const LINKS = [
   { to: "/", label: "Home" },
@@ -27,9 +27,8 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [catHover, setCatHover] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+  const [dynamicCategories, setDynamicCategories] = useState([]);
   const catTimer = useRef(null);
-
-
 
   const { totalQuantity } = useCart();
   const { items: wish } = useWishlist();
@@ -49,7 +48,35 @@ export default function Navbar() {
     setSearchOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const data = await settingsApi.getSettings();
+        if (data?.announcement) setAnnouncement(data.announcement);
+      } catch (err) {
+        // ignore
+      }
+    };
+    fetchSettings();
+  }, []);
 
+  // Fetch categories from API for navbar dropdown
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryApi.getCategories();
+        if (data && data.length > 0) {
+          setDynamicCategories(data.map(c => c.name));
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Split announcement by newlines and filter out empty lines
+  const announcementParts = announcement.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
   const solid = true;
   const navTextColor = solid ? "text-[#333]" : "text-white";
@@ -77,23 +104,6 @@ export default function Navbar() {
       setSearchOpen(false);
     }
   };
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const data = await settingsApi.getSettings();
-        if (data?.announcement) setAnnouncement(data.announcement);
-      } catch (err) {
-        // ignore
-      }
-    };
-    fetchSettings();
-  }, []);
-
-  // Split announcement by newlines and filter out empty lines
-  const announcementParts = announcement.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-
-
 
   return (
     <>
@@ -182,7 +192,7 @@ export default function Navbar() {
                             }}
                           >
                             <div className="p-2">
-                              {CATEGORY_LIST.map((cat) => (
+                              {(dynamicCategories.length > 0 ? dynamicCategories : [{ name: "Cotton Kurthis" }, { name: "Designer Kurtis" }, { name: "Anarkali Suits" }, { name: "Palazzo Sets" }]).map((cat, idx) => (
                                 <Link
                                   key={cat}
                                   to={`/shop?category=${encodeURIComponent(cat)}`}
@@ -303,6 +313,7 @@ export default function Navbar() {
                     to={l.to}
                     key={l.to}
                     className="flex items-center justify-between px-5 py-4 text-[15px] border-b border-[#F1ECEC] hover:bg-[#FFF8F8]"
+                    onClick={() => setOpen(false)}
                   >
                     {l.label}
                     <ChevronRight size={16} className="text-neutral-400" />
@@ -310,7 +321,7 @@ export default function Navbar() {
                 ))}
                 {isLoggedIn ? (
                   <>
-                    <Link to="/profile" className="flex items-center justify-between px-5 py-4 text-[15px] border-b border-[#F1ECEC]">
+                    <Link to="/profile" className="flex items-center justify-between px-5 py-4 text-[15px] border-b border-[#F1ECEC]" onClick={() => setOpen(false)}>
                       Profile <ChevronRight size={16} className="text-neutral-400" />
                     </Link>
                     <button onClick={logout} className="flex items-center justify-between px-5 py-4 text-[15px] border-b border-[#F1ECEC] w-full text-left">
@@ -322,13 +333,13 @@ export default function Navbar() {
                     Login <ChevronRight size={16} className="text-neutral-400" />
                   </Link>
                 )}
-                <Link to="/wishlist" className="flex items-center justify-between px-5 py-4 text-[15px] border-b border-[#F1ECEC]">
+                <Link to="/wishlist" className="flex items-center justify-between px-5 py-4 text-[15px] border-b border-[#F1ECEC]" onClick={() => setOpen(false)}>
                   Wishlist <ChevronRight size={16} className="text-neutral-400" />
                 </Link>
-                <Link to="/orders" className="flex items-center justify-between px-5 py-4 text-[15px] border-b border-[#F1ECEC]">
+                <Link to="/orders" className="flex items-center justify-between px-5 py-4 text-[15px] border-b border-[#F1ECEC]" onClick={() => setOpen(false)}>
                   My Orders <ChevronRight size={16} className="text-neutral-400" />
                 </Link>
-                <Link to="/contact" className="flex items-center justify-between px-5 py-4 text-[15px] border-b border-[#F1ECEC]">
+                <Link to="/contact" className="flex items-center justify-between px-5 py-4 text-[15px] border-b border-[#F1ECEC]" onClick={() => setOpen(false)}>
                   Contact <ChevronRight size={16} className="text-neutral-400" />
                 </Link>
               </nav>
