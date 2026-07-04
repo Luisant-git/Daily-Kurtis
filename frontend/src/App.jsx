@@ -21,6 +21,7 @@ import Contact from "./pages/Contact.jsx";
 import FAQ from "./pages/FAQ.jsx";
 import { Privacy, Terms, Shipping, Returns } from "./pages/Policy.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import Auth from "./pages/Auth.jsx";
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
               <Routes>
                 <Route element={<Layout />}>
                   <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Auth />} />
                   <Route path="/shop" element={<Shop />} />
                   <Route path="/product/:slug" element={<ProductDetails />} />
                   <Route path="/categories" element={<Categories />} />

@@ -16,7 +16,6 @@ export function AuthProvider({ children }) {
     }
   });
   const [profileOpen, setProfileOpen] = useState(false);
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -73,9 +72,6 @@ export function AuthProvider({ children }) {
 
   const isLoggedIn = !!user;
 
-  const openLoginModal = () => setLoginModalOpen(true);
-  const closeLoginModal = () => setLoginModalOpen(false);
-
   return (
     <AuthCtx.Provider
       value={{
@@ -86,9 +82,6 @@ export function AuthProvider({ children }) {
         updateProfile,
         profileOpen,
         setProfileOpen,
-        loginModalOpen,
-        openLoginModal,
-        closeLoginModal,
       }}
     >
       {children}
