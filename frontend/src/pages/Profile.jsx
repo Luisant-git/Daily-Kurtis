@@ -108,7 +108,7 @@ export default function Profile() {
         {/* Sidebar */}
         <aside className="bg-white border border-[#E9E5E5] rounded-2xl p-5 h-fit">
           <div className="flex items-center gap-3 pb-5 border-b border-[#E9E5E5]">
-            <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=800000&color=fff`} className="w-12 h-12 rounded-full object-cover" alt="" />
+
             <div>
               <p className="font-medium">{user?.name || "User"}</p>
               <p className="text-xs text-neutral-500">Member since {new Date(user?.createdAt || Date.now()).getFullYear()}</p>
