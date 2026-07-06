@@ -418,7 +418,7 @@ const AddProduct = () => {
               />
             </div>
 
-            <div className="form-group">
+            {/* <div className="form-group">
               <label className="form-label">Bundle Offers</label>
               <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                 <div style={{ marginBottom: '12px', fontSize: '14px', color: '#6b7280' }}>Set special prices for multiple color selections</div>
@@ -460,7 +460,7 @@ const AddProduct = () => {
                   <Plus size={16} /> Add Bundle Offer
                 </button>
               </div>
-            </div>
+            </div> */}
           </div>
 
         </div>
