@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import { formatINR } from "../components/ui/Price";
 import { useAuth } from "../context/AuthContext";
-import { authApi } from "../api/auth";
+import { orderApi } from "../api/order";
 
 const STATUS_COLORS = {
   Delivered: "bg-[#16A34A]/10 text-[#16A34A]",
@@ -42,6 +42,150 @@ const formatAddress = (address) => {
   return lines.filter(Boolean).join(" · ");
 };
 
+function OrderTrackingPipeline({ order }) {
+  let steps = [];
+  
+  if (order.status === "Cancelled") {
+    steps = [
+      {
+        title: "Order Placed",
+        desc: "We received your order.",
+        active: true,
+        completed: true,
+        date: formatOrderDate(order.createdAt)
+      },
+      {
+        title: "Cancelled",
+        desc: order.cancelRemarks ? `Reason: ${order.cancelRemarks}` : "Your order has been cancelled.",
+        active: true,
+        completed: true,
+        isAlert: true,
+        date: formatOrderDate(order.updatedAt)
+      }
+    ];
+  } else if (order.status === "CODReturn") {
+    steps = [
+      {
+        title: "Order Placed",
+        desc: "We received your order.",
+        active: true,
+        completed: true,
+        date: formatOrderDate(order.createdAt)
+      },
+      {
+        title: "Order Accepted & Processing",
+        desc: "Your order was accepted and packed.",
+        active: true,
+        completed: true
+      },
+      {
+        title: "Shipped",
+        desc: order.trackingId ? `Shipped via ${order.courierName || 'Courier'}. ID: ${order.trackingId}` : "Order was shipped.",
+        active: true,
+        completed: true
+      },
+      {
+        title: "Returned to Origin (COD Return)",
+        desc: order.codReturnRemarks ? `Reason: ${order.codReturnRemarks}` : "Delivery failed; package returned.",
+        active: true,
+        completed: true,
+        isAlert: true,
+        date: formatOrderDate(order.updatedAt)
+      }
+    ];
+  } else {
+    steps = [
+      {
+        title: "Order Placed",
+        desc: "We have received your order.",
+        active: true,
+        completed: ["Processing", "Accepted", "Shipped", "Delivered"].includes(order.status),
+        date: formatOrderDate(order.createdAt)
+      },
+      {
+        title: "Order Accepted & Processing",
+        desc: "Your order is being packed and prepared.",
+        active: ["Processing", "Accepted", "Shipped", "Delivered"].includes(order.status),
+        completed: ["Shipped", "Delivered"].includes(order.status),
+        date: (["Processing", "Accepted", "Shipped", "Delivered"].includes(order.status) && order.status !== "Placed" && order.status !== "Pending") ? formatOrderDate(order.updatedAt) : null
+      },
+      {
+        title: "Shipped",
+        desc: order.trackingId 
+          ? `Dispatched via ${order.courierName || 'Courier Partner'}. Tracking ID: ${order.trackingId}` 
+          : "Your order has been handed over to courier.",
+        active: ["Shipped", "Delivered"].includes(order.status),
+        completed: order.status === "Delivered",
+        date: ["Shipped", "Delivered"].includes(order.status) ? formatOrderDate(order.updatedAt) : null,
+        link: order.trackingLink
+      },
+      {
+        title: "Delivered",
+        desc: "Your package has been delivered successfully.",
+        active: order.status === "Delivered",
+        completed: order.status === "Delivered",
+        date: order.status === "Delivered" ? formatOrderDate(order.updatedAt) : null
+      }
+    ];
+  }
+
+  return (
+    <div className="bg-[#FAF6F4]/50 border border-[#E9E5E5] rounded-2xl p-5 sm:p-6 mb-6">
+      <h4 className="text-xs uppercase tracking-wider text-neutral-500 mb-5 font-semibold">Track Shipment</h4>
+      <div className="relative pl-6 space-y-6 border-l border-[#E9E5E5]">
+        {steps.map((step, index) => {
+          const isLast = index === steps.length - 1;
+          let dotColorClass = "bg-neutral-200 border-neutral-300";
+          let textColorClass = "text-neutral-400";
+
+          if (step.active) {
+            dotColorClass = step.isAlert 
+              ? "bg-[#DC2626] border-[#DC2626]" 
+              : "bg-[#800000] border-[#800000]";
+            textColorClass = "text-neutral-900";
+          }
+          if (step.completed && !step.isAlert) {
+            dotColorClass = "bg-[#16A34A] border-[#16A34A]";
+          }
+
+          return (
+            <div key={index} className="relative">
+              <div className={`absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full border-2 ${dotColorClass} transition-colors duration-300 z-10`} />
+              
+              {step.completed && !isLast && (
+                <div className="absolute -left-[27px] top-3.5 bottom-[-24px] w-[1px] bg-[#16A34A] z-0 transition-colors duration-300" />
+              )}
+              {step.active && !step.completed && !isLast && steps[index + 1]?.active && (
+                <div className="absolute -left-[27px] top-3.5 bottom-[-24px] w-[1px] bg-[#800000] z-0 transition-colors duration-300" />
+              )}
+
+              <div className="flex justify-between items-start gap-4">
+                <div>
+                  <p className={`text-sm font-semibold tracking-wide ${textColorClass}`}>{step.title}</p>
+                  <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{step.desc}</p>
+                  {step.link && (
+                    <a
+                      href={step.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-[#800000] hover:underline mt-2 font-medium"
+                    >
+                      Track Package <span className="text-[10px]">↗</span>
+                    </a>
+                  )}
+                </div>
+                {step.date && (
+                  <span className="text-[10px] text-neutral-400 font-medium shrink-0 pt-0.5">{step.date}</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function Orders() {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
@@ -58,7 +202,7 @@ export default function Orders() {
 
       try {
         setLoading(true);
-        const response = await authApi.fetchOrders(user.token);
+        const response = await orderApi.fetchOrders(user.token);
         setOrders(Array.isArray(response) ? response : []);
       } catch (error) {
         console.error(error);
@@ -129,9 +273,11 @@ export default function Orders() {
                 <AnimatePresence>
                   {isOpen && (
                     <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
-                      <div className="border-t border-[#E9E5E5] p-5 sm:p-6 grid lg:grid-cols-2 gap-8">
-                        <div>
-                          <p className="text-xs uppercase tracking-wider text-neutral-500 mb-3">Items</p>
+                      <div className="border-t border-[#E9E5E5] p-5 sm:p-6">
+                        <OrderTrackingPipeline order={o} />
+                        <div className="grid lg:grid-cols-2 gap-8 mt-6">
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-neutral-500 mb-3">Items</p>
                           <div className="space-y-3">
                             {items.map((item) => (
                               <div key={item.id || item.name} className="flex gap-3">
@@ -163,7 +309,8 @@ export default function Orders() {
                           </div>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
+                  </motion.div>
                   )}
                 </AnimatePresence>
               </div>

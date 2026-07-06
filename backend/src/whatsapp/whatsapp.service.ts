@@ -117,6 +117,9 @@ export class WhatsappService {
   }
  
   async sendMessage(to: string, message: string) {
+    // TEMPORARILY DISABLED
+    return { success: true };
+    /*
     try {
       const response = await axios.post(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,
@@ -149,9 +152,13 @@ export class WhatsappService {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
+    */
   }
  
   async sendMediaMessage(to: string, mediaUrl: string, mediaType: string, caption?: string) {
+    // TEMPORARILY DISABLED
+    return { success: true };
+    /*
     try {
       const response = await axios.post(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,
@@ -186,6 +193,7 @@ export class WhatsappService {
       console.error('WhatsApp Media API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
+    */
   }
  
   async updateMessageStatus(messageId: string, status: string) {
@@ -222,6 +230,9 @@ export class WhatsappService {
   }
  
   async sendBulkTemplateMessage(phoneNumbers: string[], templateName: string, parameters?: any[]) {
+    // TEMPORARILY DISABLED
+    return [];
+    /*
     const results: Array<{ phoneNumber: string; success: boolean; messageId?: string; error?: string }> = [];
    
     for (const phoneNumber of phoneNumbers) {
@@ -269,9 +280,13 @@ export class WhatsappService {
     }
  
     return results;
+    */
   }
  
   async sendBulkTemplateMessageWithNames(contacts: Array<{name: string; phone: string}>, templateName: string) {
+    // TEMPORARILY DISABLED
+    return [];
+    /*
     const results: Array<{ phoneNumber: string; success: boolean; messageId?: string; error?: string }> = [];
    
     for (const contact of contacts) {
@@ -326,6 +341,7 @@ export class WhatsappService {
     }
  
     return results;
+    */
   }
 
  
@@ -374,6 +390,9 @@ export class WhatsappService {
   }
  
   async sendOrderConfirmation(order: any) {
+    // TEMPORARILY DISABLED
+    return { success: true };
+    /*
     const phoneNumber = order.shippingAddress.mobile;
     const name = order.shippingAddress.fullName;
  
@@ -424,9 +443,13 @@ export class WhatsappService {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
+    */
   }
 
   async sendOrderAccepted(order: any) {
+    // TEMPORARILY DISABLED
+    return { success: true };
+    /*
     const phoneNumber = order.shippingAddress.mobile;
     const name = order.shippingAddress.fullName;
 
@@ -475,9 +498,13 @@ export class WhatsappService {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
+    */
   }
 
   async sendOrderShipped(order: any, trackingInfo: { courier: string; trackingId: string; trackingUrl: string }, invoiceUrl: string) {
+    // TEMPORARILY DISABLED
+    return { success: true };
+    /*
     const phoneNumber = order.shippingAddress.mobile;
     const name = order.shippingAddress.fullName;
  
@@ -570,9 +597,13 @@ export class WhatsappService {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
+    */
   }
 
   async sendOrderDelivered(order: any, invoiceUrl: string) {
+    // TEMPORARILY DISABLED
+    return { success: true };
+    /*
     const phoneNumber = order.shippingAddress.mobile;
     const name = order.shippingAddress.fullName;
  
@@ -624,9 +655,13 @@ export class WhatsappService {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
+    */
   }
 
   async sendLowStockAlert(phoneNumber: string, productDetails: string) {
+    // TEMPORARILY DISABLED
+    return { success: true };
+    /*
     try {
       const response = await axios.post(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,
@@ -659,5 +694,6 @@ export class WhatsappService {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
+    */
   }
 }

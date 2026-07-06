@@ -79,15 +79,26 @@ export class OrderService {
       }
     }
   
-    // Determine order status
-    const orderStatus = createOrderDto.paymentMethod === 'online' ? 'Pending' : 'Placed';
+    // Determine order status based on payment method
+    // TEMPORARILY DISABLED: Razorpay payment integration
+    // const isOnlinePayment = ['upi', 'card', 'online'].includes(createOrderDto.paymentMethod);
+    // const orderStatus = isOnlinePayment ? 'Pending' : 'Placed';
+    const isOnlinePayment = ['upi', 'card', 'online'].includes(createOrderDto.paymentMethod);
+    const orderStatus = 'Placed';
  
-    // Create Razorpay order for online payments
+    // Create Razorpay order for online payments (UPI, Card)
+    // TEMPORARILY DISABLED: Razorpay payment integration
+    // let razorpayOrderId: string | null = null;
+    // if (isOnlinePayment && createOrderDto.paymentMethod !== 'cod') {
+    //   try {
+    //     const razorpayOrder = await this.paymentService.createOrder(parseFloat(createOrderDto.total));
+    //     razorpayOrderId = razorpayOrder.id;
+    //   } catch (error) {
+    //     // Log but don't fail the order creation if Razorpay fails
+    //     console.error('Razorpay order creation failed:', error.message);
+    //   }
+    // }
     let razorpayOrderId: string | null = null;
-    if (createOrderDto.paymentMethod === 'online') {
-      const razorpayOrder = await this.paymentService.createOrder(parseFloat(createOrderDto.total));
-      razorpayOrderId = razorpayOrder.id;
-    }
 
     // Update user's shipping address (excluding mobile number)
     const shippingAddressToSave = {
@@ -151,11 +162,17 @@ export class OrderService {
       
       // Deduct stock for COD orders
       await this.deductStock((order as any).items);
-      
-      // Send WhatsApp confirmation only for COD orders
-      await this.whatsappService.sendOrderConfirmation(order);
     }
- 
+  
+    // TEMPORARILY DISABLED: WhatsApp order template/message sending
+    // Send WhatsApp confirmation (non-critical, don't fail order if it fails)
+    // try {
+    //   await this.whatsappService.sendOrderConfirmation(order);
+    // } catch (whatsappError: any) {
+    //   console.error('WhatsApp notification failed (non-critical):', whatsappError?.message || whatsappError);
+    //   // Continue with order success - WhatsApp failure should not prevent order completion
+    // }
+  
     // Return order with Razorpay order ID for online payments
     return {
       ...order,
@@ -454,26 +471,30 @@ async getOrderStats(startDate?: string, endDate?: string) {
     if (existingOrder?.status !== 'Placed') {
       await this.deductStock((order as any).items);
     }
-
-    // Send WhatsApp confirmation
-    await this.whatsappService.sendOrderConfirmation(order);
   }
 
-  // Send WhatsApp notification based on status
-  if (status === 'Accepted') {
-    await this.whatsappService.sendOrderAccepted(order);
-  } else if (status === 'Shipped') {
-    const trackingInfo = {
-      courier: courierName || order.courierName || 'N/A',
-      trackingId: trackingId || order.trackingId || 'N/A',
-      trackingUrl: trackingLink || order.trackingLink || 'N/A'
-    };
-    const invoiceFilename = `invoice-${order.id}.pdf`;
-    await this.whatsappService.sendOrderShipped(order, trackingInfo, invoiceFilename);
-  } else if (status === 'Delivered') {
-    const invoiceFilename = `invoice-${order.id}.pdf`;
-    await this.whatsappService.sendOrderDelivered(order, invoiceFilename);
-  }
+  // TEMPORARILY DISABLED: WhatsApp service integration
+  // Send WhatsApp notifications (non-critical - don't fail order processing if they fail)
+  // try {
+  //   if (status === 'Placed') {
+  //     await this.whatsappService.sendOrderConfirmation(order);
+  //   } else if (status === 'Accepted') {
+  //     await this.whatsappService.sendOrderAccepted(order);
+  //   } else if (status === 'Shipped') {
+  //     const trackingInfo = {
+  //       courier: courierName || order.courierName || 'N/A',
+  //       trackingId: trackingId || order.trackingId || 'N/A',
+  //       trackingUrl: trackingLink || order.trackingLink || 'N/A'
+  //     };
+  //     const invoiceFilename = `invoice-${order.id}.pdf`;
+  //     await this.whatsappService.sendOrderShipped(order, trackingInfo, invoiceFilename);
+  //   } else if (status === 'Delivered') {
+  //     const invoiceFilename = `invoice-${order.id}.pdf`;
+  //     await this.whatsappService.sendOrderDelivered(order, invoiceFilename);
+  //   }
+  // } catch (whatsappError: any) {
+  //   console.error('WhatsApp notification failed (non-critical):', whatsappError?.message || whatsappError);
+  // }
 
   return order;
 }
@@ -714,8 +735,8 @@ async getOrderStats(startDate?: string, endDate?: string) {
         data: { userId, orderId, status, action, errorMessage }
       });
       console.log(`[System Error Logged] Action: ${action} | Error: ${errorMessage}`);
-    } catch (e) {
-      console.error('CRITICAL: Failed to write to SystemErrorLog database table:', e.message);
+    } catch (e: any) {
+      console.error('CRITICAL: Failed to write to SystemErrorLog database table:', e?.message || e);
     }
   }
 

@@ -1,31 +1,62 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "./AuthContext";
+import { cartApi } from "../api/cart";
+import { mapApiProduct } from "../utils/productUtils";
 
 const Ctx = createContext(null);
 
-const KEY = "dk_cart_v1";
-
 export function CartProvider({ children }) {
-  const [items, setItems] = useState(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [items, setItems] = useState([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { isLoggedIn, openLoginModal } = useAuth();
+  const { user, isLoggedIn, openLoginModal } = useAuth();
+
+  const fetchCart = async () => {
+    if (!user?.token) return;
+    try {
+      const data = await cartApi.getCart(user.token);
+      const mapped = data.map(item => {
+        const mappedProduct = item.product ? mapApiProduct(item.product) : {
+          id: item.productId,
+          name: item.name,
+          discountPrice: parseFloat(item.price),
+          price: parseFloat(item.price),
+          images: [item.imageUrl],
+          thumbnail: item.imageUrl,
+          slug: item.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + item.productId,
+          category: ""
+        };
+
+        return {
+          id: item.id,
+          productId: item.productId,
+          imageUrl: item.imageUrl,
+          name: item.name,
+          price: item.price,
+          product: mappedProduct,
+          size: item.size,
+          color: item.color,
+          quantity: item.quantity
+        };
+      });
+      setItems(mapped);
+    } catch (e) {
+      console.error("Failed to fetch cart:", e);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem(KEY, JSON.stringify(items));
-  }, [items]);
+    if (isLoggedIn && user?.token) {
+      fetchCart();
+    } else {
+      setItems([]);
+    }
+  }, [isLoggedIn, user?.token]);
 
   const openDrawer = () => setDrawerOpen(true);
   const closeDrawer = () => setDrawerOpen(false);
 
-  const addToCart = (p, size, color, qty = 1, options = {}) => {
+  const addToCart = async (p, size, color, qty = 1, options = {}) => {
     const { showToast = true } = options;
     const toastId = "cart-toast";
 
@@ -34,65 +65,89 @@ export function CartProvider({ children }) {
       return;
     }
 
-    setItems((prev) => {
-      const idx = prev.findIndex(
-        (i) => i.product.id === p.id && i.size === size && i.color === color
-      );
-      if (idx > -1) {
-        const next = [...prev];
-        next[idx] = { ...next[idx], quantity: next[idx].quantity + qty };
-        return next;
+    try {
+      const itemData = {
+        id: p.id,
+        name: p.name,
+        price: String(p.discountPrice || p.price || 0),
+        imageUrl: p.images?.[0] || p.thumbnail || "",
+        size,
+        color,
+        quantity: qty
+      };
+      
+      await cartApi.addToCart(user.token, itemData);
+      await fetchCart();
+
+      if (showToast) {
+        toast.dismiss(toastId);
+        toast.success(`${p.name} added to bag`, { id: toastId, duration: 1800 });
       }
-      return [...prev, { product: p, size, color, quantity: qty }];
-    });
 
-    if (showToast) {
-      toast.dismiss(toastId);
-      toast.success(`${p.name} added to bag`, { id: toastId, duration: 1800 });
-    }
-
-    if (options.openDrawer !== false) {
-      openDrawer();
+      if (options.openDrawer !== false) {
+        openDrawer();
+      }
+    } catch (e) {
+      toast.error(e.message || "Failed to add to cart");
     }
   };
 
-  const removeFromCart = (id, size, color) => {
+  const removeFromCart = async (id, size, color) => {
     if (!isLoggedIn) {
       openLoginModal();
       return;
     }
-    setItems((prev) =>
-      prev.filter((i) => !(i.product.id === id && i.size === size && i.color === color))
-    );
-    toast.dismiss("cart-toast");
-    toast("Removed from bag", { id: "cart-toast", icon: "🗑️" });
+
+    const item = items.find(i => i.product.id === id && i.size === size && i.color === color);
+    if (!item) return;
+
+    try {
+      setItems(prev => prev.filter(i => i.id !== item.id));
+      await cartApi.removeFromCart(user.token, item.id);
+      toast.dismiss("cart-toast");
+      toast("Removed from bag", { id: "cart-toast", icon: "🗑️" });
+    } catch (e) {
+      console.error("Failed to remove item:", e);
+      fetchCart();
+    }
   };
 
-  const updateQty = (id, size, color, qty) => {
+  const updateQty = async (id, size, color, qty) => {
     if (!isLoggedIn) {
       openLoginModal();
       return;
     }
-    setItems((prev) =>
-      prev
-        .map((i) =>
-          i.product.id === id && i.size === size && i.color === color
-            ? { ...i, quantity: Math.max(1, qty) }
-            : i
-        )
-    );
+
+    const item = items.find(i => i.product.id === id && i.size === size && i.color === color);
+    if (!item) return;
+
+    const newQty = Math.max(1, qty);
+
+    try {
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: newQty } : i));
+      await cartApi.updateQuantity(user.token, item.id, newQty);
+    } catch (e) {
+      toast.error(e.message || "Failed to update quantity");
+      fetchCart();
+    }
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
     if (!isLoggedIn) {
       openLoginModal();
       return;
     }
-    setItems([]);
+    try {
+      setItems([]);
+      await cartApi.clearCart(user.token);
+    } catch (e) {
+      console.error("Failed to clear cart:", e);
+      fetchCart();
+    }
   };
 
   const subtotal = useMemo(
-    () => items.reduce((s, i) => s + i.product.discountPrice * i.quantity, 0),
+    () => items.reduce((s, i) => s + (i.product?.discountPrice || 0) * i.quantity, 0),
     [items]
   );
   const totalQuantity = useMemo(

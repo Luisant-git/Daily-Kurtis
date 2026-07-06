@@ -111,7 +111,7 @@ export default function ProductCard({ product, onQuickView }) {
             <div className="flex items-center justify-between gap-3">
               <Price price={product.price} discountPrice={product.discountPrice} size="sm" />
               <div className="flex items-center gap-1 min-w-0">
-                {product.colors.slice(0, 3).map((c) => (
+                {(product.colors || []).slice(0, 3).map((c) => (
                   <span
                     key={c.name}
                     title={c.name}
@@ -119,8 +119,8 @@ export default function ProductCard({ product, onQuickView }) {
                     style={{ backgroundColor: c.hex }}
                   />
                 ))}
-                {product.colors.length > 3 && (
-                  <span className="text-[10px] text-neutral-500">+{product.colors.length - 3}</span>
+                {(product.colors || []).length > 3 && (
+                  <span className="text-[10px] text-neutral-500">+{(product.colors || []).length - 3}</span>
                 )}
               </div>
             </div>

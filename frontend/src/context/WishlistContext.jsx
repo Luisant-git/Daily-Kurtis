@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "./AuthContext";
 import { wishlistApi } from "../api/wishlist";
+import { mapApiProduct } from "../utils/productUtils";
 
 const WishlistCtx = createContext(null);
 const KEY = "dk_wishlist_v1";
@@ -25,7 +26,7 @@ export function WishlistProvider({ children }) {
     try {
       const data = await wishlistApi.getWishlist(user.token);
       // Backend returns [{ id, userId, productId, product: { ... } }]
-      setItems(data.map(w => w.product || w));
+      setItems(data.map(w => mapApiProduct(w.product || w)).filter(Boolean));
     } catch (e) {
       console.error('Failed to fetch wishlist', e);
     } finally {

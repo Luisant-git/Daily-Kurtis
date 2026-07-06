@@ -43,12 +43,12 @@ export default function CartDrawer() {
                 </div>
               ) : (
                 items.map((item) => (
-                  <div key={`${item.product.id}-${item.size}-${item.color}`} className="border border-[#E9E5E5] rounded-2xl sm:rounded-3xl overflow-hidden">
+                  <div key={`${item.product?.id || item.productId || item.id}-${item.size}-${item.color}`} className="border border-[#E9E5E5] rounded-2xl sm:rounded-3xl overflow-hidden">
                     <div className="flex flex-row gap-2 sm:gap-3 p-3 sm:p-4 items-start">
-                      <img src={item.product.images?.[0] || item.product.thumbnail} alt={item.product.name} className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-24 rounded-xl sm:rounded-2xl md:rounded-3xl object-cover flex-shrink-0" />
+                      <img src={item.product?.images?.[0] || item.product?.thumbnail || item.imageUrl || ""} alt={item.product?.name || item.name || ""} className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-24 rounded-xl sm:rounded-2xl md:rounded-3xl object-cover flex-shrink-0" />
                       <div className="flex-1 min-w-0 space-y-1 sm:space-y-2">
-                        <p className="text-[10px] sm:text-xs text-neutral-500 uppercase tracking-[0.2em]">{item.product.category}</p>
-                        <h3 className="font-medium text-xs sm:text-sm text-[#1c1c1c] mt-0.5 line-clamp-2">{item.product.name}</h3>
+                        <p className="text-[10px] sm:text-xs text-neutral-500 uppercase tracking-[0.2em]">{item.product?.category || "Category"}</p>
+                        <h3 className="font-medium text-xs sm:text-sm text-[#1c1c1c] mt-0.5 line-clamp-2">{item.product?.name || item.name}</h3>
                         <div className="mt-1.5 sm:mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-neutral-500">
                           <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full bg-[#FAF6F4]">Size: {item.size}</span>
                           <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full bg-[#FAF6F4]">Color: {item.color}</span>
@@ -57,7 +57,7 @@ export default function CartDrawer() {
                           <div className="flex items-center rounded-full border border-[#E9E5E5] overflow-hidden">
                             <button
                               type="button"
-                              onClick={() => updateQty(item.product.id, item.size, item.color, item.quantity - 1)}
+                              onClick={() => updateQty(item.product?.id || item.productId, item.size, item.color, item.quantity - 1)}
                               className="h-7 w-7 sm:h-9 sm:w-9 flex items-center justify-center text-neutral-600 hover:bg-[#FAF6F4]"
                             >
                               <Minus size={12} />
@@ -65,7 +65,7 @@ export default function CartDrawer() {
                             <span className="h-7 w-7 sm:h-9 sm:min-w-[36px] flex items-center justify-center text-xs sm:text-sm">{item.quantity}</span>
                             <button
                               type="button"
-                              onClick={() => updateQty(item.product.id, item.size, item.color, item.quantity + 1)}
+                              onClick={() => updateQty(item.product?.id || item.productId, item.size, item.color, item.quantity + 1)}
                               className="h-7 w-7 sm:h-9 sm:w-9 flex items-center justify-center text-neutral-600 hover:bg-[#FAF6F4]"
                             >
                               <Plus size={12} />
@@ -73,7 +73,7 @@ export default function CartDrawer() {
                           </div>
                           <button
                             type="button"
-                            onClick={() => removeFromCart(item.product.id, item.size, item.color)}
+                            onClick={() => removeFromCart(item.product?.id || item.productId, item.size, item.color)}
                             className="inline-flex items-center gap-1 text-[10px] sm:text-xs sm:text-sm text-neutral-500 hover:text-[#800000]"
                           >
                             <Trash2 size={12} /> Remove
@@ -83,7 +83,7 @@ export default function CartDrawer() {
                     </div>
                     <div className="border-t border-[#E9E5E5] px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
                       <p className="text-xs sm:text-sm text-neutral-500">Total</p>
-                      <p className="font-semibold text-xs sm:text-sm text-[#1c1c1c]">₹{(item.product.discountPrice * item.quantity).toLocaleString("en-IN")}</p>
+                      <p className="font-semibold text-xs sm:text-sm text-[#1c1c1c]">₹{((item.product?.discountPrice || parseFloat(item.price) || 0) * item.quantity).toLocaleString("en-IN")}</p>
                     </div>
                   </div>
                 ))

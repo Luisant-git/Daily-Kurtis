@@ -5,14 +5,18 @@ import Breadcrumb from "../components/ui/Breadcrumb";
 import Empty from "../components/ui/Empty";
 import Button from "../components/ui/Button";
 import { formatINR } from "../components/ui/Price";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
+import { shippingApi } from "../api/shipping";
 
 export default function Cart() {
   const { items, updateQty, removeFromCart, subtotal } = useCart();
+  const { user } = useAuth();
   const nav = useNavigate();
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [shipping, setShipping] = useState(0);
 
   const apply = () => {
     if (coupon.toUpperCase() === "DAILY10") {
@@ -24,7 +28,27 @@ export default function Cart() {
     }
   };
 
-  const shipping = subtotal > 1499 ? 0 : subtotal > 0 ? 99 : 0;
+  useEffect(() => {
+    const loadShipping = async () => {
+      try {
+        const rules = await shippingApi.fetchShippingRules();
+        const state = user?.shippingAddress?.state;
+        if (state && rules.length > 0) {
+          const normalizedState = state.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_');
+          const rule = rules.find(r => r.state === normalizedState);
+          setShipping(rule ? parseFloat(rule.flatShippingRate) : 0);
+        } else {
+          setShipping(0);
+        }
+      } catch (e) {
+        console.error("Failed to load shipping rules:", e);
+        setShipping(0);
+      }
+    };
+
+    loadShipping();
+  }, [user?.shippingAddress?.state]);
+
   const total = subtotal - discount + shipping;
 
   if (items.length === 0) {
@@ -51,33 +75,33 @@ export default function Cart() {
         <div className="space-y-4">
           {items.map((item) => (
             <div
-              key={`${item.product.id}-${item.size}-${item.color}`}
+              key={`${item.product?.id || item.productId || item.id}-${item.size}-${item.color}`}
               className="bg-white border border-[#E9E5E5] rounded-2xl p-4 sm:p-5 flex gap-4"
             >
-              <Link to={`/product/${item.product.slug}`} className="shrink-0">
-                <img src={item.product.images[0]} alt={item.product.name} className="w-24 sm:w-32 aspect-[4/5] object-cover rounded-xl" />
+              <Link to={`/product/${item.product?.slug || "undefined"}`} className="shrink-0">
+                <img src={item.product?.images?.[0] || item.product?.thumbnail || item.imageUrl || ""} alt={item.product?.name || item.name || ""} className="w-24 sm:w-32 aspect-[4/5] object-cover rounded-xl" />
               </Link>
               <div className="flex-1 min-w-0 flex flex-col">
                 <div className="flex justify-between gap-3">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-500">{item.product.category}</p>
-                    <Link to={`/product/${item.product.slug}`} className="font-display text-base sm:text-lg text-[#1c1c1c] hover:text-[#800000]">
-                      {item.product.name}
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-500">{item.product?.category || "Category"}</p>
+                    <Link to={`/product/${item.product?.slug || "undefined"}`} className="font-display text-base sm:text-lg text-[#1c1c1c] hover:text-[#800000]">
+                      {item.product?.name || item.name}
                     </Link>
                     <p className="text-xs text-neutral-500 mt-1">Size: {item.size} · Color: {item.color}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-[#800000]">{formatINR(item.product.discountPrice * item.quantity)}</p>
-                    <p className="text-xs text-neutral-400 line-through">{formatINR(item.product.price * item.quantity)}</p>
+                    <p className="font-semibold text-[#800000]">{formatINR((item.product?.discountPrice || parseFloat(item.price) || 0) * item.quantity)}</p>
+                    <p className="text-xs text-neutral-400 line-through">{formatINR((item.product?.price || parseFloat(item.price) || 0) * item.quantity)}</p>
                   </div>
                 </div>
                 <div className="mt-auto pt-3 flex items-center justify-between">
                   <div className="inline-flex items-center border border-[#E9E5E5] rounded-full">
-                    <button onClick={() => updateQty(item.product.id, item.size, item.color, item.quantity - 1)} className="h-9 w-9 flex items-center justify-center text-[#800000]"><Minus size={12} /></button>
+                    <button onClick={() => updateQty(item.product?.id || item.productId, item.size, item.color, item.quantity - 1)} className="h-9 w-9 flex items-center justify-center text-[#800000]"><Minus size={12} /></button>
                     <span className="w-8 text-center text-sm">{item.quantity}</span>
-                    <button onClick={() => updateQty(item.product.id, item.size, item.color, item.quantity + 1)} className="h-9 w-9 flex items-center justify-center text-[#800000]"><Plus size={12} /></button>
+                    <button onClick={() => updateQty(item.product?.id || item.productId, item.size, item.color, item.quantity + 1)} className="h-9 w-9 flex items-center justify-center text-[#800000]"><Plus size={12} /></button>
                   </div>
-                  <button onClick={() => removeFromCart(item.product.id, item.size, item.color)} className="text-xs text-neutral-500 hover:text-[#DC2626] inline-flex items-center gap-1.5">
+                  <button onClick={() => removeFromCart(item.product?.id || item.productId, item.size, item.color)} className="text-xs text-neutral-500 hover:text-[#DC2626] inline-flex items-center gap-1.5">
                     <Trash2 size={13} /> Remove
                   </button>
                 </div>
@@ -111,12 +135,11 @@ export default function Cart() {
             <Row k="Subtotal" v={formatINR(subtotal)} />
             {discount > 0 && <Row k="Discount" v={`- ${formatINR(discount)}`} highlight />}
             <Row k="Shipping" v={shipping === 0 ? "Free" : formatINR(shipping)} />
-            <Row k="Estimated Tax" v={formatINR(Math.round(subtotal * 0.05))} muted />
           </div>
 
           <div className="border-t border-[#E9E5E5] mt-5 pt-5 flex items-center justify-between">
             <span className="text-sm uppercase tracking-wider text-neutral-500">Total Payable</span>
-            <span className="font-display text-2xl text-[#800000]">{formatINR(total + Math.round(subtotal * 0.05))}</span>
+            <span className="font-display text-2xl text-[#800000]">{formatINR(total)}</span>
           </div>
 
           <Button onClick={() => nav("/checkout")} className="w-full mt-5">Checkout <ArrowRight size={14} /></Button>

@@ -1,5 +1,9 @@
-export const formatINR = (n) =>
-  "₹" + n.toLocaleString("en-IN");
+export const formatINR = (n) => {
+  if (n == null || isNaN(Number(n))) {
+    return "₹0";
+  }
+  return "₹" + Number(n).toLocaleString("en-IN");
+};
 
 export default function Price({
   price,

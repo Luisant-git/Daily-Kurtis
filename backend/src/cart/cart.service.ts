@@ -46,7 +46,8 @@ export class CartService {
         data: { 
           quantity: existingItem.quantity + (addToCartDto.quantity || 1),
           sizeVariantId: addToCartDto.sizeVariantId
-        }
+        },
+        include: { product: true }
       });
     }
 
@@ -68,14 +69,19 @@ export class CartService {
         type: addToCartDto.type || 'single',
         bundleItems: addToCartDto.items ? JSON.parse(JSON.stringify(addToCartDto.items)) : undefined,
         hsnCode: addToCartDto.hsnCode
-      }
+      },
+      include: { product: true }
     });
   }
 
   async getCart(userId: number) {
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
-      include: { items: true }
+      include: {
+        items: {
+          include: { product: true }
+        }
+      }
     });
 
     return cart?.items || [];
@@ -116,7 +122,8 @@ export class CartService {
         id: itemId,
         cartId: cart.id 
       },
-      data: { quantity }
+      data: { quantity },
+      include: { product: true }
     });
   }
 

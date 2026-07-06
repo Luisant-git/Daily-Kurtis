@@ -6,11 +6,15 @@ export default function Rating({
   showValue = false,
   className = "",
 }) {
+  // Handle null/undefined values gracefully
+  const safeValue = value ?? 0;
+  const roundedValue = Math.round(safeValue);
+  
   return (
     <div className={`inline-flex items-center gap-1 ${className}`}>
       <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((i) => {
-          const filled = i <= Math.round(value);
+          const filled = i <= roundedValue;
           return (
             <Star
               key={i}
@@ -21,8 +25,8 @@ export default function Rating({
           );
         })}
       </div>
-      {showValue && (
-        <span className="text-xs text-neutral-500 ml-1">{value.toFixed(1)}</span>
+      {showValue && typeof safeValue === 'number' && (
+        <span className="text-xs text-neutral-500 ml-1">{safeValue.toFixed(1)}</span>
       )}
     </div>
   );

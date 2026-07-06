@@ -1,4 +1,4 @@
-import { IsString, IsObject, IsArray, ValidateNested, IsOptional, IsIn } from 'class-validator';
+import { IsString, IsObject, IsArray, ValidateNested, IsOptional, IsIn, registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -11,6 +11,27 @@ export const INDIAN_STATES = [
   'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
   'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
 ] as const;
+
+// Custom decorator for case-insensitive state validation
+function IsValidIndianState(validationOptions?: ValidationOptions) {
+  return function (target: Object, propertyName: string) {
+    registerDecorator({
+      name: 'isValidIndianState',
+      target: target.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: any) {
+          if (!value || typeof value !== 'string') return false;
+          return INDIAN_STATES.some(state => state.toLowerCase() === value.toLowerCase());
+        },
+        defaultMessage(args: ValidationArguments) {
+          return `${args.property} must be a valid Indian state`;
+        },
+      },
+    });
+  };
+}
 
 class ShippingAddressDto {
   @ApiProperty({ example: 'John Doe' })
@@ -36,7 +57,8 @@ class ShippingAddressDto {
   city: string;
 
   @ApiProperty({ example: 'Maharashtra', enum: INDIAN_STATES })
-  @IsIn(INDIAN_STATES, { message: 'Invalid state. Please select a valid Indian state.' })
+  @IsString()
+  @IsValidIndianState({ message: 'Invalid state. Please select a valid Indian state.' })
   state: string;
 
   @ApiProperty({ example: '400001' })
@@ -71,8 +93,9 @@ export class CreateOrderDto {
   @IsString()
   couponCode?: string;
 
-  @ApiProperty({ example: 'card', enum: ['card', 'upi', 'cod'] })
+  @ApiProperty({ example: 'upi', enum: ['card', 'upi', 'cod', 'online'] })
   @IsString()
+  @IsIn(['card', 'upi', 'cod', 'online'], { message: 'Payment method must be one of: card, upi, cod, online' })
   paymentMethod: string;
 
   @ApiProperty({ type: ShippingAddressDto })

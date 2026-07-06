@@ -101,12 +101,4 @@ updateShippingAddress: async (token, address) => {
   });
 },
 
-  fetchOrders: async (token) => {
-    return request("/orders", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  },
 };

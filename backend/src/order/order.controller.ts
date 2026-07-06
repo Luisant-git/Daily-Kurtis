@@ -23,7 +23,12 @@ export class OrderController {
   @ApiResponse({ status: 201, description: 'Order created successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async createOrder(@Request() req, @Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.createOrder(req.user.userId, createOrderDto);
+    try {
+      return await this.orderService.createOrder(req.user.userId, createOrderDto);
+    } catch (e) {
+      require('fs').appendFileSync('error.log', 'Order Error: ' + (e.stack || e.message) + '\n');
+      throw e;
+    }
   }
  
   @Get()

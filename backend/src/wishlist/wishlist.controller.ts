@@ -19,6 +19,11 @@ export class WishlistController {
 
   @Get()
   async getWishlist(@Request() req) {
-    return this.wishlistService.getWishlist(req.user.userId);
+    try {
+      return await this.wishlistService.getWishlist(req.user.userId);
+    } catch (e) {
+      require('fs').appendFileSync('error.log', 'Wishlist Error: ' + e.stack + '\n');
+      throw e;
+    }
   }
 }
