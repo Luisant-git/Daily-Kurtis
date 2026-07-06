@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import { authApi } from "../api/auth";
 
 const AuthCtx = createContext(null);
 const KEY = "dk_auth_v1";
 
 export function AuthProvider({ children }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState(() => {
     try {
       const raw = localStorage.getItem(KEY);
@@ -76,6 +78,11 @@ export function AuthProvider({ children }) {
     toast.success("Logged out successfully");
   };
 
+  const openLoginModal = () => {
+    toast.error("Please login to continue");
+    navigate("/login");
+  };
+
   const fetchProfile = useCallback(async () => {
     const currentUser = userRef.current;
     if (!currentUser?.mobile || !currentUser?.token) return;
@@ -84,13 +91,18 @@ export function AuthProvider({ children }) {
     try {
       const response = await authApi.fetchProfile(currentUser.token);
       if (response) {
+        const normalizedShippingAddress =
+          response?.shippingAddress && typeof response.shippingAddress === "object" && !Array.isArray(response.shippingAddress) && Object.keys(response.shippingAddress).length > 0
+            ? response.shippingAddress
+            : undefined;
+
         setUser((prev) => ({ 
           ...prev, 
           name: response.name || prev?.name || "",
           email: response.email || prev?.email || "",
           mobile: response.phone || prev?.mobile,
           createdAt: response.createdAt || prev?.createdAt,
-          shippingAddress: response.shippingAddress || prev?.shippingAddress,
+          shippingAddress: normalizedShippingAddress || prev?.shippingAddress,
         }));
       }
     } catch (error) {
@@ -128,6 +140,10 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateShippingAddress = (address) => {
+    setUser((prev) => ({ ...prev, shippingAddress: address }));
+  };
+
   const isLoggedIn = !!user;
 
   return (
@@ -138,8 +154,10 @@ export function AuthProvider({ children }) {
         loading,
         login,
         logout,
+        openLoginModal,
         fetchProfile,
         updateProfile,
+        updateShippingAddress,
         profileOpen,
         setProfileOpen,
       }}

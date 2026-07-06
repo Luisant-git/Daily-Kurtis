@@ -3,18 +3,27 @@ import API_BASE_URL from "./config";
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const config = {
+    ...options,
     headers: {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers || {}),
     },
-    ...options,
   };
+
+  if (config.body && typeof config.body !== "string") {
+    config.body = JSON.stringify(config.body);
+  }
 
   try {
     const response = await fetch(url, config);
     if (!response.ok) {
       const err = await response.json().catch(() => ({ message: "Something went wrong" }));
-      throw new Error(err.message || err.detail || `HTTP ${response.status}`);
+      const message = Array.isArray(err.message)
+        ? err.message.join(", ")
+        : err.message || err.detail || `HTTP ${response.status}`;
+      const error = new Error(message);
+      error.response = err;
+      throw error;
     }
     return await response.json();
   } catch (error) {
@@ -27,28 +36,28 @@ export const authApi = {
   requestOtp: async (phone) => {
     return request("/auth/otp/request", {
       method: "POST",
-      body: JSON.stringify({ phone }),
+      body: { phone },
     });
   },
 
   verifyOtp: async (phone, otp, name = "", email = "") => {
     return request("/auth/otp/verify", {
       method: "POST",
-      body: JSON.stringify({ phone, otp, name, email }),
+      body: { phone, otp, name, email },
     });
   },
 
   registerWithEmail: async (email, password, name) => {
     return request("/auth/user/register", {
       method: "POST",
-      body: JSON.stringify({ email, password, name }),
+      body: { email, password, name },
     });
   },
 
-loginWithEmail: async (email, password) => {
+  loginWithEmail: async (email, password) => {
     return request("/auth/user/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: { email, password },
     });
   },
 
@@ -67,17 +76,37 @@ loginWithEmail: async (email, password) => {
       headers: {
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify(data)
+      body: data,
     });
   },
 
-  updateAddress: async (token, address) => {
-    return request("/user/profile/address", {
-      method: "PATCH",
+updateShippingAddress: async (token, address) => {
+  // Ensure all values are strings before sending
+  const sanitizedAddress = {
+    name: String(address.name || ""),
+    addressLine: String(address.addressLine || ""),
+    landmark: String(address.landmark || ""),
+    city: String(address.city || ""),
+    state: String(address.state || ""),
+    pincode: String(address.pincode || ""),
+    mobile: String(address.mobile || ""),
+  };
+  
+  return request("/user/profile/address", {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: sanitizedAddress,
+  });
+},
+
+  fetchOrders: async (token) => {
+    return request("/orders", {
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(address)
+      }
     });
   },
 };

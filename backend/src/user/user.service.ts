@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { instanceToPlain } from 'class-transformer';
 import { PrismaClient } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -37,10 +38,27 @@ export class UserService {
 
   async updateAddress(id: number, address: any) {
     await this.findOne(id);
+
+    const shippingAddress = this.normalizeAddress(address);
     return this.prisma.user.update({
       where: { id },
-      data: { shippingAddress: address },
+      data: { shippingAddress },
     });
+  }
+
+  private normalizeAddress(address: any): Record<string, any> {
+    if (!address || typeof address !== 'object' || Array.isArray(address)) {
+      return {};
+    }
+
+    const normalized = JSON.parse(JSON.stringify(address));
+    const plainAddress = typeof normalized === 'object' && normalized !== null ? normalized : {};
+
+    return {
+      ...(plainAddress as Record<string, any>),
+      name: plainAddress.name ?? plainAddress.fullName ?? '',
+      addressLine: plainAddress.addressLine ?? plainAddress.addressLine1 ?? '',
+    };
   }
 
   async remove(id: number) {

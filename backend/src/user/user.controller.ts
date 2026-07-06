@@ -33,8 +33,17 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('profile/address')
-  async updateAddress(@Request() req, @Body() address: UpdateAddressDto) {
-    return this.userService.updateAddress(req.user.id, address);
+  async updateAddress(@Request() req, @Body() body: UpdateAddressDto) {
+    const shippingAddress = {
+      name: body?.name ?? body?.fullName,
+      addressLine: body?.addressLine ?? body?.addressLine1,
+      landmark: body?.landmark,
+      city: body?.city,
+      state: body?.state,
+      pincode: body?.pincode,
+      mobile: body?.mobile,
+    };
+    return this.userService.updateAddress(req.user.id, shippingAddress);
   }
  
   @Get(':id')

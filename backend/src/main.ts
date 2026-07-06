@@ -11,9 +11,18 @@ async function bootstrap() {
     origin: true,
     credentials: true,
   });
+  // Parse JSON bodies for all requests
   app.use(bodyParser.json({ limit: '10mb' }));
-  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: false,
+    forbidUnknownValues: false,
+    transform: true,
+    transformOptions: {
+      enableImplicitConversion: true,
+    },
+    skipMissingProperties: true,
+  }));
   app.useStaticAssets('uploads', { 
     prefix: '/uploads/',
     setHeaders: (res, path) => {

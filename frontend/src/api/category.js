@@ -3,11 +3,11 @@ import API_BASE_URL from "./config";
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const config = {
+    ...options,
     headers: {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers || {}),
     },
-    ...options,
   };
 
   try {
