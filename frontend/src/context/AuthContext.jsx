@@ -9,7 +9,15 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      return raw ? JSON.parse(raw) : null;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // If user has a token, don't trust cached name/email — fetch from backend
+        if (parsed?.token) {
+          return { mobile: parsed.mobile, token: parsed.token, name: "", email: "", loggedInAt: parsed.loggedInAt };
+        }
+        return parsed;
+      }
+      return null;
     } catch {
       return null;
     }
@@ -17,10 +25,11 @@ export function AuthProvider({ children }) {
   const [profileOpen, setProfileOpen] = useState(false);
   // Loading should be true if user has token but profile not loaded yet (no createdAt)
   const [loading, setLoading] = useState(() => {
-    const stored = localStorage.getItem(KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return !!(parsed?.token && !parsed?.createdAt);
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // If user has a token, we need to fetch profile — loading is true
+      return !!parsed?.token;
     }
     return false;
   });
@@ -47,12 +56,11 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   const login = (mobile, name = "", email = "", token = "") => {
-    // User data is already verified by Auth's verifyOtp function
-    // This function just sets the user state
+    // Only store mobile and token initially — name & email come from backend fetch
     const userData = {
       mobile,
-      name,
-      email,
+      name: "",
+      email: "",
       token,
       loggedInAt: Date.now(),
     };
@@ -60,7 +68,7 @@ export function AuthProvider({ children }) {
     setUser(userData);
     // Set loading to true since we need to fetch the full profile
     setLoading(true);
-    toast.success(`Welcome ${name || ""}! ✨`);
+    toast.success(`Welcome! ✨`);
   };
 
   const logout = () => {
@@ -87,6 +95,19 @@ export function AuthProvider({ children }) {
       }
     } catch (error) {
       console.error("Failed to fetch profile:", error);
+      // If token is invalid/expired (401), log the user out
+      if (error.message?.toLowerCase().includes('unauthorized') || error.message?.toLowerCase().includes('401')) {
+        setUser(null);
+        toast.error("Session expired. Please login again.");
+      } else {
+        // If backend is down, clear name/email so profile shows "Not set"
+        setUser((prev) => ({ 
+          ...prev, 
+          name: "",
+          email: "",
+          createdAt: Date.now(), // mark as "loaded" so we don't keep retrying
+        }));
+      }
     } finally {
       setLoading(false);
     }
