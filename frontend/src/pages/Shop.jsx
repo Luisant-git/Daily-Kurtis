@@ -146,7 +146,7 @@ export default function Shop() {
 
   const clearAll = () => {
     setQuery(""); setCategory([]); setFabric([]); setColor([]); setSize([]); setOccasion([]); setPrice(6000);
-    setParams({});
+    setOccasion([]); setParams({});
   };
 
   const Sidebar = (
@@ -181,14 +181,6 @@ export default function Shop() {
         </div>
       </FilterBlock>
 
-      <FilterBlock title="Fabric">
-        <div className="grid grid-cols-2 gap-2">
-          {derivedFilters.fabrics.length > 0 ? derivedFilters.fabrics.map((f) => (
-            <Chip key={f} active={fabric.includes(f)} onClick={() => toggle(fabric, setFabric, f)}>{f}</Chip>
-          )) : <p className="text-xs text-neutral-400">No fabrics available</p>}
-        </div>
-      </FilterBlock>
-
       <FilterBlock title="Size">
         <div className="flex flex-wrap gap-2">
           {derivedFilters.sizes.length > 0 ? derivedFilters.sizes.map((s) => (
@@ -213,13 +205,6 @@ export default function Shop() {
         </div>
       </FilterBlock>
 
-      <FilterBlock title="Occasion">
-        <div className="grid grid-cols-2 gap-2">
-          {derivedFilters.occasions.length > 0 ? derivedFilters.occasions.map((o) => (
-            <Chip key={o} active={occasion.includes(o)} onClick={() => toggle(occasion, setOccasion, o)}>{o}</Chip>
-          )) : <p className="text-xs text-neutral-400">No occasions available</p>}
-        </div>
-      </FilterBlock>
 
       <button onClick={clearAll} className="text-xs text-[#800000] underline">Clear all filters</button>
     </div>

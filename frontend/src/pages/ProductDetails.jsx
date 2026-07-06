@@ -52,13 +52,19 @@ export default function ProductDetails() {
               rating: 4.5,
               reviews: 0,
               sizes: firstColor?.sizes?.map((s) => s.size) || [],
-              colors: apiProduct.colors?.map((c) => ({ name: c.name, hex: c.code })) || [],
+              colors: (apiProduct.colors || []).map((c) => ({
+                name: c.name,
+                hex: c.code,
+                image: c.image || "",
+                sizes: (c.sizes || []).map((s) => ({ size: s.size, price: s.price, quantity: s.quantity })),
+              })) || [],
               stock: parseInt(firstSize?.quantity || 0),
               featured: false,
               bestSeller: false,
               newArrival: apiProduct.newArrivals || false,
               images: apiProduct.gallery?.map((g) => g.url) || (firstColor?.image ? [firstColor.image] : []),
               thumbnail: firstColor?.image || firstGallery?.url || "",
+              rawColors: apiProduct.colors || [],
             });
           }
         } catch (error) {
@@ -85,7 +91,8 @@ export default function ProductDetails() {
 
   useEffect(() => {
     if (product) {
-      setSize(product.sizes[1] || product.sizes[0]);
+      const firstColor = product.rawColors?.[0] || product.colors?.[0] || {};
+      setSize(firstColor.sizes?.[1]?.size || firstColor.sizes?.[0]?.size || product.sizes[0]);
       setColor(product.colors[0]?.name || "");
       setActiveImg(0);
       push(product);
@@ -110,8 +117,28 @@ export default function ProductDetails() {
 
   const related = [];
   const liked = has(product.id);
-  const galleryImages = product.images?.length ? product.images : [product.thumbnail || ""];
+  
+  // Get the selected color's data
+  const selectedColorData = product.rawColors?.find(c => c.name === color) || product.rawColors?.[0] || {};
+  const selectedSizes = selectedColorData.sizes?.map(s => s.size) || product.sizes || [];
+  const selectedBasePrice = parseFloat(selectedColorData.sizes?.[0]?.price || 0) || product.discountPrice;
+  const selectedMrp = product.price > selectedBasePrice ? product.price : selectedBasePrice;
+  const selectedDiscount = selectedMrp > selectedBasePrice ? Math.round(((selectedMrp - selectedBasePrice) / selectedMrp) * 100) : 0;
+  const selectedColorImage = selectedColorData.image || "";
+  
+  const galleryImages = selectedColorImage 
+    ? [selectedColorImage, ...(product.images?.filter(img => img !== selectedColorImage) || [])]
+    : (product.images?.length ? product.images : [product.thumbnail || ""]);
   const activeImage = galleryImages[activeImg] || galleryImages[0];
+
+  // Reset size when color changes if current size isn't available in new color
+  useEffect(() => {
+    if (color && selectedSizes.length > 0) {
+      if (!selectedSizes.includes(size)) {
+        setSize(selectedSizes[0]);
+      }
+    }
+  }, [color]);
 
   const handleAdd = ({ showToast = true, goToCheckout = false } = {}) => {
     if (!isLoggedIn) {
@@ -199,7 +226,10 @@ export default function ProductDetails() {
           </div>
 
           <div className="mt-5">
-            <Price price={product.price} discountPrice={product.discountPrice} size="lg" />
+            <Price price={selectedMrp} discountPrice={selectedBasePrice} size="lg" />
+            {selectedDiscount > 0 && (
+              <p className="text-xs text-green-600 mt-1">You save ₹{(selectedMrp - selectedBasePrice).toLocaleString("en-IN")}</p>
+            )}
             <p className="text-xs text-neutral-500 mt-1">Inclusive of all taxes</p>
           </div>
 
@@ -232,7 +262,7 @@ export default function ProductDetails() {
               <button className="text-xs text-[#800000] underline">Size Guide</button>
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
-              {product.sizes.map((s) => (
+              {selectedSizes.map((s) => (
                 <button
                   key={s}
                   onClick={() => setSize(s)}
