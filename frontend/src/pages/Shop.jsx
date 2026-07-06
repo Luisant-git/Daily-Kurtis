@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronDown, SlidersHorizontal, X, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FABRIC_LIST, COLOR_LIST, SIZE_LIST, OCCASION_LIST } from "../data/products.js";
 import { productApi } from "../api/product.js";
 import { categoryApi } from "../api/category.js";
 import ProductCard from "../components/product/ProductCard";
@@ -111,6 +110,15 @@ export default function Shop() {
     }
   }, [initialSize]);
 
+  // Derive filter options from fetched products
+  const derivedFilters = useMemo(() => {
+    const fabrics = [...new Set(allProducts.map(p => p.fabric).filter(Boolean))];
+    const colors = [...new Map(allProducts.flatMap(p => p.colors).filter(c => c.name).map(c => [c.name, c])).values()];
+    const sizes = [...new Set(allProducts.flatMap(p => p.sizes).filter(Boolean))];
+    const occasions = [...new Set(allProducts.map(p => p.occasion).filter(Boolean))];
+    return { fabrics, colors, sizes, occasions };
+  }, [allProducts]);
+
   const filtered = useMemo(() => {
     let list = allProducts.slice();
     if (initialFilter === "new") list = list.filter((p) => p.newArrival);
@@ -175,23 +183,23 @@ export default function Shop() {
 
       <FilterBlock title="Fabric">
         <div className="grid grid-cols-2 gap-2">
-          {FABRIC_LIST.map((f) => (
+          {derivedFilters.fabrics.length > 0 ? derivedFilters.fabrics.map((f) => (
             <Chip key={f} active={fabric.includes(f)} onClick={() => toggle(fabric, setFabric, f)}>{f}</Chip>
-          ))}
+          )) : <p className="text-xs text-neutral-400">No fabrics available</p>}
         </div>
       </FilterBlock>
 
       <FilterBlock title="Size">
         <div className="flex flex-wrap gap-2">
-          {SIZE_LIST.map((s) => (
+          {derivedFilters.sizes.length > 0 ? derivedFilters.sizes.map((s) => (
             <Chip key={s} active={size.includes(s)} onClick={() => toggle(size, setSize, s)} small>{s}</Chip>
-          ))}
+          )) : <p className="text-xs text-neutral-400">No sizes available</p>}
         </div>
       </FilterBlock>
 
       <FilterBlock title="Color">
         <div className="flex flex-wrap gap-2">
-          {COLOR_LIST.map((c) => (
+          {derivedFilters.colors.length > 0 ? derivedFilters.colors.map((c) => (
             <button
               key={c.name}
               onClick={() => toggle(color, setColor, c.name)}
@@ -201,15 +209,15 @@ export default function Shop() {
               }`}
               style={{ backgroundColor: c.hex }}
             />
-          ))}
+          )) : <p className="text-xs text-neutral-400">No colors available</p>}
         </div>
       </FilterBlock>
 
       <FilterBlock title="Occasion">
         <div className="grid grid-cols-2 gap-2">
-          {OCCASION_LIST.map((o) => (
+          {derivedFilters.occasions.length > 0 ? derivedFilters.occasions.map((o) => (
             <Chip key={o} active={occasion.includes(o)} onClick={() => toggle(occasion, setOccasion, o)}>{o}</Chip>
-          ))}
+          )) : <p className="text-xs text-neutral-400">No occasions available</p>}
         </div>
       </FilterBlock>
 
