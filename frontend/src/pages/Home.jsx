@@ -3,14 +3,15 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Gift, Star, Camera, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 
-import { PRODUCTS, SIZE_LIST } from "../data/products.js";
-import { FEATURED_CATEGORIES, REVIEWS, INSTAGRAM, OCCASIONS_HOME } from "../data/site.js";
+import { SIZE_LIST } from "../data/products.js";
+import { REVIEWS, INSTAGRAM, OCCASIONS_HOME } from "../data/site.js";
 import ProductCard from "../components/product/ProductCard";
 import SectionHeading from "../components/ui/SectionHeading";
 import Button from "../components/ui/Button";
 import Rating from "../components/ui/Rating";
 import { bannerApi } from "../api/banner";
 import { categoryApi } from "../api/category";
+import { productApi } from "../api/product";
 
 export default function Home() {
   const [current, setCurrent] = useState(0);
@@ -18,16 +19,18 @@ export default function Home() {
   const [categories, setCategories] = useState([]);
   const [categoryStartIndex, setCategoryStartIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(6);
-  const newArrivals = PRODUCTS.filter((p) => p.newArrival).slice(0, 4);
-  const bestSellers = [
-    ...PRODUCTS.filter((p) => p.name === "Naina Office Essential"),
-    ...PRODUCTS.filter((p) => p.bestSeller && p.name !== "Naina Office Essential"),
-    ...PRODUCTS.filter((p) => p.featured && !p.bestSeller && p.name !== "Naina Office Essential"),
-  ].slice(0, 4);
+  const [apiProducts, setApiProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch banners and categories from API
+  const products = apiProducts;
+
+  const newArrivals = products.filter((p) => p.newArrival).slice(0, 4);
+  const bestSellers = products.slice(0, 4);
+
+  // Fetch banners, categories, and products from API
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const bannerData = await bannerApi.getBanners();
         if (bannerData && bannerData.length > 0) {
@@ -45,6 +48,48 @@ export default function Home() {
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
+
+      try {
+        const productData = await productApi.getActiveProducts();
+        if (productData && productData.length > 0) {
+          // Map API products to match the expected ProductCard format
+          const mapped = productData.map((p) => {
+            const firstColor = p.colors?.[0] || {};
+            const firstSize = firstColor?.sizes?.[0] || {};
+            const firstGallery = p.gallery?.[0] || {};
+            const basePrice = parseFloat(firstSize?.price || p.basePrice || 0);
+            const mrpValue = p.mrp ? parseFloat(p.mrp) : basePrice;
+            const discountPercent = mrpValue > basePrice ? Math.round(((mrpValue - basePrice) / mrpValue) * 100) : 0;
+            return {
+              id: p.id,
+              name: p.name,
+              slug: p.slug || p.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + p.id,
+              description: p.description || "",
+              category: p.category?.name || "",
+              fabric: p.fabric || "",
+              occasion: p.occasion || "",
+              price: mrpValue,
+              discountPrice: basePrice,
+              discount: discountPercent,
+              rating: 4.5,
+              reviews: 0,
+              sizes: firstColor?.sizes?.map((s) => s.size) || [],
+              colors: p.colors?.map((c) => ({ name: c.name, hex: c.code })) || [],
+              stock: parseInt(firstSize?.quantity || 0),
+              featured: false,
+              bestSeller: false,
+              newArrival: p.newArrivals || false,
+              images: p.gallery?.map((g) => g.url) || (firstColor?.image ? [firstColor.image] : []),
+              thumbnail: firstColor?.image || firstGallery?.url || "",
+            };
+          });
+          setApiProducts(mapped);
+        }
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, []);
@@ -55,10 +100,8 @@ export default function Home() {
     mobile: b.mobileImage || b.image 
   }));
 
-  // Use API categories or fallback to FEATURED_CATEGORIES
-  const displayCategories = categories.length > 0 
-    ? categories.map(c => ({ name: c.name, image: c.image, tag: c.description || "" }))
-    : FEATURED_CATEGORIES;
+  // Use API categories
+  const displayCategories = categories.map(c => ({ name: c.name, image: c.image, tag: c.description || "" }));
 
   useEffect(() => {
     const updateVisibleCount = () => {
@@ -257,7 +300,7 @@ export default function Home() {
                 >
                   <div className="relative aspect-square overflow-hidden rounded-full ring-1 ring-[#E9E5E5] group-hover:ring-[#800000] transition zoom-wrap mx-auto bg-white">
                     <img
-                      src={PRODUCTS[i % PRODUCTS.length]?.thumbnail}
+                      src={products[i % products.length]?.thumbnail || "https://via.placeholder.com/300"}
                       alt={`Size ${size}`}
                       className="zoom-img w-full h-full object-cover object-top"
                     />

@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import SectionHeading from "../components/ui/SectionHeading";
-import { PRODUCTS } from "../data/products.js";
 import { categoryApi } from "../api/category";
 
 export default function Categories() {
@@ -25,10 +24,7 @@ export default function Categories() {
     fetchCategories();
   }, []);
 
-  // Use API categories or fallback to static categories from products
-  const displayCategories = categories.length > 0 
-    ? categories 
-    : [...new Set(PRODUCTS.map(p => p.category))].map(cat => ({ name: cat, image: "", description: "" }));
+  const displayCategories = categories;
 
   return (
     <div>
@@ -46,7 +42,7 @@ export default function Categories() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {displayCategories.map((cat, i) => {
-              const count = PRODUCTS.filter((p) => p.category === cat.name).length;
+              const count = "—";
               const imgSrc = cat.image || "";
               return (
                 <motion.div

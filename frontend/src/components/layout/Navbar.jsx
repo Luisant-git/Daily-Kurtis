@@ -192,16 +192,20 @@ export default function Navbar() {
                             }}
                           >
                             <div className="p-2">
-                              {(dynamicCategories.length > 0 ? dynamicCategories : [{ name: "Cotton Kurthis" }, { name: "Designer Kurtis" }, { name: "Anarkali Suits" }, { name: "Palazzo Sets" }]).map((cat, idx) => (
-                                <Link
-                                  key={cat}
-                                  to={`/shop?category=${encodeURIComponent(cat)}`}
-                                  className="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-[#1c1c1c] hover:bg-[#FAF6F4]"
-                                >
-                                  <span>{cat}</span>
-                                  <ChevronRight size={14} className="text-neutral-400" />
-                                </Link>
-                              ))}
+                              {dynamicCategories.length > 0 ? (
+                                dynamicCategories.map((cat) => (
+                                  <Link
+                                    key={cat}
+                                    to={`/shop?category=${encodeURIComponent(cat)}`}
+                                    className="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-[#1c1c1c] hover:bg-[#FAF6F4]"
+                                  >
+                                    <span>{cat}</span>
+                                    <ChevronRight size={14} className="text-neutral-400" />
+                                  </Link>
+                                ))
+                              ) : (
+                                <p className="px-3 py-2 text-sm text-neutral-400">Loading categories...</p>
+                              )}
                             </div>
                           </motion.div>
                         )}

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Heart, Minus, Plus, Truck, ShieldCheck, RefreshCcw, Share2, Check, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
-import { getProductBySlug, getRelatedProducts } from "../data/products.js";
+import { productApi } from "../api/product.js";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import Rating from "../components/ui/Rating";
 import Price from "../components/ui/Price";
@@ -17,7 +17,60 @@ import { REVIEWS } from "../data/site.js";
 
 export default function ProductDetails() {
   const { slug = "" } = useParams();
-  const product = getProductBySlug(slug);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const findProduct = async () => {
+      setLoading(true);
+      // Try to extract ID from slug (format: product-name-id)
+      const parts = slug.split("-");
+      const lastPart = parts[parts.length - 1];
+      const id = parseInt(lastPart);
+      
+      if (!isNaN(id)) {
+        try {
+          const apiProduct = await productApi.getProductById(id);
+          if (apiProduct) {
+            const firstColor = apiProduct.colors?.[0] || {};
+            const firstSize = firstColor?.sizes?.[0] || {};
+            const firstGallery = apiProduct.gallery?.[0] || {};
+            const basePrice = parseFloat(firstSize?.price || apiProduct.basePrice || 0);
+            const mrpValue = apiProduct.mrp ? parseFloat(apiProduct.mrp) : basePrice;
+            const discountPercent = mrpValue > basePrice ? Math.round(((mrpValue - basePrice) / mrpValue) * 100) : 0;
+            setProduct({
+              id: apiProduct.id,
+              name: apiProduct.name,
+              slug: slug,
+              description: apiProduct.description || "",
+              category: apiProduct.category?.name || "",
+              fabric: apiProduct.fabric || "",
+              occasion: apiProduct.occasion || "",
+              price: mrpValue,
+              discountPrice: basePrice,
+              discount: discountPercent,
+              rating: 4.5,
+              reviews: 0,
+              sizes: firstColor?.sizes?.map((s) => s.size) || [],
+              colors: apiProduct.colors?.map((c) => ({ name: c.name, hex: c.code })) || [],
+              stock: parseInt(firstSize?.quantity || 0),
+              featured: false,
+              bestSeller: false,
+              newArrival: apiProduct.newArrivals || false,
+              images: apiProduct.gallery?.map((g) => g.url) || (firstColor?.image ? [firstColor.image] : []),
+              thumbnail: firstColor?.image || firstGallery?.url || "",
+            });
+          }
+        } catch (error) {
+          console.error("Failed to fetch product from API:", error);
+        }
+      }
+      
+      setLoading(false);
+    };
+    
+    findProduct();
+  }, [slug]);
   const { addToCart } = useCart();
   const { toggle, has } = useWishlist();
   const { push } = useRecent();
@@ -33,11 +86,19 @@ export default function ProductDetails() {
   useEffect(() => {
     if (product) {
       setSize(product.sizes[1] || product.sizes[0]);
-      setColor(product.colors[0].name);
+      setColor(product.colors[0]?.name || "");
       setActiveImg(0);
       push(product);
     }
   }, [product?.id]);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20 flex items-center justify-center">
+        <p className="text-neutral-500">Loading product...</p>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -47,7 +108,7 @@ export default function ProductDetails() {
     );
   }
 
-  const related = getRelatedProducts(product, 4);
+  const related = [];
   const liked = has(product.id);
   const galleryImages = product.images?.length ? product.images : [product.thumbnail || ""];
   const activeImage = galleryImages[activeImg] || galleryImages[0];

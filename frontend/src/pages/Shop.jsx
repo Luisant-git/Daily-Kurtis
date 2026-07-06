@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronDown, SlidersHorizontal, X, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PRODUCTS, CATEGORY_LIST, FABRIC_LIST, COLOR_LIST, SIZE_LIST, OCCASION_LIST } from "../data/products.js";
+import { FABRIC_LIST, COLOR_LIST, SIZE_LIST, OCCASION_LIST } from "../data/products.js";
+import { productApi } from "../api/product.js";
+import { categoryApi } from "../api/category.js";
 import ProductCard from "../components/product/ProductCard";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import Empty from "../components/ui/Empty";
@@ -15,6 +17,37 @@ const SORTS = [
   { value: "high", label: "Price: High to Low" },
   { value: "rating", label: "Rating" },
 ];
+
+function mapApiProduct(p) {
+  const firstColor = p.colors?.[0] || {};
+  const firstSize = firstColor?.sizes?.[0] || {};
+  const firstGallery = p.gallery?.[0] || {};
+  const basePrice = parseFloat(firstSize?.price || p.basePrice || 0);
+  const mrpValue = p.mrp ? parseFloat(p.mrp) : basePrice;
+  const discountPercent = mrpValue > basePrice ? Math.round(((mrpValue - basePrice) / mrpValue) * 100) : 0;
+  return {
+    id: p.id,
+    name: p.name,
+    slug: p.slug || p.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + p.id,
+    description: p.description || "",
+    category: p.category?.name || "",
+    fabric: p.fabric || "",
+    occasion: p.occasion || "",
+    price: mrpValue,
+    discountPrice: basePrice,
+    discount: discountPercent,
+    rating: 4.5,
+    reviews: 0,
+    sizes: firstColor?.sizes?.map((s) => s.size) || [],
+    colors: p.colors?.map((c) => ({ name: c.name, hex: c.code })) || [],
+    stock: parseInt(firstSize?.quantity || 0),
+    featured: false,
+    bestSeller: false,
+    newArrival: p.newArrivals || false,
+    images: p.gallery?.map((g) => g.url) || (firstColor?.image ? [firstColor.image] : []),
+    thumbnail: firstColor?.image || firstGallery?.url || "",
+  };
+}
 
 export default function Shop() {
   const [params, setParams] = useSearchParams();
@@ -34,6 +67,38 @@ export default function Shop() {
   const [sort, setSort] = useState("popular");
   const [page, setPage] = useState(1);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [allProducts, setAllProducts] = useState([]);
+  const [dynamicCategories, setDynamicCategories] = useState([]);
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryApi.getCategories();
+        if (data && data.length > 0) {
+          setDynamicCategories(data.map(c => c.name));
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productData = await productApi.getActiveProducts();
+        if (productData && productData.length > 0) {
+          setAllProducts(productData.map(mapApiProduct));
+        }
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   // Sync URL parameters to state
   useEffect(() => {
@@ -47,7 +112,7 @@ export default function Shop() {
   }, [initialSize]);
 
   const filtered = useMemo(() => {
-    let list = PRODUCTS.slice();
+    let list = allProducts.slice();
     if (initialFilter === "new") list = list.filter((p) => p.newArrival);
     if (initialFilter === "bestseller") list = list.filter((p) => p.bestSeller);
     if (query) list = list.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
@@ -64,7 +129,7 @@ export default function Shop() {
       case "new": list.sort((a, b) => Number(b.newArrival) - Number(a.newArrival)); break;
     }
     return list;
-  }, [query, category, fabric, color, size, occasion, price, sort, initialFilter]);
+  }, [query, category, fabric, color, size, occasion, price, sort, initialFilter, allProducts]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -91,7 +156,7 @@ export default function Shop() {
       </FilterBlock>
 
       <FilterBlock title="Category">
-        {CATEGORY_LIST.map((c) => (
+        {(dynamicCategories.length > 0 ? dynamicCategories : []).map((c) => (
           <CheckRow key={c} label={c} checked={category.includes(c)} onChange={() => toggle(category, setCategory, c)} />
         ))}
       </FilterBlock>

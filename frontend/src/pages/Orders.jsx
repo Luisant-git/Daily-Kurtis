@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Package, Truck, CheckCircle2, ChevronDown, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Breadcrumb from "../components/ui/Breadcrumb";
-import { PRODUCTS } from "../data/products.js";
 import { formatINR } from "../components/ui/Price";
 
 const DUMMY_ORDERS = [
@@ -11,7 +10,7 @@ const DUMMY_ORDERS = [
     date: "12 Mar 2026",
     status: "Delivered",
     total: 4250,
-    items: [PRODUCTS[0], PRODUCTS[5]],
+    items: [],
     address: "Linking Road, Mumbai 400052",
     timeline: [
       { label: "Order Placed", date: "08 Mar", done: true },
@@ -25,7 +24,7 @@ const DUMMY_ORDERS = [
     date: "28 Feb 2026",
     status: "Shipped",
     total: 1899,
-    items: [PRODUCTS[2]],
+    items: [],
     address: "Park Street, Kolkata 700016",
     timeline: [
       { label: "Order Placed", date: "26 Feb", done: true },
@@ -39,7 +38,7 @@ const DUMMY_ORDERS = [
     date: "12 Feb 2026",
     status: "Processing",
     total: 3199,
-    items: [PRODUCTS[10], PRODUCTS[12]],
+    items: [],
     address: "Whitefield, Bengaluru 560066",
     timeline: [
       { label: "Order Placed", date: "12 Feb", done: true },
