@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Gift, Star, Camera, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 
-import { SIZE_LIST } from "../data/products.js";
 import { REVIEWS, INSTAGRAM, OCCASIONS_HOME } from "../data/site.js";
 import ProductCard from "../components/product/ProductCard";
 import SectionHeading from "../components/ui/SectionHeading";
@@ -26,6 +25,7 @@ export default function Home() {
 
   const newArrivals = products.filter((p) => p.newArrival).slice(0, 4);
   const bestSellers = products.slice(0, 4);
+  const dynamicSizes = [...new Set(products.flatMap(p => p.sizes).filter(Boolean))];
 
   // Fetch banners, categories, and products from API
   useEffect(() => {
@@ -73,14 +73,17 @@ export default function Home() {
               discount: discountPercent,
               rating: 4.5,
               reviews: 0,
-              sizes: firstColor?.sizes?.map((s) => s.size) || [],
+              sizes: [...new Set((p.colors || []).flatMap(c => (c.sizes || []).map(s => s.size)).filter(Boolean))] || [],
               colors: p.colors?.map((c) => ({ name: c.name, hex: c.code })) || [],
               stock: parseInt(firstSize?.quantity || 0),
               featured: false,
               bestSeller: false,
               newArrival: p.newArrivals || false,
-              images: p.gallery?.map((g) => g.url) || (firstColor?.image ? [firstColor.image] : []),
-              thumbnail: firstColor?.image || firstGallery?.url || "",
+              images: [...new Set([
+                ...(p.gallery?.map((g) => g.url) || []),
+                ...((p.colors || []).map(c => c.image).filter(Boolean))
+              ])] || [firstColor?.image || firstGallery?.url || ""].filter(Boolean),
+              thumbnail: (p.colors || []).map(c => c.image).filter(Boolean)[0] || firstColor?.image || firstGallery?.url || "",
             };
           });
           setApiProducts(mapped);
@@ -286,7 +289,7 @@ export default function Home() {
             subtitle="Find your perfect fit across all our styles. XS to XXL available."
           />
           <div className="mt-12 grid grid-cols-2 lg:grid-cols-6 gap-5">
-            {SIZE_LIST.map((size, i) => (
+            {dynamicSizes.length > 0 ? dynamicSizes.map((size, i) => (
               <motion.div
                 key={size}
                 initial={{ opacity: 0, y: 18 }}
@@ -300,7 +303,7 @@ export default function Home() {
                 >
                   <div className="relative aspect-square overflow-hidden rounded-full ring-1 ring-[#E9E5E5] group-hover:ring-[#800000] transition zoom-wrap mx-auto bg-white">
                     <img
-                      src={products[i % products.length]?.thumbnail || "https://via.placeholder.com/300"}
+                      src={products.find(p => p.sizes.includes(size))?.thumbnail || products[i % products.length]?.thumbnail || "https://via.placeholder.com/300"}
                       alt={`Size ${size}`}
                       className="zoom-img w-full h-full object-cover object-top"
                     />
@@ -310,7 +313,7 @@ export default function Home() {
                   </h3>
                 </Link>
               </motion.div>
-            ))}
+            )) : <p className="text-sm text-neutral-400 col-span-full text-center">No sizes available</p>}
           </div>
         </div>
       </section>

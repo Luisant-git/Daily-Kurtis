@@ -92,12 +92,23 @@ export default function ProductDetails() {
   useEffect(() => {
     if (product) {
       const firstColor = product.rawColors?.[0] || product.colors?.[0] || {};
-      setSize(firstColor.sizes?.[1]?.size || firstColor.sizes?.[0]?.size || product.sizes[0]);
+      const firstSize = firstColor.sizes?.[1]?.size || firstColor.sizes?.[0]?.size || product.sizes[0];
+      setSize(firstSize);
       setColor(product.colors[0]?.name || "");
       setActiveImg(0);
       push(product);
     }
   }, [product?.id]);
+
+  // Reset size when color changes if current size isn't available in new color
+  useEffect(() => {
+    if (!product || !color) return;
+    const selectedColorData = product.rawColors?.find(c => c.name === color) || product.rawColors?.[0] || {};
+    const selectedSizes = selectedColorData.sizes?.map(s => s.size) || product.sizes || [];
+    if (selectedSizes.length > 0 && !selectedSizes.includes(size)) {
+      setSize(selectedSizes[0]);
+    }
+  }, [color, product, size]);
 
   if (loading) {
     return (
@@ -130,15 +141,6 @@ export default function ProductDetails() {
     ? [selectedColorImage, ...(product.images?.filter(img => img !== selectedColorImage) || [])]
     : (product.images?.length ? product.images : [product.thumbnail || ""]);
   const activeImage = galleryImages[activeImg] || galleryImages[0];
-
-  // Reset size when color changes if current size isn't available in new color
-  useEffect(() => {
-    if (color && selectedSizes.length > 0) {
-      if (!selectedSizes.includes(size)) {
-        setSize(selectedSizes[0]);
-      }
-    }
-  }, [color]);
 
   const handleAdd = ({ showToast = true, goToCheckout = false } = {}) => {
     if (!isLoggedIn) {
@@ -196,11 +198,6 @@ export default function ProductDetails() {
                 transformOrigin: `${zoom.x}% ${zoom.y}%`,
               }}
             />
-            {product.discount > 0 && (
-              <span className="absolute top-4 left-4 bg-[#800000] text-white text-xs px-3 py-1.5 rounded-full uppercase tracking-wider">
-                {product.discount}% Off
-              </span>
-            )}
             {product.bestSeller && (
               <span className="absolute top-4 right-4 bg-[#D4AF37] text-white text-xs px-3 py-1.5 rounded-full uppercase tracking-wider">
                 Top Selling

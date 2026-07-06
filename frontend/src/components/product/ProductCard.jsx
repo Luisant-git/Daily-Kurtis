@@ -38,11 +38,6 @@ export default function ProductCard({ product, onQuickView }) {
         />
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {product.discount > 0 && (
-            <span className="bg-[#800000] text-white text-[8px] sm:text-[9px] tracking-wider uppercase font-medium px-2 py-1 rounded-full">
-              {product.discount}% Off
-            </span>
-          )}
           {product.newArrival && (
             <span className="bg-[#D4AF37] text-white text-[8px] sm:text-[9px] tracking-wider uppercase font-medium px-2 py-1 rounded-full">
               New

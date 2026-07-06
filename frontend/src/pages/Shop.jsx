@@ -37,14 +37,17 @@ function mapApiProduct(p) {
     discount: discountPercent,
     rating: 4.5,
     reviews: 0,
-    sizes: firstColor?.sizes?.map((s) => s.size) || [],
+    sizes: [...new Set((p.colors || []).flatMap(c => (c.sizes || []).map(s => s.size)).filter(Boolean))] || [],
     colors: p.colors?.map((c) => ({ name: c.name, hex: c.code })) || [],
     stock: parseInt(firstSize?.quantity || 0),
     featured: false,
     bestSeller: false,
     newArrival: p.newArrivals || false,
-    images: p.gallery?.map((g) => g.url) || (firstColor?.image ? [firstColor.image] : []),
-    thumbnail: firstColor?.image || firstGallery?.url || "",
+    images: [...new Set([
+      ...(p.gallery?.map((g) => g.url) || []),
+      ...((p.colors || []).map(c => c.image).filter(Boolean))
+    ])] || [firstColor?.image || firstGallery?.url || ""].filter(Boolean),
+    thumbnail: (p.colors || []).map(c => c.image).filter(Boolean)[0] || firstColor?.image || firstGallery?.url || "",
   };
 }
 
