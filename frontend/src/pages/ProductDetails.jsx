@@ -14,6 +14,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { useRecent } from "../context/RecentContext";
 import { useAuth } from "../context/AuthContext";
 import { REVIEWS } from "../data/site.js";
+import { normalizeSize } from "../utils/productUtils";
 
 export default function ProductDetails() {
   const { slug = "" } = useParams();
@@ -33,8 +34,15 @@ export default function ProductDetails() {
           const apiProduct = await productApi.getProductById(id);
           if (apiProduct) {
             const firstColor = apiProduct.colors?.[0] || {};
-            const firstSize = firstColor?.sizes?.[0] || {};
             const firstGallery = apiProduct.gallery?.[0] || {};
+            const sizeDetails = (apiProduct.colors || []).flatMap((color) => (color.sizes || []).map((sizeItem) => ({
+              size: normalizeSize(sizeItem?.size),
+              price: parseFloat(sizeItem?.price || apiProduct.basePrice || 0),
+              quantity: parseInt(sizeItem?.quantity || 0),
+              image: sizeItem?.image || color?.image || "",
+              color: color?.name || "",
+            }))).filter((item) => item.size);
+            const firstSize = sizeDetails[0] || {};
             const basePrice = parseFloat(firstSize?.price || apiProduct.basePrice || 0);
             const mrpValue = apiProduct.mrp ? parseFloat(apiProduct.mrp) : basePrice;
             const discountPercent = mrpValue > basePrice ? Math.round(((mrpValue - basePrice) / mrpValue) * 100) : 0;
@@ -51,19 +59,20 @@ export default function ProductDetails() {
               discount: discountPercent,
               rating: 4.5,
               reviews: 0,
-              sizes: firstColor?.sizes?.map((s) => s.size) || [],
+              sizes: sizeDetails.map((item) => item.size) || [],
               colors: (apiProduct.colors || []).map((c) => ({
                 name: c.name,
                 hex: c.code,
                 image: c.image || "",
-                sizes: (c.sizes || []).map((s) => ({ size: s.size, price: s.price, quantity: s.quantity })),
+                sizes: (c.sizes || []).map((s) => ({ size: normalizeSize(s.size), price: s.price, quantity: s.quantity, image: s.image || c.image || "" })),
               })) || [],
               stock: parseInt(firstSize?.quantity || 0),
               featured: false,
               bestSeller: false,
               newArrival: apiProduct.newArrivals || false,
               images: apiProduct.gallery?.map((g) => g.url) || (firstColor?.image ? [firstColor.image] : []),
-              thumbnail: firstColor?.image || firstGallery?.url || "",
+              thumbnail: sizeDetails[0]?.image || firstColor?.image || firstGallery?.url || "",
+              sizeDetails,
               rawColors: apiProduct.colors || [],
             });
           }
@@ -104,8 +113,8 @@ export default function ProductDetails() {
   useEffect(() => {
     if (!product || !color) return;
     const selectedColorData = product.rawColors?.find(c => c.name === color) || product.rawColors?.[0] || {};
-    const selectedSizes = selectedColorData.sizes?.map(s => s.size) || product.sizes || [];
-    if (selectedSizes.length > 0 && !selectedSizes.includes(size)) {
+    const selectedSizes = (selectedColorData.sizes || []).map((s) => normalizeSize(s.size)) || product.sizes || [];
+    if (selectedSizes.length > 0 && !selectedSizes.includes(normalizeSize(size))) {
       setSize(selectedSizes[0]);
     }
   }, [color, product, size]);
@@ -131,14 +140,16 @@ export default function ProductDetails() {
   
   // Get the selected color's data
   const selectedColorData = product.rawColors?.find(c => c.name === color) || product.rawColors?.[0] || {};
-  const selectedSizes = selectedColorData.sizes?.map(s => s.size) || product.sizes || [];
-  const selectedBasePrice = parseFloat(selectedColorData.sizes?.[0]?.price || 0) || product.discountPrice;
+  const selectedSizes = (selectedColorData.sizes || []).map((s) => normalizeSize(s.size)) || product.sizes || [];
+  const selectedSizeData = (selectedColorData.sizes || []).find((s) => normalizeSize(s.size) === normalizeSize(size)) || selectedColorData.sizes?.[0] || {};
+  const selectedBasePrice = parseFloat(selectedSizeData.price || 0) || product.discountPrice;
   const selectedMrp = product.price > selectedBasePrice ? product.price : selectedBasePrice;
   const selectedDiscount = selectedMrp > selectedBasePrice ? Math.round(((selectedMrp - selectedBasePrice) / selectedMrp) * 100) : 0;
   const selectedColorImage = selectedColorData.image || "";
+  const selectedSizeImage = selectedSizeData.image || selectedColorImage || "";
   
-  const galleryImages = selectedColorImage 
-    ? [selectedColorImage, ...(product.images?.filter(img => img !== selectedColorImage) || [])]
+  const galleryImages = selectedSizeImage 
+    ? [selectedSizeImage, ...(product.images?.filter(img => img !== selectedSizeImage) || [])]
     : (product.images?.length ? product.images : [product.thumbnail || ""]);
   const activeImage = galleryImages[activeImg] || galleryImages[0];
 
@@ -330,45 +341,22 @@ export default function ProductDetails() {
 
           {/* Accordions */}
           <div className="mt-6 space-y-2">
-            {[
-              { id: "desc", title: "Product Details", body: (
-                <ul className="text-sm text-neutral-700 space-y-1.5">
-                  <li>• Fabric: <span className="font-medium">{product.fabric}</span></li>
-                  <li>• Occasion: <span className="font-medium">{product.occasion}</span></li>
-                  <li>• Pattern: Hand-block / Embroidered</li>
-                  <li>• Length: Knee Length (Approx. 42")</li>
-                  <li>• Country of Origin: India</li>
-                </ul>
-              )},
-              { id: "fabric", title: "Fabric & Care", body: (
-                <ul className="text-sm text-neutral-700 space-y-1.5">
-                  <li>• {product.fabric} — soft, breathable & long-lasting</li>
-                  <li>• Gentle hand wash recommended for first wash</li>
-                  <li>• Dry in shade to retain colour brilliance</li>
-                  <li>• Iron on medium heat, do not bleach</li>
-                </ul>
-              )},
-              { id: "ship", title: "Shipping & Returns", body: (
-                <p className="text-sm text-neutral-700 leading-relaxed">
-                  Orders are dispatched within 24 hours. Standard delivery in 3–5 business days. We offer free 15-day returns on unworn items.
-                </p>
-              )},
-            ].map((a) => (
-              <div key={a.id} className="border border-[#E9E5E5] rounded-xl overflow-hidden">
-                <button
-                  className="w-full flex items-center justify-between px-5 py-4 text-left"
-                  onClick={() => setOpenAccordion(openAccordion === a.id ? null : a.id)}
-                >
-                  <span className="font-display text-base">{a.title}</span>
-                  <ChevronDown size={16} className={`transition ${openAccordion === a.id ? "rotate-180" : ""}`} />
-                </button>
-                {openAccordion === a.id && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="px-5 pb-5">
-                    {a.body}
-                  </motion.div>
-                )}
-              </div>
-            ))}
+            <div className="border border-[#E9E5E5] rounded-xl overflow-hidden">
+              <button
+                className="w-full flex items-center justify-between px-5 py-4 text-left"
+                onClick={() => setOpenAccordion(openAccordion === "ship" ? null : "ship")}
+              >
+                <span className="font-display text-base">Shipping & Returns</span>
+                <ChevronDown size={16} className={`transition ${openAccordion === "ship" ? "rotate-180" : ""}`} />
+              </button>
+              {openAccordion === "ship" && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="px-5 pb-5">
+                  <p className="text-sm text-neutral-700 leading-relaxed">
+                    Orders are dispatched within 24 hours. Standard delivery in 3–5 business days. We offer free 15-day returns on unworn items.
+                  </p>
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
       </div>

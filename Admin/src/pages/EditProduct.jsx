@@ -137,7 +137,7 @@ const EditProduct = () => {
         name: currentColor.name,
         code: currentColor.code,
         image: currentColor.images[0] || '',
-        sizes: currentColor.sizes.map(({ size, price, quantity, sizeVariantId }) => ({ size, price, quantity, sizeVariantId }))
+        sizes: currentColor.sizes.map(({ size, price, quantity, image, sizeVariantId }) => ({ size, price, quantity, image, sizeVariantId }))
       }
       
       if (editingColorIndex !== null) {

@@ -7,6 +7,7 @@ import { categoryApi } from "../api/category.js";
 import ProductCard from "../components/product/ProductCard";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import Empty from "../components/ui/Empty";
+import { extractProductSizes, normalizeSize } from "../utils/productUtils";
 
 const PAGE_SIZE = 9;
 const SORTS = [
@@ -19,11 +20,20 @@ const SORTS = [
 
 function mapApiProduct(p) {
   const firstColor = p.colors?.[0] || {};
-  const firstSize = firstColor?.sizes?.[0] || {};
   const firstGallery = p.gallery?.[0] || {};
+  const sizeDetails = (p.colors || []).flatMap((color) => (color.sizes || []).map((sizeItem) => ({
+    size: normalizeSize(sizeItem?.size),
+    price: parseFloat(sizeItem?.price || p.basePrice || 0),
+    quantity: parseInt(sizeItem?.quantity || 0),
+    image: sizeItem?.image || color?.image || "",
+    color: color?.name || "",
+  }))).filter((item) => item.size);
+  const firstSize = sizeDetails[0] || {};
   const basePrice = parseFloat(firstSize?.price || p.basePrice || 0);
   const mrpValue = p.mrp ? parseFloat(p.mrp) : basePrice;
   const discountPercent = mrpValue > basePrice ? Math.round(((mrpValue - basePrice) / mrpValue) * 100) : 0;
+  const sizeImages = sizeDetails.map((item) => item.image).filter(Boolean);
+  const galleryImages = [...new Set([...(p.gallery?.map((g) => g.url) || []), ...(p.colors || []).map((c) => c.image).filter(Boolean), ...sizeImages])].filter(Boolean);
   return {
     id: p.id,
     name: p.name,
@@ -37,17 +47,16 @@ function mapApiProduct(p) {
     discount: discountPercent,
     rating: 4.5,
     reviews: 0,
-    sizes: [...new Set((p.colors || []).flatMap(c => (c.sizes || []).map(s => s.size)).filter(Boolean))] || [],
+    sizes: sizeDetails.map((item) => item.size),
     colors: p.colors?.map((c) => ({ name: c.name, hex: c.code })) || [],
     stock: parseInt(firstSize?.quantity || 0),
     featured: false,
     bestSeller: false,
     newArrival: p.newArrivals || false,
-    images: [...new Set([
-      ...(p.gallery?.map((g) => g.url) || []),
-      ...((p.colors || []).map(c => c.image).filter(Boolean))
-    ])] || [firstColor?.image || firstGallery?.url || ""].filter(Boolean),
-    thumbnail: (p.colors || []).map(c => c.image).filter(Boolean)[0] || firstColor?.image || firstGallery?.url || "",
+    images: galleryImages.length ? galleryImages : [firstColor?.image || firstGallery?.url || ""].filter(Boolean),
+    thumbnail: sizeImages[0] || (p.colors || []).map((c) => c.image).filter(Boolean)[0] || firstColor?.image || firstGallery?.url || "",
+    sizeDetails,
+    rawColors: p.colors || [],
   };
 }
 
@@ -57,7 +66,7 @@ export default function Shop() {
   const initialOccasion = params.get("occasion") || "";
   const initialQuery = params.get("q") || "";
   const initialFilter = params.get("filter") || "";
-  const initialSize = params.get("size") || "";
+  const initialSize = normalizeSize(params.get("size") || "");
 
   const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState(initialCategory ? [initialCategory] : []);
@@ -117,10 +126,12 @@ export default function Shop() {
   const derivedFilters = useMemo(() => {
     const fabrics = [...new Set(allProducts.map(p => p.fabric).filter(Boolean))];
     const colors = [...new Map(allProducts.flatMap(p => p.colors).filter(c => c.name).map(c => [c.name, c])).values()];
-    const sizes = [...new Set(allProducts.flatMap(p => p.sizes).filter(Boolean))];
+    const sizes = [...new Set(allProducts.flatMap((p) => p.sizes).map(normalizeSize).filter(Boolean))];
     const occasions = [...new Set(allProducts.map(p => p.occasion).filter(Boolean))];
     return { fabrics, colors, sizes, occasions };
   }, [allProducts]);
+
+  const activeSizes = size.length ? size : (initialSize ? [initialSize] : []);
 
   const filtered = useMemo(() => {
     let list = allProducts.slice();
@@ -130,7 +141,13 @@ export default function Shop() {
     if (category.length) list = list.filter((p) => category.includes(p.category));
     if (fabric.length) list = list.filter((p) => fabric.includes(p.fabric));
     if (occasion.length) list = list.filter((p) => occasion.includes(p.occasion));
-    if (size.length) list = list.filter((p) => p.sizes.some((s) => size.includes(s)));
+    if (activeSizes.length) {
+      const normalizedSelectedSizes = activeSizes.map(normalizeSize);
+      list = list.filter((p) => {
+        const productSizes = (p.sizes || []).map(normalizeSize);
+        return productSizes.some((s) => normalizedSelectedSizes.includes(s));
+      });
+    }
     if (color.length) list = list.filter((p) => p.colors.some((c) => color.includes(c.name)));
     list = list.filter((p) => p.discountPrice <= price);
     switch (sort) {
@@ -140,7 +157,7 @@ export default function Shop() {
       case "new": list.sort((a, b) => Number(b.newArrival) - Number(a.newArrival)); break;
     }
     return list;
-  }, [query, category, fabric, color, size, occasion, price, sort, initialFilter, allProducts]);
+  }, [query, category, fabric, color, activeSizes, occasion, price, sort, initialFilter, allProducts]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
