@@ -81,7 +81,7 @@ export function CartProvider({ children }) {
 
       if (showToast) {
         toast.dismiss(toastId);
-        toast.success(`${p.name} added to bag`, { id: toastId, duration: 1800 });
+        toast.success(`${p.name} added to cart`, { id: toastId, duration: 1800 });
       }
 
       if (options.openDrawer !== false) {
@@ -105,7 +105,7 @@ export function CartProvider({ children }) {
       setItems(prev => prev.filter(i => i.id !== item.id));
       await cartApi.removeFromCart(user.token, item.id);
       toast.dismiss("cart-toast");
-      toast("Removed from bag", { id: "cart-toast", icon: "🗑️" });
+      toast("Removed from cart", { id: "cart-toast", icon: "🗑️" });
     } catch (e) {
       console.error("Failed to remove item:", e);
       fetchCart();
@@ -120,6 +120,12 @@ export function CartProvider({ children }) {
 
     const item = items.find(i => i.product.id === id && i.size === size && i.color === color);
     if (!item) return;
+
+    // If qty is 0 or less, remove the item instead
+    if (qty <= 0) {
+      await removeFromCart(id, size, color);
+      return;
+    }
 
     const newQty = Math.max(1, qty);
 

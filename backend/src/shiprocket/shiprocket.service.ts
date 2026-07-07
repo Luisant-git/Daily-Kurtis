@@ -48,24 +48,28 @@ export class ShiprocketService {
     }
 
     const shippingAddress: any = order.shippingAddress;
+    const billingAddress: any = order.billingAddress;
     
     const totalAmount = parseFloat(order.total);
     const originalSubtotal = order.items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+    
+    // Use billing address if available, otherwise use shipping address
+    const billAddr = billingAddress || shippingAddress;
     
     const shiprocketData = {
       order_id: order.id.toString(),
       order_date: order.createdAt.toISOString().split('T')[0],
       pickup_location: "warehouse",
-      billing_customer_name: shippingAddress.fullName || order.user?.name || 'Customer',
+      billing_customer_name: billAddr.fullName || order.user?.name || 'Customer',
       billing_last_name: "",
-      billing_address: shippingAddress.addressLine1,
-      billing_address_2: shippingAddress.addressLine2 || "",
-      billing_city: shippingAddress.city,
-      billing_pincode: shippingAddress.pincode,
-      billing_state: shippingAddress.state,
+      billing_address: billAddr.addressLine1,
+      billing_address_2: billAddr.addressLine2 || "",
+      billing_city: billAddr.city,
+      billing_pincode: billAddr.pincode,
+      billing_state: billAddr.state,
       billing_country: "India",
       billing_email: order.user?.email || "customer@example.com",
-      billing_phone: shippingAddress.mobile || order.user?.phone || "",
+      billing_phone: billAddr.mobile || order.user?.phone || "",
       shipping_is_billing: true,
       order_items: order.items.map(item => {
         const itemPrice = parseFloat(item.price);

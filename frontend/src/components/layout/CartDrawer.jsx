@@ -27,7 +27,7 @@ export default function CartDrawer() {
           >
             <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-[#E9E5E5]">
               <div>
-                <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-neutral-500">Added to bag</p>
+<p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-neutral-500">Added to cart</p>
                 <h2 className="text-xl sm:text-2xl font-display text-[#1c1c1c]">Your Cart</h2>
               </div>
               <button onClick={closeDrawer} className="p-1.5 sm:p-2 rounded-full text-neutral-600 hover:bg-[#FAF6F4]">
@@ -37,10 +37,10 @@ export default function CartDrawer() {
 
             <div className="p-3 sm:p-5 space-y-2 sm:space-y-4">
               {items.length === 0 ? (
-                <div className="text-center py-10 text-neutral-500">
-                  <p className="text-lg font-medium">Your bag is empty</p>
-                  <p className="text-sm mt-2">Add something nice to see it here.</p>
-                </div>
+<div className="text-center py-10 text-neutral-500">
+                    <p className="text-lg font-medium">Your cart is empty</p>
+                    <p className="text-sm mt-2">Add something nice to see it here.</p>
+                  </div>
               ) : (
                 items.map((item) => (
                   <div key={`${item.product?.id || item.productId || item.id}-${item.size}-${item.color}`} className="border border-[#E9E5E5] rounded-2xl sm:rounded-3xl overflow-hidden">
@@ -97,8 +97,8 @@ export default function CartDrawer() {
                   <span className="font-semibold text-[#1c1c1c]">₹{subtotal.toLocaleString("en-IN")}</span>
                 </div>
                 <div className="mt-3 sm:mt-4 grid gap-2 sm:gap-3">
-                  <Link to="/cart" onClick={closeDrawer} className="block text-center rounded-full bg-[#800000] text-white py-2 sm:py-3 text-xs sm:text-sm font-medium">
-                    View Bag
+<Link to="/cart" onClick={closeDrawer} className="block text-center rounded-full bg-[#800000] text-white py-2 sm:py-3 text-xs sm:text-sm font-medium">
+                    View Cart
                   </Link>
                   <Link to="/checkout" onClick={closeDrawer} className="block text-center rounded-full border border-[#800000] text-[#800000] py-2 sm:py-3 text-xs sm:text-sm font-medium">
                     Checkout

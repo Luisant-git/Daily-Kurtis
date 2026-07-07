@@ -372,7 +372,8 @@ const [orderStats, setOrderStats] = useState({
 
   const generateInvoicePDF = (order, forDownload = false) => {
     const pdf = new jsPDF();
-    const address = order.shippingAddress;
+    const shippingAddress = order.shippingAddress;
+    const billingAddress = order.billingAddress || order.shippingAddress;
 
     // Invoice Title (Centered)
     pdf.setFontSize(20);
@@ -405,19 +406,19 @@ const [orderStats, setOrderStats] = useState({
     pdf.setFont(undefined, 'bold');
     pdf.text('Billing Address :', 120, 35);
     pdf.setFont(undefined, 'normal');
-    if (address) {
+    if (billingAddress) {
       let billingY = 40;
-      pdf.text(capitalizeEachWord(address.fullName || order.user?.name || 'N/A'), 120, billingY);
+      pdf.text(capitalizeEachWord(billingAddress.fullName || order.user?.name || 'N/A'), 120, billingY);
       billingY += 5;
-      const addr1Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine1 || ''), 70);
+      const addr1Lines = pdf.splitTextToSize(capitalizeEachWord(billingAddress.addressLine1 || ''), 70);
       pdf.text(addr1Lines, 120, billingY);
       billingY += addr1Lines.length * 5;
-      if (address.addressLine2) {
-        const addr2Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine2), 70);
+      if (billingAddress.addressLine2) {
+        const addr2Lines = pdf.splitTextToSize(capitalizeEachWord(billingAddress.addressLine2), 70);
         pdf.text(addr2Lines, 120, billingY);
         billingY += addr2Lines.length * 5;
       }
-      pdf.text(`${capitalizeEachWord(address.city || '')}, ${capitalizeEachWord(address.state || 'N/A')}, ${address.pincode || ''}`, 120, billingY);
+      pdf.text(`${capitalizeEachWord(billingAddress.city || '')}, ${capitalizeEachWord(billingAddress.state || 'N/A')}, ${billingAddress.pincode || ''}`, 120, billingY);
       billingY += 5;
       pdf.text('IN', 120, billingY);
     }
@@ -430,33 +431,33 @@ const [orderStats, setOrderStats] = useState({
     pdf.setFont(undefined, 'bold');
     pdf.text('Shipping Address :', 120, 80);
     pdf.setFont(undefined, 'normal');
-    if (address) {
+    if (shippingAddress) {
       let shippingY = 85;
-      pdf.text(capitalizeEachWord(address.fullName || order.user?.name || 'N/A'), 120, shippingY);
+      pdf.text(capitalizeEachWord(shippingAddress.fullName || order.user?.name || 'N/A'), 120, shippingY);
       shippingY += 5;
-      pdf.text(address.mobile || order.user?.phone || 'N/A', 120, shippingY);
+      pdf.text(shippingAddress.mobile || order.user?.phone || 'N/A', 120, shippingY);
       shippingY += 5;
-      const shipAddr1Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine1 || ''), 70);
+      const shipAddr1Lines = pdf.splitTextToSize(capitalizeEachWord(shippingAddress.addressLine1 || ''), 70);
       pdf.text(shipAddr1Lines, 120, shippingY);
       shippingY += shipAddr1Lines.length * 5;
-      if (address.addressLine2) {
-        const shipAddr2Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine2), 70);
+      if (shippingAddress.addressLine2) {
+        const shipAddr2Lines = pdf.splitTextToSize(capitalizeEachWord(shippingAddress.addressLine2), 70);
         pdf.text(shipAddr2Lines, 120, shippingY);
         shippingY += shipAddr2Lines.length * 5;
       }
-      pdf.text(`${capitalizeEachWord(address.city || '')}, ${capitalizeEachWord(address.state || 'N/A')}, ${address.pincode || ''}`, 120, shippingY);
+      pdf.text(`${capitalizeEachWord(shippingAddress.city || '')}, ${capitalizeEachWord(shippingAddress.state || 'N/A')}, ${shippingAddress.pincode || ''}`, 120, shippingY);
       shippingY += 5;
       pdf.text('IN', 120, shippingY);
       shippingY += 5;
       pdf.setFont(undefined, 'bold');
       pdf.text('Place of supply:', 120, shippingY);
       pdf.setFont(undefined, 'normal');
-      pdf.text(address.state?.toUpperCase() || 'N/A', 148, shippingY);
+      pdf.text(shippingAddress.state?.toUpperCase() || 'N/A', 148, shippingY);
       shippingY += 5;
       pdf.setFont(undefined, 'bold');
       pdf.text('Place of delivery:', 120, shippingY);
       pdf.setFont(undefined, 'normal');
-      pdf.text(address.state?.toUpperCase() || 'N/A', 152, shippingY);
+      pdf.text(shippingAddress.state?.toUpperCase() || 'N/A', 152, shippingY);
     }
 
     pdf.setFont(undefined, 'bold');
@@ -1486,7 +1487,8 @@ const exportAllOrdersExcel = () => {
 
   const generateCombinedDocument = (order) => {
     const pdf = new jsPDF();
-    const address = order.shippingAddress;
+    const shippingAddress = order.shippingAddress;
+    const billingAddress = order.billingAddress || order.shippingAddress;
 
     pdf.setDrawColor(200);
     pdf.line(105, 0, 105, 148.5);
@@ -1529,27 +1531,27 @@ const exportAllOrdersExcel = () => {
     pdf.setFont(undefined, 'normal');
 
     let shipY = 62;
-    if (address) {
+    if (shippingAddress) {
       pdf.setFont(undefined, 'bold');
-      const nameLines = pdf.splitTextToSize(`${capitalizeEachWord(address.fullName || order.user?.name || 'N/A')} (${address.mobile || order.user?.phone || 'N/A'})`, 95);
+      const nameLines = pdf.splitTextToSize(`${capitalizeEachWord(shippingAddress.fullName || order.user?.name || 'N/A')} (${shippingAddress.mobile || order.user?.phone || 'N/A'})`, 95);
       pdf.text(nameLines, 10, shipY);
       shipY += nameLines.length * 3.5;
       pdf.setFont(undefined, 'normal');
-      const addr1Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine1 || ''), 95);
+      const addr1Lines = pdf.splitTextToSize(capitalizeEachWord(shippingAddress.addressLine1 || ''), 95);
       pdf.text(addr1Lines, 10, shipY);
       shipY += addr1Lines.length * 3.5;
-      if (address.addressLine2) {
-        const addr2Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine2), 95);
+      if (shippingAddress.addressLine2) {
+        const addr2Lines = pdf.splitTextToSize(capitalizeEachWord(shippingAddress.addressLine2), 95);
         pdf.text(addr2Lines, 10, shipY);
         shipY += addr2Lines.length * 3.5;
       }
-      const cityLines = pdf.splitTextToSize(`${capitalizeEachWord(address.city || '')}, ${capitalizeEachWord(address.state || '')}, ${address.pincode || ''}`, 95);
+      const cityLines = pdf.splitTextToSize(`${capitalizeEachWord(shippingAddress.city || '')}, ${capitalizeEachWord(shippingAddress.state || '')}, ${shippingAddress.pincode || ''}`, 95);
       pdf.text(cityLines, 10, shipY);
       shipY += cityLines.length * 3.5;
       pdf.setFont(undefined, 'bold');
       pdf.text('Landmark:', 10, shipY);
       pdf.setFont(undefined, 'normal');
-      const landmarkLines = pdf.splitTextToSize(capitalizeEachWord(address.landmark || 'N/A'), 70);
+      const landmarkLines = pdf.splitTextToSize(capitalizeEachWord(shippingAddress.landmark || 'N/A'), 70);
       pdf.text(landmarkLines, 26, shipY);
       shipY += landmarkLines.length * 3.5;
     }
@@ -1591,19 +1593,19 @@ const exportAllOrdersExcel = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Billing Address :', 155, 16);
     pdf.setFont(undefined, 'normal');
-    if (address) {
+    if (billingAddress) {
       let billY = 19;
-      pdf.text(address.fullName || order.user?.name || 'N/A', 155, billY);
+      pdf.text(billingAddress.fullName || order.user?.name || 'N/A', 155, billY);
       billY += 2.5;
-      const billLine1 = pdf.splitTextToSize(address.addressLine1 || '', 42);
+      const billLine1 = pdf.splitTextToSize(billingAddress.addressLine1 || '', 42);
       pdf.text(billLine1, 155, billY);
       billY += billLine1.length * 2.5;
-      if (address.addressLine2) {
-        const billLine2 = pdf.splitTextToSize(address.addressLine2, 42);
+      if (billingAddress.addressLine2) {
+        const billLine2 = pdf.splitTextToSize(billingAddress.addressLine2, 42);
         pdf.text(billLine2, 155, billY);
         billY += billLine2.length * 2.5;
       }
-      pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 155, billY);
+      pdf.text(`${billingAddress.city || ''}, ${billingAddress.state || 'N/A'}, ${billingAddress.pincode || ''}`, 155, billY);
       billY += 2.5;
       pdf.text('IN', 155, billY);
     }
@@ -1627,33 +1629,33 @@ const exportAllOrdersExcel = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Shipping Address :', 155, 41);
     pdf.setFont(undefined, 'normal');
-    if (address) {
+    if (shippingAddress) {
       let shipY = 44;
-      pdf.text(address.fullName || order.user?.name || 'N/A', 155, shipY);
+      pdf.text(shippingAddress.fullName || order.user?.name || 'N/A', 155, shipY);
       shipY += 2.5;
-      pdf.text(address.mobile || order.user?.phone || 'N/A', 155, shipY);
+      pdf.text(shippingAddress.mobile || order.user?.phone || 'N/A', 155, shipY);
       shipY += 2.5;
-      const shipLine1 = pdf.splitTextToSize(address.addressLine1 || '', 42);
+      const shipLine1 = pdf.splitTextToSize(shippingAddress.addressLine1 || '', 42);
       pdf.text(shipLine1, 155, shipY);
       shipY += shipLine1.length * 2.5;
-      if (address.addressLine2) {
-        const shipLine2 = pdf.splitTextToSize(address.addressLine2, 42);
+      if (shippingAddress.addressLine2) {
+        const shipLine2 = pdf.splitTextToSize(shippingAddress.addressLine2, 42);
         pdf.text(shipLine2, 155, shipY);
         shipY += shipLine2.length * 2.5;
       }
-      pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 155, shipY);
+      pdf.text(`${shippingAddress.city || ''}, ${shippingAddress.state || 'N/A'}, ${shippingAddress.pincode || ''}`, 155, shipY);
       shipY += 2.5;
       pdf.text('IN', 155, shipY);
       shipY += 2.5;
       pdf.setFont(undefined, 'bold');
       pdf.text('Place of supply:', 155, shipY);
       pdf.setFont(undefined, 'normal');
-      pdf.text(address.state?.toUpperCase() || 'N/A', 173, shipY);
+      pdf.text(shippingAddress.state?.toUpperCase() || 'N/A', 173, shipY);
       shipY += 2.5;
       pdf.setFont(undefined, 'bold');
       pdf.text('Place of delivery:', 155, shipY);
       pdf.setFont(undefined, 'normal');
-      pdf.text(address.state?.toUpperCase() || 'N/A', 175, shipY);
+      pdf.text(shippingAddress.state?.toUpperCase() || 'N/A', 175, shipY);
     }
 
     pdf.setFont(undefined, 'bold');

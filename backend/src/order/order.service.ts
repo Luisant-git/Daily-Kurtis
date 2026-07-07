@@ -123,20 +123,24 @@ export class OrderService {
       }
     });
 
+  // Log for debugging
+    console.log('Creating order with billingAddress:', createOrderDto.billingAddress);
+    
     // Create order with items
-    const order = await this.prisma.order.create({
-      data: {
-        userId,
-        status: orderStatus,
-        subtotal: createOrderDto.subtotal,
-        deliveryFee: createOrderDto.deliveryFee,
-        codFee: createOrderDto.codFee || '0',
-        discount,
-        couponCode,
-        total: createOrderDto.total,
-        paymentMethod: createOrderDto.paymentMethod,
-        shippingAddress: JSON.parse(JSON.stringify(createOrderDto.shippingAddress)),
-        deliveryOption: JSON.parse(JSON.stringify(createOrderDto.deliveryOption)),
+      const order = await this.prisma.order.create({
+        data: {
+          userId,
+          status: orderStatus,
+          subtotal: createOrderDto.subtotal,
+          deliveryFee: createOrderDto.deliveryFee,
+          codFee: createOrderDto.codFee || '0',
+          discount,
+          couponCode,
+          total: createOrderDto.total,
+          paymentMethod: createOrderDto.paymentMethod,
+          shippingAddress: JSON.parse(JSON.stringify(createOrderDto.shippingAddress)),
+          billingAddress: createOrderDto.billingAddress ? JSON.parse(JSON.stringify(createOrderDto.billingAddress)) : null,
+          deliveryOption: JSON.parse(JSON.stringify(createOrderDto.deliveryOption)),
         items: {
           create: cart.items.map(item => ({
             productId: item.productId,

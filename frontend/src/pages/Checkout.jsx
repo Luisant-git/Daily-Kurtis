@@ -1,68 +1,195 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { CreditCard, Truck, Wallet, ShieldCheck, ChevronLeft, ArrowRight, Check } from "lucide-react";
+import { Truck, Wallet, ShieldCheck, ChevronLeft, ArrowRight, Check, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { shippingApi } from "../api/shipping";
 import { orderApi } from "../api/order";
+import { couponApi } from "../api/coupon";
 import Button from "../components/ui/Button";
 import { formatINR } from "../components/ui/Price";
 import Empty from "../components/ui/Empty";
 import { toast } from "react-toastify";
 
+const INDIAN_STATES = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
+];
+
 export default function Checkout() {
   const { items, subtotal, clearCart } = useCart();
-  const { user, updateShippingAddress } = useAuth();
+  const { user, updateShippingAddress, loading: authLoading } = useAuth();
   const nav = useNavigate();
+  
   const [payment, setPayment] = useState("upi");
   const [placed, setPlaced] = useState(false);
   const [discount, setDiscount] = useState(0);
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({
+  const [appliedCode, setAppliedCode] = useState("");
+  const [coupon, setCoupon] = useState("");
+  const [validating, setValidating] = useState(false);
+  const [sameAsShipping, setSameAsShipping] = useState(true);
+  const [shippingRules, setShippingRules] = useState([]);
+  const [shippingFee, setShippingFee] = useState(null);
+  const [placedOrderId, setPlacedOrderId] = useState(null);
+  const [savingBilling, setSavingBilling] = useState(false);
+  const [billingEdited, setBillingEdited] = useState(false);
+
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
     defaultValues: {
-      fullName: user?.shippingAddress?.name || user?.name || '',
-      mobile: user?.shippingAddress?.mobile || user?.mobile || '',
-      addressLine: user?.shippingAddress?.addressLine || '',
-      landmark: user?.shippingAddress?.landmark || '',
-      city: user?.shippingAddress?.city || '',
-      state: user?.shippingAddress?.state || '',
-      pincode: user?.shippingAddress?.pincode || '',
+      // Shipping Address
+      shippingFullName: '',
+      shippingMobile: '',
+      shippingAddressLine: '',
+      shippingLandmark: '',
+      shippingCity: '',
+      shippingState: '',
+      shippingPincode: '',
+      // Billing Address
+      billingFullName: '',
+      billingMobile: '',
+      billingAddressLine: '',
+      billingLandmark: '',
+      billingCity: '',
+      billingState: '',
+      billingPincode: '',
     }
   });
 
-  const [shippingRules, setShippingRules] = useState([]);
-  const [shippingFee, setShippingFee] = useState(0);
-  const [placedOrderId, setPlacedOrderId] = useState(null);
-  
-  const currentState = watch("state");
-
-  // Load applied coupon discount from sessionStorage
+  // Load user's saved address into form when user data is available
   useEffect(() => {
+    // Only set values after auth finishes loading to ensure user data is complete
+    if (authLoading) return;
+    
+    if (user?.shippingAddress) {
+      const addr = user.shippingAddress;
+      const mobile = user?.mobile || addr?.mobile || '';
+      setValue('shippingFullName', addr.name || '');
+      setValue('shippingMobile', mobile);
+      setValue('shippingAddressLine', addr.addressLine || '');
+      setValue('shippingLandmark', addr.landmark || '');
+      setValue('shippingCity', addr.city || '');
+      setValue('shippingState', addr.state || '');
+      setValue('shippingPincode', addr.pincode || '');
+      
+      // Initialize billing address same as shipping (only if sameAsShipping is true)
+      if (sameAsShipping) {
+        setValue('billingFullName', addr.name || '');
+        setValue('billingMobile', mobile);
+        setValue('billingAddressLine', addr.addressLine || '');
+        setValue('billingLandmark', addr.landmark || '');
+        setValue('billingCity', addr.city || '');
+        setValue('billingState', addr.state || '');
+        setValue('billingPincode', addr.pincode || '');
+      }
+    } else if (user?.mobile) {
+      // If no shipping address but user has mobile, set it
+      setValue('shippingMobile', user.mobile);
+      if (sameAsShipping) {
+        setValue('billingMobile', user.mobile);
+      }
+    }
+  }, [user, setValue, authLoading]);
+
+  // Load saved coupon and sameAsShipping state from sessionStorage
+  useEffect(() => {
+    if (authLoading) return;
+    
     const savedCoupon = sessionStorage.getItem('appliedCoupon');
     if (savedCoupon) {
       try {
         const parsed = JSON.parse(savedCoupon);
-        setDiscount(parsed.discount || 0);
+        const currentSubtotal = subtotal;
+        // Only clear if subtotal is significantly different
+        if (parsed.subtotal && Math.abs(parsed.subtotal - currentSubtotal) > 100) {
+          sessionStorage.removeItem('appliedCoupon');
+          setDiscount(0);
+          setAppliedCode("");
+        } else {
+          setDiscount(parsed.discount || 0);
+          setAppliedCode(parsed.code || "");
+        }
       } catch (e) {
         console.error("Failed to parse saved coupon:", e);
       }
     }
-  }, []);
+    
+    const savedSameAsShipping = sessionStorage.getItem('checkoutSameAsShipping');
+    if (savedSameAsShipping !== null) {
+      setSameAsShipping(savedSameAsShipping === 'true');
+    }
+  }, [subtotal, authLoading]);
 
+  // Calculate shipping fee based on state
   useEffect(() => {
     shippingApi.fetchShippingRules().then(setShippingRules).catch(console.error);
   }, []);
 
+  const shippingState = watch("shippingState");
   useEffect(() => {
-    if (currentState && shippingRules.length > 0) {
-      const normalizedState = currentState.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_');
+    if (shippingState && shippingRules.length > 0 && !authLoading) {
+      const normalizedState = shippingState.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_');
       const rule = shippingRules.find(r => r.state === normalizedState);
       setShippingFee(rule ? rule.flatShippingRate : 0);
     }
-  }, [currentState, shippingRules]);
+  }, [shippingState, shippingRules, authLoading]);
 
-  const total = Math.max(0, subtotal - discount + shippingFee);
+  // Track billing address changes to show save button
+  const billingFullName = watch("billingFullName");
+  const billingMobile = watch("billingMobile");
+  const billingAddressLine = watch("billingAddressLine");
+  const billingLandmark = watch("billingLandmark");
+  const billingCity = watch("billingCity");
+  const billingState = watch("billingState");
+  const billingPincode = watch("billingPincode");
+
+  useEffect(() => {
+    // Only track if billing address section is open (not same as shipping)
+    if (!sameAsShipping) {
+      // Check if any billing field has a value (indicating edits)
+      const hasBillingValues = billingFullName || billingMobile || billingAddressLine || billingLandmark || billingCity || billingState || billingPincode;
+      if (hasBillingValues) {
+        setBillingEdited(true);
+      }
+    }
+  }, [billingFullName, billingMobile, billingAddressLine, billingLandmark, billingCity, billingState, billingPincode, sameAsShipping]);
+
+  const total = Math.max(0, subtotal - discount + (shippingFee || 0));
 
   if (items.length === 0 && !placed) {
     return (
@@ -91,18 +218,102 @@ export default function Checkout() {
     );
   }
 
+  const applyCoupon = async () => {
+    if (!coupon.trim()) {
+      toast.error("Please enter a coupon code");
+      return;
+    }
+    if (!user?.token) {
+      toast.error("Please login to apply coupons");
+      return;
+    }
+    setValidating(true);
+    try {
+      const cartItems = items.map(item => ({
+        productId: item.product?.id || item.productId,
+        price: parseFloat(item.price) || 0,
+        quantity: item.quantity,
+      }));
+      const result = await couponApi.validateCoupon(user.token, coupon, subtotal, shippingFee, 0, cartItems);
+      const d = Math.round(result.discount);
+      setDiscount(d);
+      setAppliedCode(result.coupon.code);
+      sessionStorage.setItem('appliedCoupon', JSON.stringify({
+        code: result.coupon.code,
+        discount: d,
+        subtotal: subtotal,
+        shipping: shippingFee
+      }));
+      toast.success(`Coupon applied! You saved ${formatINR(d)}`);
+    } catch (err) {
+      setDiscount(0);
+      setAppliedCode("");
+      sessionStorage.removeItem('appliedCoupon');
+      const errorMsg = err?.message || "Invalid coupon";
+      if (errorMsg.toLowerCase().includes('expired')) {
+        toast.error("Coupon has expired");
+      } else if (errorMsg.toLowerCase().includes('used') || errorMsg.toLowerCase().includes('already')) {
+        toast.error("Coupon already used");
+      } else {
+        toast.error(errorMsg);
+      }
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  const handleSameAsShippingChange = (checked) => {
+    setSameAsShipping(checked);
+    sessionStorage.setItem('checkoutSameAsShipping', String(checked));
+    
+    if (checked) {
+      // Copy shipping address to billing
+      setValue('billingFullName', watch('shippingFullName') || '');
+      setValue('billingMobile', watch('shippingMobile') || '');
+      setValue('billingAddressLine', watch('shippingAddressLine') || '');
+      setValue('billingLandmark', watch('shippingLandmark') || '');
+      setValue('billingCity', watch('shippingCity') || '');
+      setValue('billingState', watch('shippingState') || '');
+      setValue('billingPincode', watch('shippingPincode') || '');
+    } else {
+      // Reset edited state when switching to manual billing
+      setBillingEdited(false);
+    }
+  };
+
+  const saveBillingAddress = async () => {
+    // The billing address is saved locally for this order only
+    // Since there's no separate billing address API, we don't persist it to the backend
+    setBillingEdited(false);
+    toast.success("Billing address updated for this order");
+  };
+
   const onSubmit = async (data) => {
     try {
+      // Validate pincode (6 digits)
+      if (!/^\d{6}$/.test(data.shippingPincode)) {
+        toast.error("Please enter a valid 6-digit pincode");
+        return;
+      }
+
+      // Validate mobile (10 digits)
+      if (data.shippingMobile && !/^\d{10}$/.test(data.shippingMobile)) {
+        toast.error("Please enter a valid 10-digit mobile number");
+        return;
+      }
+
       if (user?.token) {
-        await updateShippingAddress(user.token, {
-          name: data.fullName,
-          addressLine: data.addressLine,
-          landmark: data.landmark,
-          city: data.city,
-          state: data.state,
-          pincode: data.pincode,
-          mobile: data.mobile,
-        });
+        // Save shipping address
+        const shippingAddr = {
+          name: data.shippingFullName,
+          addressLine: data.shippingAddressLine,
+          landmark: data.shippingLandmark,
+          city: data.shippingCity,
+          state: data.shippingState,
+          pincode: data.shippingPincode,
+          mobile: data.shippingMobile,
+        };
+        await updateShippingAddress(user.token, shippingAddr);
       }
 
       const orderData = {
@@ -112,68 +323,165 @@ export default function Checkout() {
         total: String(total),
         paymentMethod: payment,
         shippingAddress: {
-          fullName: data.fullName,
-          addressLine1: data.addressLine,
-          landmark: data.landmark || '',
-          city: data.city,
-          state: data.state,
-          pincode: data.pincode,
-          mobile: data.mobile,
+          fullName: data.shippingFullName,
+          addressLine1: data.shippingAddressLine,
+          landmark: data.shippingLandmark || '',
+          city: data.shippingCity,
+          state: data.shippingState,
+          pincode: data.shippingPincode,
+          mobile: data.shippingMobile,
+        },
+        billingAddress: sameAsShipping ? null : {
+          fullName: data.billingFullName,
+          addressLine1: data.billingAddressLine,
+          landmark: data.billingLandmark || '',
+          city: data.billingCity,
+          state: data.billingState,
+          pincode: data.billingPincode,
+          mobile: data.billingMobile,
         },
         deliveryOption: { name: "Standard Delivery", fee: shippingFee }
       };
 
       const res = await orderApi.createOrder(user.token, orderData);
       
-      // Clear the saved coupon after successful order
       sessionStorage.removeItem('appliedCoupon');
-      
+      sessionStorage.removeItem('checkoutSameAsShipping');
       clearCart();
       setPlacedOrderId(res.id);
       setPlaced(true);
       toast.success("Order placed successfully!");
     } catch (e) {
-      toast.error(e.message || "Failed to place order");
+      const errorMsg = e?.response?.message || e?.message || "Failed to place order";
+      toast.error(errorMsg);
     }
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <button onClick={() => nav(-1)} className="text-sm text-neutral-500 inline-flex items-center gap-1.5 hover:text-[#800000]">
-        <ChevronLeft size={14} /> Back to bag
+        <ChevronLeft size={14} /> Back to Cart
       </button>
 
       <div className="mt-6 grid lg:grid-cols-[1fr_400px] gap-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
-          {/* Step 1 - Shipping */}
+          {/* Step 1 - Shipping Address */}
           <Step n="01" title="Shipping Address" sub="Where should we deliver your order?">
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Full Name" error={errors.fullName?.message}>
-                <input className="input" {...register("fullName", { required: "Required" })} placeholder="Enter full name" />
+              <Field label="Full Name" error={errors.shippingFullName?.message}>
+                <input className="input" {...register("shippingFullName", { required: "Required" })} placeholder="Enter full name" />
               </Field>
-              <Field label="Registered Mobile" error={errors.mobile?.message}>
-                <input className="input" {...register("mobile", { required: "Required" })} placeholder="Registered mobile" type="tel" />
+              <Field label="Mobile">
+                <input 
+                  className="input" 
+                  {...register("shippingMobile")} 
+                  placeholder="Mobile number" 
+                  type="tel"
+                  readOnly
+                />
               </Field>
-              <Field label="Address Line" full error={errors.addressLine?.message}>
-                <input className="input" {...register("addressLine", { required: "Required" })} placeholder="House/Flat No., Building Name, Street" />
+              <Field label="Address Line" full error={errors.shippingAddressLine?.message}>
+                <input className="input" {...register("shippingAddressLine", { required: "Required" })} placeholder="House/Flat No., Building Name, Street" />
               </Field>
-              <Field label="Landmark (Optional)" error={errors.landmark?.message}>
-                <input className="input" {...register("landmark")} placeholder="Near hospital/school etc." />
+              <Field label="Landmark (Optional)" error={errors.shippingLandmark?.message}>
+                <input className="input" {...register("shippingLandmark")} placeholder="Near hospital/school etc." />
               </Field>
-              <Field label="City" error={errors.city?.message}>
-                <input className="input" {...register("city", { required: "Required" })} />
+              <Field label="City" error={errors.shippingCity?.message}>
+                <input className="input" {...register("shippingCity", { required: "Required" })} />
               </Field>
-              <Field label="State" error={errors.state?.message}>
-                <input className="input" {...register("state", { required: "Required" })} />
+              <Field label="State" error={errors.shippingState?.message}>
+                <select 
+                  className="input"
+                  {...register("shippingState", { required: "Required" })}
+                >
+                  <option value="">Select state</option>
+                  {INDIAN_STATES.map((state) => (
+                    <option key={state} value={state}>{state}</option>
+                  ))}
+                </select>
               </Field>
-              <Field label="Pincode" error={errors.pincode?.message}>
-                <input className="input" {...register("pincode", { required: "Required" })} />
+              <Field label="Pincode" error={errors.shippingPincode?.message}>
+                <input className="input" {...register("shippingPincode", { required: "Required" })} placeholder="Pincode" maxLength="6" />
               </Field>
             </div>
           </Step>
 
-          {/* Step 2 - Payment */}
-          <Step n="02" title="Payment Method" sub="Select your preferred way to pay.">
+          {/* Step 2 - Billing Address */}
+          <Step n="02" title="Billing Address" sub="Billing address for this order">
+            <div className="mb-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={sameAsShipping}
+                  onChange={(e) => handleSameAsShippingChange(e.target.checked)}
+                  className="w-4 h-4 text-[#800000] border-[#E9E5E5] rounded focus:ring-[#800000]"
+                />
+                <span className="text-sm text-neutral-700">Billing Address is the same as Shipping Address</span>
+              </label>
+            </div>
+
+            {sameAsShipping ? (
+              <div className="p-4 bg-[#FAF6F4] rounded-xl border border-[#E9E5E5]">
+                <p className="text-xs uppercase tracking-wider text-neutral-500 mb-1">Shipping Address (used as billing)</p>
+                <p className="text-sm font-medium text-[#1c1c1c]">
+                  {watch("shippingFullName") || "Not set"}
+                </p>
+                <p className="text-xs text-neutral-500 mt-1">
+                  {watch("shippingAddressLine") || ""}<br />
+                  {watch("shippingCity") || ""}, {watch("shippingState") || ""} - {watch("shippingPincode") || ""}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Full Name" error={errors.billingFullName?.message}>
+                    <input className="input" {...register("billingFullName", { required: "Required" })} placeholder="Enter full name" />
+                  </Field>
+                  <Field label="Mobile" error={errors.billingMobile?.message}>
+                    <input className="input" {...register("billingMobile")} placeholder="Mobile number" type="tel" />
+                  </Field>
+                  <Field label="Address Line" full error={errors.billingAddressLine?.message}>
+                    <input className="input" {...register("billingAddressLine", { required: "Required" })} placeholder="House/Flat No., Building Name, Street" />
+                  </Field>
+                  <Field label="Landmark (Optional)" error={errors.billingLandmark?.message}>
+                    <input className="input" {...register("billingLandmark")} placeholder="Near hospital/school etc." />
+                  </Field>
+                  <Field label="City" error={errors.billingCity?.message}>
+                    <input className="input" {...register("billingCity", { required: "Required" })} />
+                  </Field>
+                  <Field label="State" error={errors.billingState?.message}>
+                    <select 
+                      className="input"
+                      {...register("billingState", { required: "Required" })}
+                    >
+                      <option value="">Select state</option>
+                      {INDIAN_STATES.map((state) => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Pincode" error={errors.billingPincode?.message}>
+                    <input className="input" {...register("billingPincode", { required: "Required" })} placeholder="Pincode" maxLength="6" />
+                  </Field>
+                </div>
+                {billingEdited && (
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={saveBillingAddress}
+                      disabled={savingBilling}
+                      className="px-5 py-2.5 bg-[#800000] text-white rounded-full text-sm font-medium disabled:opacity-70 hover:bg-[#600000] transition"
+                    >
+                      {savingBilling ? "Saving..." : "Save Billing Address"}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </Step>
+
+          {/* Step 3 - Payment */}
+          <Step n="03" title="Payment Method" sub="Select your preferred way to pay.">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { id: "upi", label: "UPI / Netbanking", Icon: Wallet },
@@ -222,10 +530,35 @@ export default function Checkout() {
             ))}
           </div>
 
+          {!appliedCode && (
+            <div className="mt-5">
+              <p className="text-xs uppercase tracking-wider text-neutral-500 mb-2">Promo Code</p>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    value={coupon}
+                    onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+                    placeholder="Enter code"
+                    className="w-full h-10 pl-9 pr-3 rounded-full border border-[#E9E5E5] text-sm outline-none focus:border-[#800000] uppercase"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  disabled={validating || !coupon.trim()}
+                  className="h-10 px-4 rounded-full bg-[#FFF8F8] border border-[#E9E5E5] text-sm font-medium text-[#800000] hover:bg-[#f5e7e7] disabled:opacity-50"
+                >
+                  {validating ? "..." : "Apply"}
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="border-t border-[#E9E5E5] mt-5 pt-5 space-y-2 text-sm">
             <div className="flex justify-between"><span>Subtotal</span><span>{formatINR(subtotal)}</span></div>
-            {discount > 0 && <div className="flex justify-between"><span>Discount</span><span className="text-[#16A34A] font-medium">- {formatINR(discount)}</span></div>}
-            <div className="flex justify-between"><span>Shipping</span><span className={shippingFee === 0 ? "text-[#16A34A]" : ""}>{shippingFee === 0 ? "Free" : formatINR(shippingFee)}</span></div>
+            {discount > 0 && <div className="flex justify-between"><span>Coupon ({appliedCode})</span><span className="text-[#16A34A] font-medium">- {formatINR(discount)}</span></div>}
+            <div className="flex justify-between"><span>Shipping</span><span className={shippingFee === 0 ? "text-[#16A34A]" : ""}>{shippingFee === null ? "Loading..." : (shippingFee === 0 ? "Free" : formatINR(shippingFee))}</span></div>
           </div>
           <div className="flex justify-between mt-4 pt-4 border-t border-[#E9E5E5]">
             <span className="uppercase text-xs tracking-wider">Total</span>

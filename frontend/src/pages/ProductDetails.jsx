@@ -334,7 +334,7 @@ export default function ProductDetails() {
           {/* Actions */}
           <div className="mt-7 flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button size="lg" onClick={() => handleAdd({ showToast: true })} className="w-full sm:flex-1">Add to Bag</Button>
+              <Button size="lg" onClick={() => handleAdd({ showToast: true })} className="w-full sm:flex-1">Add to Cart</Button>
               <Button size="lg" variant="gold" onClick={() => handleAdd({ showToast: false, goToCheckout: true })} className="w-full sm:flex-1">Buy Now</Button>
             </div>
             <div className="flex items-center gap-2">

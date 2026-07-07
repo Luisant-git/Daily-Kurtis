@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, ShoppingBag, Eye } from "lucide-react";
+import { Heart, ShoppingCart, Eye } from "lucide-react";
 import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
@@ -80,7 +80,7 @@ export default function ProductCard({ product, onQuickView }) {
             }}
             className="flex-1 h-9 rounded-full bg-[#800000] text-white text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-[#5c0000] transition"
           >
-            <ShoppingBag size={14} /> Add
+<ShoppingCart size={14} /> Add to cart
           </button>
           {onQuickView && (
             <button
@@ -136,7 +136,7 @@ export default function ProductCard({ product, onQuickView }) {
               }}
               className="sm:hidden w-full h-10 rounded-full bg-[#800000] text-white text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-[#5c0000] transition"
             >
-              <ShoppingBag size={14} /> Add to bag
+<ShoppingCart size={14} /> Add to cart
             </button>
           </div>
         </div>

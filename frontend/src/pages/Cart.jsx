@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Minus, Plus, Trash2, ShoppingBag, Tag, ArrowRight } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingCart, Tag, ArrowRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import Empty from "../components/ui/Empty";
@@ -20,6 +20,26 @@ export default function Cart() {
   const [shipping, setShipping] = useState(0);
   const [appliedCode, setAppliedCode] = useState("");
   const [validating, setValidating] = useState(false);
+
+  // Clear any stale coupon data from sessionStorage on cart load
+  useEffect(() => {
+    const savedCoupon = sessionStorage.getItem('appliedCoupon');
+    if (savedCoupon) {
+      // Check if the saved coupon matches current cart state
+      const parsed = JSON.parse(savedCoupon);
+      const currentSubtotal = subtotal;
+      // If saved coupon's subtotal doesn't match current, it's stale
+      if (parsed.subtotal && Math.abs(parsed.subtotal - currentSubtotal) > 1) {
+        sessionStorage.removeItem('appliedCoupon');
+        setDiscount(0);
+        setAppliedCode("");
+      } else if (!appliedCode && parsed.discount > 0) {
+        // If we have a saved coupon but haven't loaded it into state, load it
+        setDiscount(parsed.discount);
+        setAppliedCode(parsed.code || "");
+      }
+    }
+  }, [subtotal, appliedCode]);
 
   const apply = async () => {
     if (!coupon.trim()) {
@@ -52,7 +72,15 @@ export default function Cart() {
       setDiscount(0);
       setAppliedCode("");
       sessionStorage.removeItem('appliedCoupon');
-      toast.error("Invalid coupon");
+      const errorMsg = err?.message || "Invalid coupon";
+      // Check for specific error types
+      if (errorMsg.toLowerCase().includes('expired')) {
+        toast.error("Coupon has expired");
+      } else if (errorMsg.toLowerCase().includes('used') || errorMsg.toLowerCase().includes('already')) {
+        toast.error("Coupon already used");
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setValidating(false);
     }
@@ -85,7 +113,7 @@ export default function Cart() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <Breadcrumb items={[{ label: "Home", to: "/" }, { label: "Cart" }]} />
-        <Empty icon={<ShoppingBag size={28} />} title="Your bag is empty" subtitle="Looks like you haven't added anything yet — let's fix that!" cta="Shop Now" />
+        <Empty icon={<ShoppingCart size={28} />} title="Your cart is empty" subtitle="Looks like you haven't added anything yet — let's fix that!" cta="Shop Now" />
       </div>
     );
   }
@@ -94,9 +122,9 @@ export default function Cart() {
     <div>
       <div className="bg-[#FAF6F4] border-b border-[#E9E5E5]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <Breadcrumb items={[{ label: "Home", to: "/" }, { label: "Shopping Bag" }]} />
-          <h1 className="font-display text-3xl sm:text-4xl mt-3">Shopping Bag</h1>
-          <p className="text-sm text-neutral-600 mt-2">{items.length} item{items.length > 1 ? "s" : ""} in your bag</p>
+          <Breadcrumb items={[{ label: "Home", to: "/" }, { label: "Cart" }]} />
+          <h1 className="font-display text-3xl sm:text-4xl mt-3">Cart</h1>
+          <p className="text-sm text-neutral-600 mt-2">{items.length} item{items.length > 1 ? "s" : ""} in your cart</p>
         </div>
       </div>
 
@@ -170,7 +198,7 @@ export default function Cart() {
 
           <div className="mt-5 space-y-2.5 text-sm">
             <Row k="Subtotal" v={formatINR(subtotal)} />
-            {discount > 0 && <Row k="Discount" v={`- ${formatINR(discount)}`} highlight />}
+            {discount > 0 && <Row k={`Coupon (${appliedCode})`} v={`- ${formatINR(discount)}`} highlight />}
             <Row k="Shipping" v={shipping === 0 ? "Free" : formatINR(shipping)} />
           </div>
 

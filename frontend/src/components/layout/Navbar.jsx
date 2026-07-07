@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Menu, Search, ShoppingBag, User, X, ChevronRight, Phone, Mail, Shield } from "lucide-react";
+import { Heart, Menu, Search, ShoppingCart, User, X, ChevronRight, Phone, Mail, Shield } from "lucide-react";
 import { toast } from "react-toastify";
 import Logo from "../ui/Logo";
 import { useCart } from "../../context/CartContext";
@@ -232,8 +232,8 @@ export default function Navbar() {
                   </span>
                 )}
               </Link>
-              <Link to="/cart" className="p-2 hover:text-[#D4AF37] transition relative" aria-label="Bag">
-                <ShoppingBag size={19} />
+              <Link to="/cart" className="p-2 hover:text-[#D4AF37] transition relative" aria-label="Cart">
+                <ShoppingCart size={19} />
                 {totalQuantity > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 bg-[#800000] text-white text-[10px] font-semibold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
                     {totalQuantity}
