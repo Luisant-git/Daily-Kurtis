@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Package, Truck, CheckCircle2, ChevronDown, MapPin, CreditCard, Banknote } from "lucide-react";
+import { Package, Truck, CheckCircle2, XCircle, ChevronDown, MapPin, CreditCard, Banknote, FileText, Store, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import { formatINR } from "../components/ui/Price";
 import { useAuth } from "../context/AuthContext";
 import { orderApi } from "../api/order";
+import { SITE } from "../data/site";
 
 const STATUS_COLORS = {
   Delivered: "bg-[#16A34A]/10 text-[#16A34A]",
@@ -136,89 +137,103 @@ function OrderTrackingPipeline({ order }) {
         Track Shipment
       </h4>
       <div className="relative">
+        {/* Vertical connecting line - full height */}
+        <div className="absolute left-[14px] top-2 bottom-2 w-[2px] bg-[#E5E7EB] z-0" />
+        
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1;
-          let dotColor = "#D1D5DB";
-          let dotBorder = "#D1D5DB";
-          let lineColor = "#E5E7EB";
+          let dotBg = "bg-gray-200";
+          let lineActive = false;
           let textColor = "text-neutral-400";
+          let textWeight = "font-normal";
 
           if (step.completed && !step.isAlert) {
-            dotColor = "#16A34A";
-            dotBorder = "#16A34A";
-            lineColor = "#16A34A";
+            dotBg = "bg-[#16A34A]";
+            lineActive = true;
             textColor = "text-neutral-900";
+            textWeight = "font-semibold";
           } else if (step.active && step.isAlert) {
-            dotColor = "#DC2626";
-            dotBorder = "#DC2626";
-            lineColor = "#DC2626";
+            dotBg = "bg-[#DC2626]";
+            lineActive = true;
             textColor = "text-neutral-900";
+            textWeight = "font-semibold";
           } else if (step.active) {
-            dotColor = "#16A34A";
-            dotBorder = "#16A34A";
-            lineColor = "#16A34A";
+            dotBg = "bg-[#16A34A]";
+            lineActive = true;
             textColor = "text-neutral-900";
+            textWeight = "font-semibold";
           }
 
           return (
             <motion.div
               key={index}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.3 }}
-              className="relative flex gap-5 pb-8 last:pb-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: index * 0.1 }}
+              className="relative flex items-start gap-3 pb-5 last:pb-0 z-10"
             >
-              {/* Vertical line */}
-              {!isLast && (
-                <div className="absolute left-[15px] top-[34px] bottom-0 w-[2px] bg-[#E5E7EB]" />
-              )}
-              {!isLast && (step.completed || (step.active && steps[index + 1]?.active)) && (
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: "100%" }}
-                  transition={{ duration: 0.5, delay: index * 0.15 }}
-                  className="absolute left-[15px] top-[34px] bottom-0 w-[2px] z-10"
-                  style={{ backgroundColor: lineColor }}
-                />
-              )}
+              {/* Icon */}
+              <div className="relative shrink-0 z-10">
+                {(() => {
+                  const isCompleted = step.completed && !step.isAlert;
+                  const iconSize = 16;
+                  let iconComp = null;
+                  let bgClass = "";
+                  
+                  // Map step title to icon
+                  const title = step.title.toLowerCase();
+                  if (title.includes("placed")) {
+                    iconComp = <Package size={iconSize} className="text-white" />;
+                  } else if (title.includes("accepted") || title.includes("processing")) {
+                    iconComp = <Clock size={iconSize} className="text-white" />;
+                  } else if (title.includes("shipped")) {
+                    iconComp = <Truck size={iconSize} className="text-white" />;
+                  } else if (title.includes("delivered")) {
+                    iconComp = <CheckCircle2 size={iconSize} className="text-white" />;
+                  } else if (step.isAlert) {
+                    iconComp = <XCircle size={iconSize} className="text-white" />;
+                  } else {
+                    iconComp = <Package size={iconSize} className="text-white" />;
+                  }
 
-              {/* Dot */}
-              <div className="relative z-20 shrink-0 mt-1">
-                {step.completed && !step.isAlert ? (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 15, delay: index * 0.1 }}
-                    className="w-[30px] h-[30px] rounded-full bg-[#16A34A] flex items-center justify-center"
-                  >
-                    <CheckCircle2 size={16} className="text-white" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 15, delay: index * 0.1 }}
-                    className={`w-[30px] h-[30px] rounded-full border-[2.5px] flex items-center justify-center ${step.active ? 'shadow-md' : ''}`}
-                    style={{ borderColor: dotBorder, backgroundColor: step.active ? '#fff' : '#F9FAFB' }}
-                  >
-                    {step.active && !step.completed && (
+                  if (isCompleted) {
+                    bgClass = "bg-[#16A34A]";
+                  } else if (step.isAlert) {
+                    bgClass = "bg-[#DC2626]";
+                  } else if (step.active) {
+                    bgClass = "bg-[#16A34A]";
+                  } else {
+                    bgClass = "bg-gray-300";
+                  }
+
+                  return (
+                    <>
+                      {step.active && !step.completed && !step.isAlert && (
+                        <motion.div
+                          animate={{ scale: [1, 1.6, 1], opacity: [0.4, 0, 0.4] }}
+                          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                          className="absolute inset-0 rounded-full bg-[#16A34A]/20"
+                        />
+                      )}
                       <motion.div
-                        animate={{ scale: [1, 1.3, 1] }}
-                        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                        className="w-[10px] h-[10px] rounded-full"
-                        style={{ backgroundColor: dotColor }}
-                      />
-                    )}
-                  </motion.div>
-                )}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                        className={`w-8 h-8 rounded-full ${bgClass} flex items-center justify-center ${step.active ? 'shadow-sm' : ''} relative z-10`}
+                      >
+                        {iconComp}
+                      </motion.div>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0 pt-0.5">
                 <div className="flex justify-between items-start gap-3">
                   <div>
-                    <p className={`text-sm font-semibold ${textColor}`}>{step.title}</p>
-                    <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{step.desc}</p>
+                    <p className={`text-[13px] ${textWeight} ${textColor}`}>{step.title}</p>
+                    <p className="text-[11px] text-neutral-500 mt-0.5 leading-relaxed">{step.desc}</p>
                     {step.link && (
                       <a
                         href={step.link}
@@ -231,7 +246,7 @@ function OrderTrackingPipeline({ order }) {
                     )}
                   </div>
                   {step.date && (
-                    <span className="text-[10px] text-neutral-400 font-medium shrink-0 whitespace-nowrap">{step.date}</span>
+                    <span className="text-[9px] text-neutral-400 font-medium shrink-0 whitespace-nowrap pt-0.5">{step.date}</span>
                   )}
                 </div>
               </div>
@@ -248,6 +263,9 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -282,7 +300,61 @@ export default function Orders() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-4">
+      {/* Filters */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-2">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Status Filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-neutral-500 font-medium">Status:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="text-xs border border-[#E9E5E5] rounded-lg px-3 py-2 bg-white text-neutral-700 outline-none focus:border-[#800000]"
+            >
+              <option value="all">All</option>
+              <option value="Placed">Placed</option>
+              <option value="Processing">Processing</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          {/* Date From */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-neutral-500 font-medium">From:</span>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="text-xs border border-[#E9E5E5] rounded-lg px-3 py-2 bg-white text-neutral-700 outline-none focus:border-[#800000]"
+            />
+          </div>
+
+          {/* Date To */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-neutral-500 font-medium">To:</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="text-xs border border-[#E9E5E5] rounded-lg px-3 py-2 bg-white text-neutral-700 outline-none focus:border-[#800000]"
+            />
+          </div>
+
+          {/* Clear Filters */}
+          {(statusFilter !== "all" || dateFrom || dateTo) && (
+            <button
+              onClick={() => { setStatusFilter("all"); setDateFrom(""); setDateTo(""); }}
+              className="text-xs text-[#800000] hover:underline font-medium"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         {loading ? (
           <div className="bg-white border border-[#E9E5E5] rounded-2xl p-8 text-center text-sm text-neutral-500">Loading your orders...</div>
         ) : !user?.token ? (
@@ -290,7 +362,23 @@ export default function Orders() {
         ) : orders.length === 0 ? (
           <div className="bg-white border border-[#E9E5E5] rounded-2xl p-8 text-center text-sm text-neutral-500">You do not have any orders yet.</div>
         ) : (
-          orders.map((o) => {
+          orders
+            .filter((o) => {
+              if (statusFilter !== "all" && o.status !== statusFilter) return false;
+              if (dateFrom) {
+                const orderDate = new Date(o.createdAt);
+                const from = new Date(dateFrom);
+                if (orderDate < from) return false;
+              }
+              if (dateTo) {
+                const orderDate = new Date(o.createdAt);
+                const to = new Date(dateTo);
+                to.setHours(23, 59, 59, 999);
+                if (orderDate > to) return false;
+              }
+              return true;
+            })
+            .map((o) => {
             const Icon = STATUS_ICONS[o.status] || Package;
             const isOpen = open === o.id;
             const items = (o.items || []).filter(Boolean);
@@ -352,8 +440,31 @@ export default function Orders() {
                               ))}
                             </div>
 
-                            <p className="text-xs uppercase tracking-wider text-neutral-500 mt-6 mb-2 flex items-center gap-1.5"><MapPin size={12} /> Shipping Address</p>
+                            {/* From - Daily Kurtis */}
+                            <div className="bg-[#FAF6F4] rounded-xl p-4 mb-4">
+                              <p className="text-xs uppercase tracking-wider text-neutral-500 mb-2 flex items-center gap-1.5"><Store size={12} /> {SITE.name}</p>
+                              <p className="text-xs text-neutral-600">{SITE.address}</p>
+                              <p className="text-xs text-neutral-600">{SITE.phone}</p>
+                              <p className="text-xs text-neutral-600">{SITE.email}</p>
+                            </div>
+
+                            <p className="text-xs uppercase tracking-wider text-neutral-500 mb-2 flex items-center gap-1.5"><MapPin size={12} /> Shipping Address</p>
                             <p className="text-sm text-neutral-700">{formatAddress(o.shippingAddress)}</p>
+
+                            {/* Invoice - Show only for Shipped or Delivered orders */}
+                            {o.invoiceUrl && ["Shipped", "Delivered"].includes(o.status) && (
+                              <div className="mt-4 pt-4 border-t border-[#E9E5E5]">
+                                <a
+                                  href={o.invoiceUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 text-sm text-[#800000] hover:underline font-medium"
+                                >
+                                  <FileText size={15} />
+                                  Download Invoice
+                                </a>
+                              </div>
+                            )}
                           </div>
 
                           <div>
@@ -400,6 +511,7 @@ export default function Orders() {
               </div>
             );
           })
+          .filter((_, i, arr) => i < arr.length) // no-op, just to keep the filter chain
         )}
       </div>
     </div>

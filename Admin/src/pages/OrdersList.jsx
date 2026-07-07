@@ -384,9 +384,9 @@ const [orderStats, setOrderStats] = useState({
     pdf.setFont(undefined, 'bold');
     pdf.text('Sold By :', 15, 35);
     pdf.setFont(undefined, 'normal');
-    pdf.text('KPG APPARELS', 15, 40);
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 15, 45);
-    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 15, 50);
+    pdf.text('Daily Kurtis', 15, 40);
+    pdf.text('201, Heritage Square, Linking Road,', 15, 45);
+    pdf.text('Mumbai, MAHARASHTRA, 400052', 15, 50);
     pdf.text('IN', 15, 55);
 
     pdf.setFont(undefined, 'bold');
@@ -648,7 +648,7 @@ const [orderStats, setOrderStats] = useState({
       footerY = 30;
     }
     pdf.setFont(undefined, 'bold');
-    pdf.text('For EN3 FASHIONS:', 140, footerY - 30);
+    pdf.text('For DAILY KURTIS:', 140, footerY - 30);
     if (signatureUrl) {
       const signatureImg = new Image();
       signatureImg.src = signatureUrl;
@@ -840,13 +840,13 @@ const handleUpdateStatus = async () => {
     pdf.setFont(undefined, 'normal');
 
     let fromY = 108;
-    pdf.text('KPG APPARELS', 120, fromY);
+    pdf.text('Daily Kurtis', 120, fromY);
     fromY += 7;
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 120, fromY);
+    pdf.text('201, Heritage Square, Linking Road,', 120, fromY);
     fromY += 7;
-    pdf.text('Valipalayam, Tiruppur,', 120, fromY);
+    pdf.text('Mumbai,', 120, fromY);
     fromY += 7;
-    pdf.text('TAMIL NADU, 641601,', 120, fromY);
+    pdf.text('MAHARASHTRA, 400052,', 120, fromY);
 
     pdf.setFont(undefined, 'italic');
     pdf.text('Thank you for shopping with us!', 105, 150, { align: 'center' });
@@ -1094,13 +1094,13 @@ const exportAllOrdersExcel = () => {
       pdf.setFont(undefined, 'normal');
 
       let fromY = 108;
-      pdf.text('KPG APPARELS', 120, fromY);
+      pdf.text('Daily Kurtis', 120, fromY);
       fromY += 7;
-      pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 120, fromY);
+      pdf.text('201, Heritage Square, Linking Road,', 120, fromY);
       fromY += 7;
-      pdf.text('Valipalayam, Tiruppur,', 120, fromY);
+      pdf.text('Mumbai,', 120, fromY);
       fromY += 7;
-      pdf.text('TAMIL NADU, 641601,', 120, fromY);
+      pdf.text('MAHARASHTRA, 400052,', 120, fromY);
 
       pdf.setFont(undefined, 'italic');
       pdf.text('Thank you for shopping with us!', 105, 150, { align: 'center' });
@@ -1559,15 +1559,15 @@ const exportAllOrdersExcel = () => {
     pdf.text('SHIP FROM:', 50, 94);
 
     let fromY = 98;
-    pdf.text('KPG APPARELS', 50, fromY);
+    pdf.text('Daily Kurtis', 50, fromY);
     fromY += 3.5;
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 50, fromY);
+    pdf.text('201, Heritage Square, Linking Road,', 50, fromY);
     fromY += 3.5;
-    pdf.text('Valipalayam,', 50, fromY);
-    pdf.text(' Tiruppur,', 68, fromY);
+    pdf.text('Mumbai,', 50, fromY);
+    pdf.text(' 400052', 68, fromY);
     fromY += 3.5;
-    pdf.text('TAMIL NADU,', 50, fromY);
-    pdf.text(' 641601', 68, fromY);
+    pdf.text('MAHARASHTRA,', 50, fromY);
+    pdf.text(' India', 68, fromY);
     pdf.setFont(undefined, 'normal');
 
     pdf.setFont(undefined, 'italic');
@@ -1582,10 +1582,10 @@ const exportAllOrdersExcel = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Sold By :', 108, 16);
     pdf.setFont(undefined, 'normal');
-    pdf.text('KPG APPARELS', 108, 19);
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam,', 108, 21);
-    pdf.text('Tiruppur,', 108, 23);
-    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 108, 25);
+    pdf.text('Daily Kurtis', 108, 19);
+    pdf.text('201, Heritage Square, Linking Road,', 108, 21);
+    pdf.text('Mumbai,', 108, 23);
+    pdf.text('MUMBAI, MAHARASHTRA, 400052', 108, 25);
     pdf.text('IN', 108, 27);
 
     pdf.setFont(undefined, 'bold');
@@ -1823,7 +1823,7 @@ const exportAllOrdersExcel = () => {
     // Authorized Signatory
     let footerY = pricingEndY + 4;
     pdf.setFont(undefined, 'bold');
-    pdf.text('For EN3 FASHIONS:', 175, footerY);
+    pdf.text('For DAILY KURTIS:', 175, footerY);
     if (signatureUrl) {
       const signatureImg = new Image();
       signatureImg.src = signatureUrl;

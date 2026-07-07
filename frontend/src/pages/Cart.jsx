@@ -128,8 +128,7 @@ export default function Cart() {
               </div>
               <button onClick={apply} className="h-10 px-4 rounded-full bg-[#FFF8F8] border border-[#E9E5E5] text-sm font-medium text-[#800000] hover:bg-[#f5e7e7]">Apply</button>
             </div>
-            <p className="text-[11px] text-neutral-500 mt-1.5">Try DAILY10 for 10% off</p>
-          </div>
+            </div>
 
           <div className="mt-5 space-y-2.5 text-sm">
             <Row k="Subtotal" v={formatINR(subtotal)} />
