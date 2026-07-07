@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { CreditCard, Truck, Wallet, ShieldCheck, ChevronLeft, ArrowRight, Check } from "lucide-react";
@@ -7,7 +7,6 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { shippingApi } from "../api/shipping";
 import { orderApi } from "../api/order";
-import { useEffect } from "react";
 import Button from "../components/ui/Button";
 import { formatINR } from "../components/ui/Price";
 import Empty from "../components/ui/Empty";
@@ -19,6 +18,7 @@ export default function Checkout() {
   const nav = useNavigate();
   const [payment, setPayment] = useState("upi");
   const [placed, setPlaced] = useState(false);
+  const [discount, setDiscount] = useState(0);
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: {
       fullName: user?.shippingAddress?.name || user?.name || '',
@@ -37,6 +37,19 @@ export default function Checkout() {
   
   const currentState = watch("state");
 
+  // Load applied coupon discount from sessionStorage
+  useEffect(() => {
+    const savedCoupon = sessionStorage.getItem('appliedCoupon');
+    if (savedCoupon) {
+      try {
+        const parsed = JSON.parse(savedCoupon);
+        setDiscount(parsed.discount || 0);
+      } catch (e) {
+        console.error("Failed to parse saved coupon:", e);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     shippingApi.fetchShippingRules().then(setShippingRules).catch(console.error);
   }, []);
@@ -49,7 +62,7 @@ export default function Checkout() {
     }
   }, [currentState, shippingRules]);
 
-  const total = subtotal + shippingFee;
+  const total = Math.max(0, subtotal - discount + shippingFee);
 
   if (items.length === 0 && !placed) {
     return (
@@ -95,6 +108,7 @@ export default function Checkout() {
       const orderData = {
         subtotal: String(subtotal),
         deliveryFee: String(shippingFee),
+        discount: String(discount),
         total: String(total),
         paymentMethod: payment,
         shippingAddress: {
@@ -110,6 +124,9 @@ export default function Checkout() {
       };
 
       const res = await orderApi.createOrder(user.token, orderData);
+      
+      // Clear the saved coupon after successful order
+      sessionStorage.removeItem('appliedCoupon');
       
       clearCart();
       setPlacedOrderId(res.id);
@@ -207,6 +224,7 @@ export default function Checkout() {
 
           <div className="border-t border-[#E9E5E5] mt-5 pt-5 space-y-2 text-sm">
             <div className="flex justify-between"><span>Subtotal</span><span>{formatINR(subtotal)}</span></div>
+            {discount > 0 && <div className="flex justify-between"><span>Discount</span><span className="text-[#16A34A] font-medium">- {formatINR(discount)}</span></div>}
             <div className="flex justify-between"><span>Shipping</span><span className={shippingFee === 0 ? "text-[#16A34A]" : ""}>{shippingFee === 0 ? "Free" : formatINR(shippingFee)}</span></div>
           </div>
           <div className="flex justify-between mt-4 pt-4 border-t border-[#E9E5E5]">

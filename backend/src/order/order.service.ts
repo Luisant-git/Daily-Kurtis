@@ -51,6 +51,9 @@ export class OrderService {
       } catch (error) {
         throw new Error('Invalid coupon: ' + error.message);
       }
+    } else if (createOrderDto.discount) {
+      // Use pre-calculated discount from frontend (already validated via coupon API)
+      discount = String(createOrderDto.discount);
     }
 
     // Validate COD if selected

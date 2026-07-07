@@ -93,6 +93,11 @@ export class CreateOrderDto {
   @IsString()
   couponCode?: string;
 
+  @ApiProperty({ example: '1027', required: false })
+  @IsOptional()
+  @IsString()
+  discount?: string;
+
   @ApiProperty({ example: 'upi', enum: ['card', 'upi', 'cod', 'online'] })
   @IsString()
   @IsIn(['card', 'upi', 'cod', 'online'], { message: 'Payment method must be one of: card, upi, cod, online' })

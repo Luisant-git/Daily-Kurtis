@@ -41,10 +41,17 @@ export default function Cart() {
       const d = Math.round(result.discount);
       setDiscount(d);
       setAppliedCode(result.coupon.code);
+      sessionStorage.setItem('appliedCoupon', JSON.stringify({
+        code: result.coupon.code,
+        discount: d,
+        subtotal: subtotal,
+        shipping: shipping
+      }));
       toast.success(`Coupon applied! You saved ${formatINR(d)}`);
     } catch (err) {
       setDiscount(0);
       setAppliedCode("");
+      sessionStorage.removeItem('appliedCoupon');
       toast.error("Invalid coupon");
     } finally {
       setValidating(false);
