@@ -1,38 +1,47 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
  
 class AuthDto {
   @ApiProperty({ example: 'user@example.com' })
-  email: string;
+  @IsString()
+  @IsNotEmpty({ message: 'Email is required' })
+  email!: string;
  
   @ApiProperty({ example: 'password123' })
-  password: string;
+  @IsString()
+  @IsNotEmpty({ message: 'Password is required' })
+  password!: string;
  
   @ApiPropertyOptional({ example: 'John Doe' })
+  @IsString()
+  @IsOptional()
   name?: string;
 }
  
 class TokenResponse {
   @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
-  access_token: string;
+  access_token!: string;
 }
  
 class OtpRequestDto {
   @ApiProperty({ example: '919994683263' })
   @IsString()
-  phone: string;
+  @IsNotEmpty()
+  phone!: string;
 }
  
 class OtpVerifyDto {
   @ApiProperty({ example: '919994683263' })
   @IsString()
-  phone: string;
+  @IsNotEmpty()
+  phone!: string;
  
   @ApiProperty({ example: '123456' })
   @IsString()
-  otp: string;
+  @IsNotEmpty()
+  otp!: string;
  
   @ApiPropertyOptional({ example: 'John Doe' })
   @IsString()
