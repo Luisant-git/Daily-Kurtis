@@ -104,9 +104,11 @@ export default function ProductCard({ product, onQuickView }) {
             {product.name}
           </h3>
         </Link>
+        {/* Rating temporarily hidden - replace with comment to restore: 
         <div className="mt-1.5">
           <Rating value={product.rating} size={12} showValue />
         </div>
+        */}
           <div className="mt-2 flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
               <Price price={product.price} discountPrice={product.discountPrice} size="sm" />

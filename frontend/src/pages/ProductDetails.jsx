@@ -225,9 +225,18 @@ export default function ProductDetails() {
           <h1 className="font-display text-3xl sm:text-4xl text-[#1c1c1c] mt-2 leading-tight">
             {product.name}
           </h1>
+          {/* Rating and review count temporarily hidden - replace with comment to restore:
           <div className="flex items-center gap-3 mt-3">
             <Rating value={product.rating} />
             <span className="text-xs text-neutral-500">({product.reviews} reviews)</span>
+            <span className="text-xs text-[#16A34A] flex items-center gap-1">
+              <Check size={12} /> In Stock
+            </span>
+          </div>
+          */}
+          
+          {/* In Stock indicator kept visible */}
+          <div className="flex items-center gap-3 mt-3">
             <span className="text-xs text-[#16A34A] flex items-center gap-1">
               <Check size={12} /> In Stock
             </span>
@@ -361,7 +370,7 @@ export default function ProductDetails() {
         </div>
       </div>
 
-      {/* Reviews */}
+      {/* Reviews section temporarily hidden - replace with comment to restore:
       <section className="bg-[#FAF6F4] border-y border-[#E9E5E5]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid lg:grid-cols-[280px_1fr] gap-10">
@@ -393,6 +402,7 @@ export default function ProductDetails() {
           </div>
         </div>
       </section>
+      */}
 
       {/* Similar */}
       {related.length > 0 && (
