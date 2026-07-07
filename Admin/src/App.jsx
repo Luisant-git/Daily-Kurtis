@@ -120,16 +120,16 @@ function App() {
             <Routes>
               <Route path="/login" element={<Navigate to="/dashboard" replace />} />
               <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              {/* <Route path="/dashboard" element={<Dashboard />} /> */}
               {/* <Route path="/analytics" element={<Analytics />} /> */}
-              <Route path="/overview" element={<Overview />} />
+              {/* <Route path="/overview" element={<Overview />} /> */}
               <Route path="/add-product" element={<AddProduct />} />
               <Route path="/edit-product/:id" element={<EditProduct />} />
               <Route path="/product-list" element={<ProductList />} />
               {/* <Route path="/combo-offers" element={<ComboOffers />} /> */}
               <Route path="/add-brand" element={<AddBrand />} />
               <Route path="/add-category" element={<AddCategory />} />
-              <Route path="/add-sub-category" element={<AddSubCategory />} />
+              {/* <Route path="/add-sub-category" element={<AddSubCategory />} /> */}
               <Route path="/add-banner" element={<AddBanner />} />
               <Route path="/add-coupon" element={<AddCoupon />} />
               <Route path="/edit-coupon/:id" element={<EditCoupon />} />
@@ -144,7 +144,7 @@ function App() {
               <Route path="/add-template" element={<AddTemplate />} />
               <Route path="/brand-list" element={<BrandList />} />
               <Route path="/category-list" element={<CategoryList />} />
-              <Route path="/subcategory-list" element={<SubCategoryList />} />
+              {/* <Route path="/subcategory-list" element={<SubCategoryList />} /> */}
               <Route path="/banner-list" element={<BannerList />} />
               <Route path="/coupon-list" element={<CouponList />} />
               <Route path="/pincode-list" element={<PincodeList />} />
@@ -154,8 +154,8 @@ function App() {
               <Route path="/edit-shipping/:id" element={<EditShipping />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/courier-partners" element={<CourierPartnerList />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/product-report" element={<ProductSalesReport />} />
+              {/* <Route path="/reports" element={<Reports />} /> */}
+              {/* <Route path="/product-report" element={<ProductSalesReport />} /> */}
               {/* <Route path="/whatsapp-chat" element={<WhatsAppChat />} /> */}
               {/* <Route path="/bulk-whatsapp" element={<BulkWhatsApp />} /> */}
             </Routes>
