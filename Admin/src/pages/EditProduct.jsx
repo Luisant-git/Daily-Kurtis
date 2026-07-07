@@ -477,9 +477,9 @@ const EditProduct = () => {
                 </label>
               </div>
 
-              {formData.gallery.length > 0 && (
+              {formData.gallery.filter(img => img && typeof img === 'object' && !Array.isArray(img) && img.url).length > 0 && (
                 <div className="image-preview-grid">
-                  {formData.gallery.map((image, index) => (
+                  {formData.gallery.filter(img => img && typeof img === 'object' && !Array.isArray(img) && img.url).map((image, index) => (
                     <div key={index} className="image-preview">
                       <img src={image.url} alt="Gallery" />
                       <button
@@ -716,7 +716,7 @@ const EditProduct = () => {
             <div style={{ marginTop: '20px' }}>
               <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#111827' }}>Added Color Variants ({formData.colors.length})</h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-                {formData.colors.map((color, i) => (
+                {formData.colors.filter(c => c && typeof c === 'object' && !Array.isArray(c) && c.name).map((color, i) => (
                   <div key={i} style={{ position: 'relative', background: editingColorIndex === i ? '#eff6ff' : 'white', border: editingColorIndex === i ? '2px solid #3b82f6' : '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                     <div style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10, display: 'flex', gap: '4px' }}>
                       <button 
@@ -743,7 +743,7 @@ const EditProduct = () => {
                       />
                     ) : (
                       <div style={{ width: '100%', height: '180px', background: 'linear-gradient(135deg, ' + color.code + ' 0%, ' + color.code + 'dd 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '48px', fontWeight: 'bold' }}>
-                        {color.name.charAt(0)}
+                        {color?.name?.charAt(0) || '?'}
                       </div>
                     )}
                     

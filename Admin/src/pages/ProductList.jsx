@@ -368,7 +368,7 @@ const ProductList = () => {
       <h2>Product Details</h2>
       {product.gallery && product.gallery.length > 0 && (
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-          {product.gallery.map((img, i) => (
+          {product.gallery.filter(img => img && typeof img === 'object' && !Array.isArray(img) && img.url).map((img, i) => (
             <img
               key={i}
               src={img.url}
@@ -413,14 +413,14 @@ const ProductList = () => {
         {product.colors && product.colors.length > 0 && (
           <div style={{ marginTop: '16px' }}>
             <strong>Color Variants:</strong>
-            {product.colors.map((color, i) => (
+            {product.colors.filter(c => c && typeof c === 'object' && !Array.isArray(c) && c.name).map((color, i) => (
               <div key={i} style={{ marginTop: '8px', padding: '8px', background: '#f9fafb', borderRadius: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: color.code, border: '1px solid #e5e7eb' }}></div>
                   <strong>{color.name}</strong>
                 </div>
                 <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                  Sizes: {color.sizes.map((s, idx) => (
+                  Sizes: {(color.sizes || []).map((s, idx) => (
                     <span key={idx}>
                       {s.size} (₹{s.price}, Qty: {s.quantity})
                       {s.sizeVariantId && (

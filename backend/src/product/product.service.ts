@@ -8,11 +8,12 @@ export class ProductService {
   constructor(private prisma: PrismaService) {}
 
   create(createProductDto: CreateProductDto) {
+    const sanitizedData = this.sanitizeProductData(createProductDto);
     return this.prisma.product.create({
       data: {
-        ...createProductDto,
-        gallery: createProductDto.gallery as any,
-        colors: createProductDto.colors as any,
+        ...sanitizedData,
+        gallery: (sanitizedData.gallery || []) as any,
+        colors: (sanitizedData.colors || []) as any,
       },
     });
   }
@@ -56,14 +57,41 @@ export class ProductService {
 
   update(id: number, updateProductDto: UpdateProductDto) {
     const { id: _, createdAt, updatedAt, category, subCategory, brand, ...data } = updateProductDto as any;
+    const sanitized = this.sanitizeProductData(data);
     return this.prisma.product.update({
       where: { id },
       data: {
-        ...data,
-        gallery: data.gallery as any,
-        colors: data.colors as any,
+        ...sanitized,
+        gallery: (sanitized.gallery || []) as any,
+        colors: (sanitized.colors || []) as any,
       },
     });
+  }
+
+  private sanitizeProductData(data: any) {
+    const result = { ...data };
+    // Filter out empty arrays/objects from gallery
+    if (result.gallery && Array.isArray(result.gallery)) {
+      result.gallery = result.gallery.filter(
+        (item: any) => item && typeof item === 'object' && !Array.isArray(item) && item.url
+      );
+    }
+    // Filter out invalid entries from colors
+    if (result.colors && Array.isArray(result.colors)) {
+      result.colors = result.colors.filter(
+        (item: any) => item && typeof item === 'object' && !Array.isArray(item) && item.name
+      );
+    }
+    // Filter out invalid sizes
+    if (result.colors) {
+      result.colors = result.colors.map((color: any) => ({
+        ...color,
+        sizes: (color.sizes || []).filter(
+          (s: any) => s && typeof s === 'object' && !Array.isArray(s) && s.size
+        ),
+      }));
+    }
+    return result;
   }
 
   remove(id: number) {

@@ -1,8 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNumber, IsOptional, IsArray, IsBoolean } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsArray, IsBoolean, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 class GalleryDto {
   @ApiProperty({ example: 'https://cdn/img/p1-1.jpg' })
+  @IsString()
   url: string;
 }
 
@@ -89,6 +91,8 @@ export class CreateProductDto {
   @ApiPropertyOptional({ type: [GalleryDto] })
   @IsOptional()
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => GalleryDto)
   gallery?: GalleryDto[];
 
   @ApiProperty({ type: [ColorDto] })
