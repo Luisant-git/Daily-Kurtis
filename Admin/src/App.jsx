@@ -119,7 +119,7 @@ function App() {
           <div className="content-area">
             <Routes>
               <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<AddProduct  />} />  
               {/* <Route path="/dashboard" element={<Dashboard />} /> */}
               {/* <Route path="/analytics" element={<Analytics />} /> */}
               {/* <Route path="/overview" element={<Overview />} /> */}
