@@ -22,6 +22,7 @@ import FAQ from "./pages/FAQ.jsx";
 import { Privacy, Terms, Shipping, Returns } from "./pages/Policy.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Auth from "./pages/Auth.jsx";
+import SizeChart from "./pages/SizeChart.jsx";
 
 export default function App() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/shipping-policy" element={<Shipping />} />
                   <Route path="/returns" element={<Returns />} />
+                  <Route path="/product/:slug/size-chart" element={<SizeChart />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>

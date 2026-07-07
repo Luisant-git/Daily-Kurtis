@@ -52,6 +52,7 @@ export default function ProductDetails() {
               slug: slug,
               description: apiProduct.description || "",
               category: apiProduct.category?.name || "",
+              categoryData: apiProduct.category || null,
               fabric: apiProduct.fabric || "",
               occasion: apiProduct.occasion || "",
               price: mrpValue,
@@ -276,7 +277,19 @@ export default function ProductDetails() {
           <div className="mt-7">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#1c1c1c]">Select Size</p>
-              <button className="text-xs text-[#800000] underline">Size Guide</button>
+              {(product.categoryData?.sizeChart || product.categoryData?.subCategory?.sizeChart) && (
+                <button
+                  className="text-xs text-[#800000] underline"
+                  onClick={() => {
+                    const sizeChartUrl = product.categoryData?.sizeChart || product.categoryData?.subCategory?.sizeChart;
+                    navigate(`/product/${slug}/size-chart`, {
+                      state: { sizeChartUrl, productName: product.name }
+                    });
+                  }}
+                >
+                  Size Chart
+                </button>
+              )}
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
               {selectedSizes.map((s) => (

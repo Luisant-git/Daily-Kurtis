@@ -15,6 +15,7 @@ const AddCategory = () => {
     featured: false
   })
   const [image, setImage] = useState(null)
+  const [sizeChart, setSizeChart] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const handleInputChange = (field, value) => {
@@ -41,8 +42,29 @@ const AddCategory = () => {
     }
   }
 
+  const handleSizeChartUpload = async (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      try {
+        const uploadResult = await uploadImage(file)
+        setSizeChart({
+          file,
+          url: uploadResult.url,
+          filename: uploadResult.filename
+        })
+        toast.success('Size chart uploaded successfully!')
+      } catch (err) {
+        toast.error('Failed to upload size chart')
+      }
+    }
+  }
+
   const removeImage = () => {
     setImage(null)
+  }
+
+  const removeSizeChart = () => {
+    setSizeChart(null)
   }
 
   const handleSubmit = async (e) => {
@@ -53,7 +75,8 @@ const AddCategory = () => {
       const categoryData = {
         name: formData.name,
         description: formData.description,
-        image: image ? image.url : null
+        image: image ? image.url : null,
+        sizeChart: sizeChart ? sizeChart.url : null
       }
       
       await createCategory(categoryData)
@@ -63,6 +86,7 @@ const AddCategory = () => {
       // Reset form
       setFormData({ name: '', description: '', parentCategory: '', status: 'active', featured: false })
       setImage(null)
+      setSizeChart(null)
     } catch (err) {
       toast.error(err.message || 'Failed to create category')
     } finally {
@@ -142,6 +166,40 @@ const AddCategory = () => {
                     type="button"
                     className="remove-image"
                     onClick={removeImage}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="section-header" style={{ marginTop: '2rem' }}>
+              <h3>Size Chart (Optional)</h3>
+            </div>
+
+            <div className="image-upload-section">
+              {!sizeChart ? (
+                <div className="image-upload-area">
+                  <input
+                    type="file"
+                    id="sizechart-upload"
+                    accept="image/*"
+                    onChange={handleSizeChartUpload}
+                    className="image-input"
+                  />
+                  <label htmlFor="sizechart-upload" className="upload-label">
+                    <Upload size={48} />
+                    <p>Click to upload size chart</p>
+                    <span>PNG, JPG up to 5MB</span>
+                  </label>
+                </div>
+              ) : (
+                <div className="image-preview">
+                  <img src={sizeChart.url || "/placeholder.svg"} alt="Size Chart" />
+                  <button
+                    type="button"
+                    className="remove-image"
+                    onClick={removeSizeChart}
                   >
                     <X size={16} />
                   </button>
