@@ -25,8 +25,8 @@ export function WishlistProvider({ children }) {
     setLoading(true);
     try {
       const data = await wishlistApi.getWishlist(user.token);
-      // Backend returns [{ id, userId, productId, product: { ... } }]
-      setItems(data.map(w => mapApiProduct(w.product || w)).filter(Boolean));
+      // Backend returns products directly [{ id, name, slug, category, colors, gallery, ... }]
+      setItems(data.map(p => mapApiProduct(p)).filter(Boolean));
     } catch (e) {
       console.error('Failed to fetch wishlist', e);
     } finally {

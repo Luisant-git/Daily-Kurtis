@@ -17,7 +17,7 @@ export class WishlistService {
     });
   }
 
-  async getWishlist(userId: number) {
+async getWishlist(userId: number) {
     const items = await this.prisma.wishlistItem.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
@@ -32,20 +32,21 @@ export class WishlistService {
     return products.map(product => {
       const colors = (product.colors || []) as any[];
       const gallery = (product.gallery || []) as any[];
-      const firstColor = colors[0];
-      const firstSize = firstColor?.sizes?.[0];
-      
-      // Get first image from gallery
-      const imageUrl = gallery[0]?.url || firstColor?.image || '';
-      // Get second image from gallery for hover effect
-      const altImageUrl = gallery[1]?.url || gallery[0]?.url || firstColor?.image || imageUrl;
       
       return {
         id: product.id,
         name: product.name,
-        price: firstSize?.price || product.basePrice,
-        imageUrl,
-        altImageUrl,
+        slug: product.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + product.id,
+        description: product.description || '',
+        category: product.category,
+        fabric: '',
+        occasion: '',
+        basePrice: product.basePrice,
+        mrp: product.mrp,
+        newArrivals: product.newArrivals,
+        status: product.status,
+        colors,
+        gallery,
       };
     });
   }

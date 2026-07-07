@@ -7,7 +7,7 @@ import { categoryApi } from "../api/category.js";
 import ProductCard from "../components/product/ProductCard";
 import Breadcrumb from "../components/ui/Breadcrumb";
 import Empty from "../components/ui/Empty";
-import { extractProductSizes, normalizeSize } from "../utils/productUtils";
+import { extractProductSizes, normalizeSize, mapApiProduct } from "../utils/productUtils";
 
 const PAGE_SIZE = 9;
 const SORTS = [

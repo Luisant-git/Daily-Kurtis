@@ -96,12 +96,14 @@ export function mapApiProduct(p) {
     image: sizeItem?.image || color?.image || "",
     color: color?.name || "",
   }))).filter((item) => item.size);
+  
   const firstSize = sizeDetails[0] || {};
   const basePrice = parseFloat(firstSize?.price || p.basePrice || 0);
   const mrpValue = p.mrp ? parseFloat(p.mrp) : basePrice;
   const discountPercent = mrpValue > basePrice ? Math.round(((mrpValue - basePrice) / mrpValue) * 100) : 0;
   const sizeImages = sizeDetails.map((item) => item.image).filter(Boolean);
   const galleryImages = [...new Set([...(p.gallery?.map((g) => g.url) || []), ...(p.colors || []).map((c) => c.image).filter(Boolean), ...sizeImages])].filter(Boolean);
+  
   return {
     id: p.id,
     name: p.name,
