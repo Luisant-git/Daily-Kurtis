@@ -4,6 +4,7 @@ import { Upload, X, Plus, Edit } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { ColorPicker } from 'antd'
 import { getProduct, updateProduct, getCategories, getSubCategories, getBrands, uploadImage } from '../api'
+import Editor from '../components/Editor'
 
 const EditProduct = () => {
   const { id } = useParams()
@@ -269,12 +270,11 @@ const EditProduct = () => {
 
             <div className="form-group">
               <label className="form-label">Description</label>
-              <textarea
-                className="form-textarea"
+              <Editor
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={(value) => handleInputChange('description', value)}
                 placeholder="Enter product description"
-                rows={4}
+                style={{ minHeight: '200px' }}
               />
             </div>
 

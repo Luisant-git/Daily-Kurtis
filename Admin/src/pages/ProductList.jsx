@@ -383,8 +383,12 @@ const ProductList = () => {
           <strong>Name:</strong> {product.name}
         </p>
         <p>
-          <strong>Description:</strong> {product.description || "N/A"}
+          <strong>Description:</strong>
         </p>
+        <div
+          className="product-description-view"
+          dangerouslySetInnerHTML={{ __html: product.description || "N/A" }}
+        />
         <p>
           <strong>Category:</strong> {product.category?.name || "N/A"}
         </p>

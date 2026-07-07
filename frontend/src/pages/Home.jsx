@@ -368,7 +368,7 @@ export default function Home() {
               </h3>
               <p className="mt-4 text-white/80 max-w-md text-sm sm:text-base">
                 Refresh your festive wardrobe with our hand-picked sale edit.
-                Use code <span className="font-semibold text-[#D4AF37]">DAILY30</span> at checkout.
+           
               </p>
               <Link to="/shop?filter=bestseller" className="inline-block mt-7">
                 <Button variant="gold">View the Sale</Button>

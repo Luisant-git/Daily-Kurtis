@@ -72,12 +72,97 @@
     }
   }
 
-  
-  
-  
-  
-  
-  }
+}
+
+// Product description HTML rendering in view modal
+.product-description-view {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #374151;
+  margin-bottom: 12px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.product-description-view p {
+  margin-bottom: 8px;
+}
+
+.product-description-view p:last-child {
+  margin-bottom: 0;
+}
+
+.product-description-view h1,
+.product-description-view h2,
+.product-description-view h3,
+.product-description-view h4,
+.product-description-view h5,
+.product-description-view h6 {
+  font-weight: 600;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+.product-description-view h1 { font-size: 1.4rem; }
+.product-description-view h2 { font-size: 1.25rem; }
+.product-description-view h3 { font-size: 1.1rem; }
+.product-description-view h4 { font-size: 1rem; }
+.product-description-view h5 { font-size: 0.9rem; }
+.product-description-view h6 { font-size: 0.85rem; }
+
+.product-description-view ul,
+.product-description-view ol {
+  margin-bottom: 8px;
+  padding-left: 1.5rem;
+}
+
+.product-description-view ul {
+  list-style-type: disc;
+}
+
+.product-description-view ol {
+  list-style-type: decimal;
+}
+
+.product-description-view li {
+  margin-bottom: 4px;
+}
+
+.product-description-view li:last-child {
+  margin-bottom: 0;
+}
+
+.product-description-view strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+.product-description-view em {
+  font-style: italic;
+}
+
+.product-description-view u {
+  text-decoration: underline;
+}
+
+.product-description-view a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.product-description-view blockquote {
+  border-left: 3px solid #e5e7eb;
+  padding-left: 12px;
+  margin: 8px 0;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.product-description-view [style*="text-align: center"] { text-align: center; }
+.product-description-view [style*="text-align: right"] { text-align: right; }
+.product-description-view [style*="text-align: justify"] { text-align: justify; }
 
 // Modal Styles
 .modal-backdrop {

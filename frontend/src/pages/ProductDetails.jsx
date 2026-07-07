@@ -15,6 +15,7 @@ import { useRecent } from "../context/RecentContext";
 import { useAuth } from "../context/AuthContext";
 import { REVIEWS } from "../data/site.js";
 import { normalizeSize } from "../utils/productUtils";
+import DOMPurify from "dompurify";
 
 export default function ProductDetails() {
   const { slug = "" } = useParams();
@@ -98,6 +99,7 @@ export default function ProductDetails() {
   const [qty, setQty] = useState(1);
   const [openAccordion, setOpenAccordion] = useState("desc");
   const [zoom, setZoom] = useState({ x: 50, y: 50, active: false });
+  const [descExpanded, setDescExpanded] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -251,7 +253,20 @@ export default function ProductDetails() {
             <p className="text-xs text-neutral-500 mt-1">Inclusive of all taxes</p>
           </div>
 
-          <p className="mt-6 text-sm text-neutral-700 leading-relaxed">{product.description}</p>
+          <div className="mt-6">
+            <div
+              className={`product-description ${descExpanded ? "" : "collapsed"}`}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
+            />
+            {product.description && product.description.length > 150 && (
+              <button
+                onClick={() => setDescExpanded(!descExpanded)}
+                className="text-[#800000] text-xs font-medium mt-1.5 hover:underline"
+              >
+                {descExpanded ? "Show less" : "Read more"}
+              </button>
+            )}
+          </div>
 
           {/* Color */}
           <div className="mt-7">
