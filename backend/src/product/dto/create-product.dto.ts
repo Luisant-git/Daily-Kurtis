@@ -10,31 +10,46 @@ class GalleryDto {
 
 class SizeDto {
   @ApiProperty({ example: 'S' })
+  @IsString()
   size: string;
 
   @ApiProperty({ example: '499.00' })
+  @IsString()
   price: string;
 
   @ApiProperty({ example: 10 })
+  @IsNumber()
   quantity: number;
 
   @ApiPropertyOptional({ example: '123456' })
   @IsOptional()
   @IsString()
   sizeVariantId?: string;
+
+  @ApiPropertyOptional({ example: 'https://cdn/img/size.jpg' })
+  @IsOptional()
+  @IsString()
+  image?: string;
 }
 
 class ColorDto {
   @ApiProperty({ example: 'Red' })
+  @IsString()
   name: string;
 
   @ApiProperty({ example: '#E53935' })
+  @IsString()
   code: string;
 
   @ApiPropertyOptional({ example: 'https://cdn/img/red-1.jpg' })
+  @IsOptional()
+  @IsString()
   image?: string;
 
   @ApiProperty({ type: [SizeDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SizeDto)
   sizes: SizeDto[];
 }
 
@@ -97,6 +112,8 @@ export class CreateProductDto {
 
   @ApiProperty({ type: [ColorDto] })
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ColorDto)
   colors: ColorDto[];
 
   @ApiPropertyOptional({ example: 'active' })
