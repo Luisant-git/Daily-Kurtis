@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { shippingApi } from "../api/shipping";
+import { couponApi } from "../api/coupon";
 
 export default function Cart() {
   const { items, updateQty, removeFromCart, subtotal } = useCart();
@@ -17,14 +18,36 @@ export default function Cart() {
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
   const [shipping, setShipping] = useState(0);
+  const [appliedCode, setAppliedCode] = useState("");
+  const [validating, setValidating] = useState(false);
 
-  const apply = () => {
-    if (coupon.toUpperCase() === "DAILY10") {
-      const d = Math.round(subtotal * 0.1);
+  const apply = async () => {
+    if (!coupon.trim()) {
+      toast.error("Please enter a coupon code");
+      return;
+    }
+    if (!user?.token) {
+      toast.error("Please login to apply coupons");
+      return;
+    }
+    setValidating(true);
+    try {
+      const cartItems = items.map(item => ({
+        productId: item.product?.id || item.productId,
+        price: parseFloat(item.price) || 0,
+        quantity: item.quantity,
+      }));
+      const result = await couponApi.validateCoupon(user.token, coupon, subtotal, shipping, 0, cartItems);
+      const d = Math.round(result.discount);
       setDiscount(d);
+      setAppliedCode(result.coupon.code);
       toast.success(`Coupon applied! You saved ${formatINR(d)}`);
-    } else {
-      toast.error("Invalid coupon. Try DAILY10");
+    } catch (err) {
+      setDiscount(0);
+      setAppliedCode("");
+      toast.error("Invalid coupon");
+    } finally {
+      setValidating(false);
     }
   };
 
@@ -49,7 +72,7 @@ export default function Cart() {
     loadShipping();
   }, [user?.shippingAddress?.state]);
 
-  const total = subtotal - discount + shipping;
+  const total = Math.max(0, subtotal - discount + shipping);
 
   if (items.length === 0) {
     return (
@@ -121,14 +144,22 @@ export default function Cart() {
                 <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   value={coupon}
-                  onChange={(e) => setCoupon(e.target.value)}
+                  onChange={(e) => {
+                    setCoupon(e.target.value.toUpperCase());
+                    if (appliedCode) {
+                      setDiscount(0);
+                      setAppliedCode("");
+                    }
+                  }}
                   placeholder="Enter code"
                   className="w-full h-10 pl-9 pr-3 rounded-full border border-[#E9E5E5] text-sm outline-none focus:border-[#800000] uppercase"
                 />
               </div>
-              <button onClick={apply} className="h-10 px-4 rounded-full bg-[#FFF8F8] border border-[#E9E5E5] text-sm font-medium text-[#800000] hover:bg-[#f5e7e7]">Apply</button>
+              <button onClick={apply} disabled={validating || !coupon.trim()} className="h-10 px-4 rounded-full bg-[#FFF8F8] border border-[#E9E5E5] text-sm font-medium text-[#800000] hover:bg-[#f5e7e7] disabled:opacity-50">
+                {validating ? "..." : "Apply"}
+              </button>
             </div>
-            </div>
+          </div>
 
           <div className="mt-5 space-y-2.5 text-sm">
             <Row k="Subtotal" v={formatINR(subtotal)} />
