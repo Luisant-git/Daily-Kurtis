@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Package, Truck, CheckCircle2, ChevronDown, MapPin } from "lucide-react";
+import { Package, Truck, CheckCircle2, ChevronDown, MapPin, CreditCard, Banknote } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import Breadcrumb from "../components/ui/Breadcrumb";
@@ -130,55 +130,112 @@ function OrderTrackingPipeline({ order }) {
   }
 
   return (
-    <div className="bg-[#FAF6F4]/50 border border-[#E9E5E5] rounded-2xl p-5 sm:p-6 mb-6">
-      <h4 className="text-xs uppercase tracking-wider text-neutral-500 mb-5 font-semibold">Track Shipment</h4>
-      <div className="relative pl-6 space-y-6 border-l border-[#E9E5E5]">
+    <div className="bg-white border border-[#E9E5E5] rounded-2xl p-5 sm:p-6 mb-6">
+      <h4 className="text-xs uppercase tracking-wider text-neutral-500 mb-6 font-semibold flex items-center gap-2">
+        <Truck size={14} className="text-[#800000]" />
+        Track Shipment
+      </h4>
+      <div className="relative">
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1;
-          let dotColorClass = "bg-neutral-200 border-neutral-300";
-          let textColorClass = "text-neutral-400";
+          let dotColor = "#D1D5DB";
+          let dotBorder = "#D1D5DB";
+          let lineColor = "#E5E7EB";
+          let textColor = "text-neutral-400";
 
-          if (step.active) {
-            dotColorClass = step.isAlert 
-              ? "bg-[#DC2626] border-[#DC2626]" 
-              : "bg-[#800000] border-[#800000]";
-            textColorClass = "text-neutral-900";
-          }
           if (step.completed && !step.isAlert) {
-            dotColorClass = "bg-[#16A34A] border-[#16A34A]";
+            dotColor = "#16A34A";
+            dotBorder = "#16A34A";
+            lineColor = "#16A34A";
+            textColor = "text-neutral-900";
+          } else if (step.active && step.isAlert) {
+            dotColor = "#DC2626";
+            dotBorder = "#DC2626";
+            lineColor = "#DC2626";
+            textColor = "text-neutral-900";
+          } else if (step.active) {
+            dotColor = "#16A34A";
+            dotBorder = "#16A34A";
+            lineColor = "#16A34A";
+            textColor = "text-neutral-900";
           }
 
           return (
-            <div key={index} className="relative">
-              <div className={`absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full border-2 ${dotColorClass} transition-colors duration-300 z-10`} />
-              
-              {step.completed && !isLast && (
-                <div className="absolute -left-[27px] top-3.5 bottom-[-24px] w-[1px] bg-[#16A34A] z-0 transition-colors duration-300" />
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.3 }}
+              className="relative flex gap-5 pb-8 last:pb-0"
+            >
+              {/* Vertical line */}
+              {!isLast && (
+                <div className="absolute left-[15px] top-[34px] bottom-0 w-[2px] bg-[#E5E7EB]" />
               )}
-              {step.active && !step.completed && !isLast && steps[index + 1]?.active && (
-                <div className="absolute -left-[27px] top-3.5 bottom-[-24px] w-[1px] bg-[#800000] z-0 transition-colors duration-300" />
+              {!isLast && (step.completed || (step.active && steps[index + 1]?.active)) && (
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: "100%" }}
+                  transition={{ duration: 0.5, delay: index * 0.15 }}
+                  className="absolute left-[15px] top-[34px] bottom-0 w-[2px] z-10"
+                  style={{ backgroundColor: lineColor }}
+                />
               )}
 
-              <div className="flex justify-between items-start gap-4">
-                <div>
-                  <p className={`text-sm font-semibold tracking-wide ${textColorClass}`}>{step.title}</p>
-                  <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{step.desc}</p>
-                  {step.link && (
-                    <a
-                      href={step.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-[#800000] hover:underline mt-2 font-medium"
-                    >
-                      Track Package <span className="text-[10px]">↗</span>
-                    </a>
-                  )}
-                </div>
-                {step.date && (
-                  <span className="text-[10px] text-neutral-400 font-medium shrink-0 pt-0.5">{step.date}</span>
+              {/* Dot */}
+              <div className="relative z-20 shrink-0 mt-1">
+                {step.completed && !step.isAlert ? (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 15, delay: index * 0.1 }}
+                    className="w-[30px] h-[30px] rounded-full bg-[#16A34A] flex items-center justify-center"
+                  >
+                    <CheckCircle2 size={16} className="text-white" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 15, delay: index * 0.1 }}
+                    className={`w-[30px] h-[30px] rounded-full border-[2.5px] flex items-center justify-center ${step.active ? 'shadow-md' : ''}`}
+                    style={{ borderColor: dotBorder, backgroundColor: step.active ? '#fff' : '#F9FAFB' }}
+                  >
+                    {step.active && !step.completed && (
+                      <motion.div
+                        animate={{ scale: [1, 1.3, 1] }}
+                        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                        className="w-[10px] h-[10px] rounded-full"
+                        style={{ backgroundColor: dotColor }}
+                      />
+                    )}
+                  </motion.div>
                 )}
               </div>
-            </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0 pt-0.5">
+                <div className="flex justify-between items-start gap-3">
+                  <div>
+                    <p className={`text-sm font-semibold ${textColor}`}>{step.title}</p>
+                    <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{step.desc}</p>
+                    {step.link && (
+                      <a
+                        href={step.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-[#800000] hover:underline mt-2 font-medium"
+                      >
+                        Track Package <span className="text-[10px]">↗</span>
+                      </a>
+                    )}
+                  </div>
+                  {step.date && (
+                    <span className="text-[10px] text-neutral-400 font-medium shrink-0 whitespace-nowrap">{step.date}</span>
+                  )}
+                </div>
+              </div>
+            </motion.div>
           );
         })}
       </div>
@@ -278,39 +335,66 @@ export default function Orders() {
                         <div className="grid lg:grid-cols-2 gap-8 mt-6">
                           <div>
                             <p className="text-xs uppercase tracking-wider text-neutral-500 mb-3">Items</p>
-                          <div className="space-y-3">
-                            {items.map((item) => (
-                              <div key={item.id || item.name} className="flex gap-3">
-                                <img
-                                  src={item?.imageUrl || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=200&q=80"}
-                                  className="w-14 aspect-[4/5] object-cover rounded-lg"
-                                  alt=""
-                                />
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium">{item?.name || "Product"}</p>
-                                  <p className="text-xs text-neutral-500">Qty {item?.quantity || 1}</p>
+                            <div className="space-y-3">
+                              {items.map((item) => (
+                                <div key={item.id || item.name} className="flex gap-3">
+                                  <img
+                                    src={item?.imageUrl || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=200&q=80"}
+                                    className="w-14 aspect-[4/5] object-cover rounded-lg"
+                                    alt=""
+                                  />
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium">{item?.name || "Product"}</p>
+                                    <p className="text-xs text-neutral-500">Qty {item?.quantity || 1}</p>
+                                  </div>
+                                  <p className="text-sm font-semibold text-[#800000]">{formatINR(Number(item?.price || 0))}</p>
                                 </div>
-                                <p className="text-sm font-semibold text-[#800000]">{formatINR(Number(item?.price || 0))}</p>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
+
+                            <p className="text-xs uppercase tracking-wider text-neutral-500 mt-6 mb-2 flex items-center gap-1.5"><MapPin size={12} /> Shipping Address</p>
+                            <p className="text-sm text-neutral-700">{formatAddress(o.shippingAddress)}</p>
                           </div>
 
-                          <p className="text-xs uppercase tracking-wider text-neutral-500 mt-6 mb-2 flex items-center gap-1.5"><MapPin size={12} /> Shipping Address</p>
-                          <p className="text-sm text-neutral-700">{formatAddress(o.shippingAddress)}</p>
-                        </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-neutral-500 mb-4">Order Summary</p>
+                            <div className="space-y-2 text-sm text-neutral-700">
+                              <div className="flex justify-between"><span>Subtotal</span><span>{formatINR(Number(o.subtotal || 0))}</span></div>
+                              <div className="flex justify-between"><span>Delivery Fee</span><span>{formatINR(Number(o.deliveryFee || 0))}</span></div>
+                              <div className="flex justify-between"><span>Discount</span><span>- {formatINR(Number(o.discount || 0))}</span></div>
+                              <div className="flex justify-between font-semibold text-[#800000]"><span>Total</span><span>{formatINR(Number(o.total || 0))}</span></div>
+                            </div>
 
-                        <div>
-                          <p className="text-xs uppercase tracking-wider text-neutral-500 mb-4">Order Summary</p>
-                          <div className="space-y-2 text-sm text-neutral-700">
-                            <div className="flex justify-between"><span>Subtotal</span><span>{formatINR(Number(o.subtotal || 0))}</span></div>
-                            <div className="flex justify-between"><span>Delivery Fee</span><span>{formatINR(Number(o.deliveryFee || 0))}</span></div>
-                            <div className="flex justify-between"><span>Discount</span><span>- {formatINR(Number(o.discount || 0))}</span></div>
-                            <div className="flex justify-between font-semibold text-[#800000]"><span>Total</span><span>{formatINR(Number(o.total || 0))}</span></div>
+                            {/* Payment Details */}
+                            <div className="mt-5 pt-4 border-t border-[#E9E5E5]">
+                              <p className="text-xs uppercase tracking-wider text-neutral-500 mb-3 flex items-center gap-1.5"><CreditCard size={12} /> Payment Details</p>
+                              <div className="space-y-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                  {o.paymentMethod === 'cod' ? (
+                                    <Banknote size={15} className="text-[#16A34A]" />
+                                  ) : (
+                                    <CreditCard size={15} className="text-[#D4AF37]" />
+                                  )}
+                                  <span className="text-neutral-700 capitalize font-medium">
+                                    {o.paymentMethod === 'cod' ? 'Cash on Delivery' : o.paymentMethod === 'upi' ? 'UPI' : o.paymentMethod === 'card' ? 'Card' : o.paymentMethod || 'Online'}
+                                  </span>
+                                </div>
+                                {o.paymentMethod !== 'cod' && o.razorpayPaymentId && (
+                                  <p className="text-xs text-neutral-400 ml-6">
+                                    Payment ID: {o.razorpayPaymentId}
+                                  </p>
+                                )}
+                                {o.paymentMethod === 'cod' && Number(o.codFee || 0) > 0 && (
+                                  <p className="text-xs text-neutral-400 ml-6">
+                                    COD Fee: {formatINR(Number(o.codFee))}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
