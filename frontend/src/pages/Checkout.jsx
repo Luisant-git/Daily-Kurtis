@@ -99,7 +99,7 @@ export default function Checkout() {
     if (user?.shippingAddress) {
       const addr = user.shippingAddress;
       const mobile = user?.mobile || addr?.mobile || '';
-      setValue('shippingFullName', addr.name || '');
+      setValue('shippingFullName', addr.name || user?.name || '');
       setValue('shippingMobile', mobile);
       setValue('shippingAddressLine', addr.addressLine || '');
       setValue('shippingLandmark', addr.landmark || '');
@@ -109,7 +109,7 @@ export default function Checkout() {
       
       // Initialize billing address same as shipping (only if sameAsShipping is true)
       if (sameAsShipping) {
-        setValue('billingFullName', addr.name || '');
+        setValue('billingFullName', addr.name || user?.name || '');
         setValue('billingMobile', mobile);
         setValue('billingAddressLine', addr.addressLine || '');
         setValue('billingLandmark', addr.landmark || '');
@@ -119,12 +119,15 @@ export default function Checkout() {
       }
     } else if (user?.mobile) {
       // If no shipping address but user has mobile, set it
-      setValue('shippingMobile', user.mobile);
+      const mobile = user.mobile;
+      setValue('shippingMobile', mobile);
+      setValue('shippingFullName', user?.name || '');
       if (sameAsShipping) {
-        setValue('billingMobile', user.mobile);
+        setValue('billingMobile', mobile);
+        setValue('billingFullName', user?.name || '');
       }
     }
-  }, [user, setValue, authLoading]);
+  }, [user, setValue, authLoading, sameAsShipping]);
 
   // Load saved coupon and sameAsShipping state from sessionStorage
   useEffect(() => {

@@ -58,18 +58,18 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   const login = (mobile, name = "", email = "", token = "") => {
-    // Only store mobile and token initially — name & email come from backend fetch
+    // Store all provided data - name and email may come from registration
     const userData = {
       mobile,
-      name: "",
-      email: "",
+      name: name || "",
+      email: email || "",
       token,
       loggedInAt: Date.now(),
     };
     
     setUser(userData);
-    // Set loading to true since we need to fetch the full profile
-    setLoading(true);
+    // Set loading to true only if we have a token and no name/email
+    setLoading(!!token && !(name || email));
     toast.success(`Welcome! ✨`);
   };
 

@@ -235,7 +235,7 @@ export default function Profile() {
                         <h3 className="font-display text-xl">Edit Profile</h3>
                         <p className="text-sm text-neutral-500">Update your account details.</p>
                       </div>
-                      <button onClick={closeEditProfile} className="text-neutral-500 hover:text-[#800000]">Cancel</button>
+                      <button onClick={closeEditProfile} className="text-neutral-500 hover:text-[#800000]">X</button>
                     </div>
                     <div className="grid gap-3">
                       <input

@@ -5,10 +5,10 @@ import { Phone, ArrowLeft, ShieldCheck } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { authApi } from "../api/auth";
-
+ 
 
 export default function Auth() {
-  const [loginStep, setLoginStep] = useState("mobile"); // "mobile", "register", "otp"
+  const [loginStep, setLoginStep] = useState("mobile"); // "mobile", "otp", "complete-profile"
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [otpSent, setOtpSent] = useState(false);
@@ -18,6 +18,7 @@ export default function Auth() {
   const [regName, setRegName] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const otpRefs = useRef([]);
+  const [verifiedPhone, setVerifiedPhone] = useState("");
 
   const { login, isLoggedIn } = useAuth();
   const navigate = useNavigate();
@@ -46,13 +47,8 @@ export default function Auth() {
       setOtpSent(true);
       setResendTimer(180);
       toast.success("OTP sent to +91 " + mobile);
-      if (res.isNewUser) {
-        setIsNewUser(true);
-        setLoginStep("register");
-      } else {
-        setIsNewUser(false);
-        setLoginStep("otp");
-      }
+      // Always go to OTP step after mobile number entry
+      setLoginStep("otp");
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     } finally {
@@ -60,19 +56,20 @@ export default function Auth() {
     }
   };
 
-  const sendOtp = () => {
-    setLoginStep("otp");
-  };
-
   const resendOtp = async () => {
     if (resendTimer > 0) return;
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setOtp(["", "", "", ""]);
-    setResendTimer(180);
-    toast.success("OTP resent to +91 " + mobile);
-    setIsLoading(false);
-    otpRefs.current[0]?.focus();
+    try {
+      await authApi.requestOtp(mobile);
+      setOtp(["", "", "", ""]);
+      setResendTimer(180);
+      toast.success("OTP resent to +91 " + mobile);
+    } catch (error) {
+      toast.error(error.message || "Failed to resend OTP");
+    } finally {
+      setIsLoading(false);
+      otpRefs.current[0]?.focus();
+    }
   };
 
   const handleOtpChange = (i, val) => {
@@ -108,17 +105,35 @@ export default function Auth() {
     if (code.length < 4) return;
     setIsLoading(true);
     try {
-      const response = await authApi.verifyOtp(mobile, code, regName.trim(), regEmail.trim());
-      const userName = regName.trim() || response.user?.name || "";
-      const userEmail = regEmail.trim() || response.user?.email || "";
+      const response = await authApi.verifyOtp(mobile, code);
+      setIsNewUser(response.isNewUser);
       
-      await login(mobile, userName, userEmail, response.access_token);
-      
-      navigate("/profile", { replace: true });
+      if (response.isNewUser) {
+        // New user: go to complete profile step
+        setVerifiedPhone(mobile);
+        setLoginStep("complete-profile");
+      } else {
+        // Existing user: login directly
+        await login(mobile, response.user?.name || "", response.user?.email || "", response.access_token);
+        navigate("/profile", { replace: true });
+      }
     } catch (error) {
       toast.error(error.message || "Invalid OTP. Please try again");
       setOtp(["", "", "", ""]);
       otpRefs.current[0]?.focus();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const completeRegistration = async () => {
+    setIsLoading(true);
+    try {
+      const response = await authApi.completeRegistration(verifiedPhone, regName.trim(), regEmail.trim());
+      await login(verifiedPhone, response.user?.name || regName.trim(), response.user?.email || regEmail.trim() || "", response.access_token);
+      navigate("/profile", { replace: true });
+    } catch (error) {
+      toast.error(error.message || "Failed to complete registration");
     } finally {
       setIsLoading(false);
     }
@@ -132,19 +147,19 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex bg-[#FAF6F4]">
-
+ 
 
       {/* Auth Form */}
       <div className="w-full flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-[#1c1c1c] tracking-tight">
-              {loginStep === "mobile" ? "Welcome" : loginStep === "register" ? "Complete Profile" : "Verify Your Number"}
+              {loginStep === "mobile" ? "Welcome" : loginStep === "complete-profile" ? "Complete Profile" : "Verify Your Number"}
             </h2>
             <p className="mt-2 text-sm text-neutral-500">
               {loginStep === "mobile" 
                 ? "Enter your mobile number to sign in or create an account" 
-                : loginStep === "register"
+                : loginStep === "complete-profile"
                 ? "Just a few more details to set up your account"
                 : `We've sent a 4-digit code to +91 ${mobile}`}
             </p>
@@ -210,9 +225,9 @@ export default function Auth() {
                     Secure login powered by DailyKurtis
                   </div>
                 </motion.form>
-              ) : loginStep === "register" ? (
+              ) : loginStep === "complete-profile" ? (
                 <motion.div
-                  key="register"
+                  key="complete-profile"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
@@ -230,6 +245,7 @@ export default function Auth() {
                         onChange={(e) => setRegName(e.target.value)}
                         placeholder="e.g. Aditi Sharma"
                         required
+                        autoFocus
                         className="w-full px-4 py-3.5 rounded-xl border border-neutral-200 bg-neutral-50/50 focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all duration-300 text-sm font-medium text-neutral-900 placeholder:text-neutral-400"
                       />
                     </div>
@@ -248,11 +264,11 @@ export default function Auth() {
                   </div>
                   <button
                     type="button"
-                    onClick={sendOtp}
-                    disabled={!regName.trim()}
+                    onClick={completeRegistration}
+                    disabled={!regName.trim() || isLoading}
                     className="w-full h-12 rounded-xl bg-[#800000] text-white font-semibold text-sm hover:bg-[#6c0000] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-[#800000]/20 mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Proceed to Verification
+                    Complete Registration
                   </button>
                   <button
                     type="button"
@@ -260,10 +276,12 @@ export default function Auth() {
                       setLoginStep("mobile");
                       setOtp(["", "", "", ""]);
                       setResendTimer(0);
+                      setRegName("");
+                      setRegEmail("");
                     }}
                     className="w-full h-10 rounded-xl text-neutral-500 font-medium text-sm hover:text-[#800000] transition-colors flex items-center justify-center gap-2"
                   >
-                    <ArrowLeft size={16} /> Back
+                    <ArrowLeft size={16} /> Back to Login
                   </button>
                 </motion.div>
               ) : (

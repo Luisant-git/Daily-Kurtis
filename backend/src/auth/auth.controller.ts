@@ -42,6 +42,13 @@ class OtpVerifyDto {
   @IsString()
   @IsNotEmpty()
   otp!: string;
+}
+ 
+class CompleteRegistrationDto {
+  @ApiProperty({ example: '919994683263' })
+  @IsString()
+  @IsNotEmpty()
+  phone!: string;
  
   @ApiPropertyOptional({ example: 'John Doe' })
   @IsString()
@@ -95,9 +102,16 @@ export class AuthController {
   }
  
   @Post('otp/verify')
-  @ApiOperation({ summary: 'Verify OTP and login/register' })
+  @ApiOperation({ summary: 'Verify OTP only (returns isNewUser flag)' })
+  @ApiResponse({ status: 200, description: 'OTP verified', type: TokenResponse })
+  async verifyOtpOnly(@Body() { phone, otp }: OtpVerifyDto) {
+    return this.authService.verifyOtp(phone, otp);
+  }
+ 
+  @Post('complete-registration')
+  @ApiOperation({ summary: 'Complete registration after OTP verification' })
   @ApiResponse({ status: 200, type: TokenResponse })
-  async verifyOtp(@Body() { phone, otp, name, email }: OtpVerifyDto) {
-    return this.authService.verifyOtpAndLogin(phone, otp, name, email);
+  async completeRegistration(@Body() { phone, name, email }: CompleteRegistrationDto) {
+    return this.authService.completeRegistration(phone, name, email);
   }
 }

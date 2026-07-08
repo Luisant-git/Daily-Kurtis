@@ -1,5 +1,5 @@
 import API_BASE_URL from "./config";
-
+ 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const config = {
@@ -9,11 +9,11 @@ async function request(endpoint, options = {}) {
       ...(options.headers || {}),
     },
   };
-
+  
   if (config.body && typeof config.body !== "string") {
     config.body = JSON.stringify(config.body);
   }
-
+  
   try {
     const response = await fetch(url, config);
     if (!response.ok) {
@@ -31,7 +31,7 @@ async function request(endpoint, options = {}) {
     throw error;
   }
 }
-
+ 
 export const authApi = {
   requestOtp: async (phone) => {
     return request("/auth/otp/request", {
@@ -39,28 +39,35 @@ export const authApi = {
       body: { phone },
     });
   },
-
-  verifyOtp: async (phone, otp, name = "", email = "") => {
+ 
+  verifyOtp: async (phone, otp) => {
     return request("/auth/otp/verify", {
       method: "POST",
-      body: { phone, otp, name, email },
+      body: { phone, otp },
     });
   },
-
+ 
+  completeRegistration: async (phone, name, email) => {
+    return request("/auth/complete-registration", {
+      method: "POST",
+      body: { phone, name, email },
+    });
+  },
+ 
   registerWithEmail: async (email, password, name) => {
     return request("/auth/user/register", {
       method: "POST",
       body: { email, password, name },
     });
   },
-
+ 
   loginWithEmail: async (email, password) => {
     return request("/auth/user/login", {
       method: "POST",
       body: { email, password },
     });
   },
-
+ 
   fetchProfile: async (token) => {
     return request("/user/profile/me", {
       method: "GET",
@@ -69,7 +76,7 @@ export const authApi = {
       }
     });
   },
-
+ 
   updateProfile: async (token, data) => {
     return request("/user/profile", {
       method: "PATCH",
@@ -79,8 +86,8 @@ export const authApi = {
       body: data,
     });
   },
-
-updateShippingAddress: async (token, address) => {
+ 
+ updateShippingAddress: async (token, address) => {
   // Ensure all values are strings before sending
   const sanitizedAddress = {
     name: String(address.name || ""),
@@ -100,5 +107,5 @@ updateShippingAddress: async (token, address) => {
     body: sanitizedAddress,
   });
 },
-
+ 
 };

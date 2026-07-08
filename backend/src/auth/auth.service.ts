@@ -68,7 +68,7 @@ export class AuthService {
     return { message: 'OTP sent successfully', isNewUser: !existingUser };
   }
   
-  async verifyOtpAndLogin(phone: string, otp: string, name?: string, email?: string) {
+  async verifyOtp(phone: string, otp: string) {
     // DEV MODE: Accept hardcoded OTP 1234 or any OTP from database
     let otpRecord = await this.prisma.otp.findFirst({
       where: { 
@@ -101,20 +101,42 @@ export class AuthService {
       await this.prisma.otp.update({ where: { id: otpRecord.id }, data: { verified: true } });
     }
   
+    // Check if user exists
     let user = await this.prisma.user.findUnique({ where: { phone } });
     const isNewUser = !user;
     
-    if (!user) {
-      user = await this.prisma.user.create({ data: { phone, name, email: email || undefined } });
-    } else {
+    // Generate token for both new and existing users
+    const token = this.generateToken(user?.id || 0, user?.email || '', 'user', phone, user?.name || undefined);
+    
+    return {
+      ...token,
+      isNewUser,
+      user: user || null
+    };
+  }
+  
+  async completeRegistration(phone: string, name?: string, email?: string) {
+    let user = await this.prisma.user.findUnique({ where: { phone } });
+    
+    if (user) {
+      // User already exists, just update if new info provided
       const updateData: any = {};
       if (name) updateData.name = name;
       if (email) updateData.email = email;
       if (Object.keys(updateData).length > 0) {
         user = await this.prisma.user.update({ where: { id: user.id }, data: updateData });
       }
+    } else {
+      // Create new user
+      user = await this.prisma.user.create({ 
+        data: { 
+          phone, 
+          name: name || undefined, 
+          email: email || undefined 
+        } 
+      });
     }
-  
+    
     const token = this.generateToken(user.id, user.email || '', 'user', user.phone || undefined, user.name || undefined);
     return {
       ...token,
