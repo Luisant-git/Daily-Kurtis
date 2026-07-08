@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, ShoppingCart, Eye } from "lucide-react";
+import { Heart, ShoppingCart, Eye, XCircle } from "lucide-react";
 import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
@@ -14,6 +14,22 @@ export default function ProductCard({ product, onQuickView }) {
   const liked = has(product.id);
   const primaryImage = product.images?.[0] || product.thumbnail || "";
   const secondaryImage = product.images?.[1] || primaryImage;
+  
+  // Get default variant (for Add to Cart button) - first color + first size
+  const defaultColor = product.colors?.[0]?.name;
+  const defaultSize = product.sizes?.[0];
+  
+  // Find the quantity for the default variant
+  const defaultVariantStock = product.sizeDetails?.find(
+    v => v.color === defaultColor && v.size === defaultSize
+  )?.quantity ?? product.stock ?? 0;
+  
+  const hasStock = defaultVariantStock > 0;
+  
+  // Check if ALL variants are out of stock
+  const allVariantsOutOfStock = product.sizeDetails?.length > 0 
+    ? !product.sizeDetails?.some(v => v.quantity > 0)
+    : !hasStock;
 
   return (
     <motion.div
@@ -48,6 +64,11 @@ export default function ProductCard({ product, onQuickView }) {
               Top Selling
             </span>
           )}
+          {allVariantsOutOfStock && (
+            <span className="bg-[#DC2626] text-white text-[8px] sm:text-[9px] tracking-wider uppercase font-medium px-2 py-1 rounded-full flex items-center gap-1">
+              <XCircle size={10} /> Out of Stock
+            </span>
+          )}
         </div>
         {/* Wishlist */}
         <button
@@ -76,11 +97,16 @@ export default function ProductCard({ product, onQuickView }) {
                 openLoginModal();
                 return;
               }
-              addToCart(product, product.sizes[0], product.colors[0].name, 1);
+              if (hasStock) {
+                addToCart(product, product.sizes[0], product.colors[0]?.name || "", 1);
+              }
             }}
-            className="flex-1 h-9 rounded-full bg-[#800000] text-white text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-[#5c0000] transition"
+            disabled={!hasStock}
+            className={`flex-1 h-9 rounded-full text-white text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 transition ${
+              hasStock ? "bg-[#800000] hover:bg-[#5c0000]" : "bg-neutral-300 cursor-not-allowed"
+            }`}
           >
-<ShoppingCart size={14} /> Add to cart
+<ShoppingCart size={14} /> {hasStock ? "Add to cart" : "Out of Stock"}
           </button>
           {onQuickView && (
             <button
@@ -132,11 +158,16 @@ export default function ProductCard({ product, onQuickView }) {
                   openLoginModal();
                   return;
                 }
-                addToCart(product, product.sizes[0], product.colors[0].name, 1);
+                if (hasStock) {
+                  addToCart(product, product.sizes[0], product.colors[0]?.name || "", 1);
+                }
               }}
-              className="sm:hidden w-full h-10 rounded-full bg-[#800000] text-white text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-[#5c0000] transition"
+              disabled={!hasStock}
+              className={`w-full h-10 rounded-full text-white text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 transition sm:hidden ${
+                hasStock ? "bg-[#800000] hover:bg-[#5c0000]" : "bg-neutral-300 cursor-not-allowed"
+              }`}
             >
-<ShoppingCart size={14} /> Add to cart
+<ShoppingCart size={14} /> {hasStock ? "Add to cart" : "Out of Stock"}
             </button>
           </div>
         </div>
