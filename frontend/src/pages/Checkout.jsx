@@ -194,6 +194,13 @@ export default function Checkout() {
 
   const total = Math.max(0, subtotal - discount + (shippingFee || 0));
 
+  // Scroll to top when order is placed
+  useEffect(() => {
+    if (placed) {
+      window.scrollTo(0, 0);
+    }
+  }, [placed]);
+
   if (items.length === 0 && !placed) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16">
@@ -205,14 +212,25 @@ export default function Checkout() {
   if (placed) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-20 h-20 rounded-full bg-[#16A34A]/10 text-[#16A34A] flex items-center justify-center mx-auto">
-          <Check size={36} />
+        <motion.div 
+          initial={{ scale: 0, rotate: -180 }} 
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          className="w-20 h-20 rounded-full bg-[#16A34A]/10 text-[#16A34A] flex items-center justify-center mx-auto shadow-lg shadow-[#16A34A]/20"
+        >
+          <motion.div
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <Check size={36} strokeWidth={3} />
+          </motion.div>
         </motion.div>
         <h1 className="font-display text-4xl mt-6">Order Confirmed!</h1>
         <p className="text-neutral-600 mt-3">
           Thank you for choosing Daily Kurtis. Your order <span className="font-medium text-[#800000]">#{placedOrderId || "Confirmed"}</span> has been placed successfully.
         </p>
-        <p className="text-sm text-neutral-500 mt-2">A confirmation has been sent to your email.</p>
+        
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button onClick={() => nav("/orders")}>View Orders</Button>
           <Button variant="outline" onClick={() => nav("/shop")}>Continue Shopping</Button>

@@ -127,8 +127,17 @@ export function AuthProvider({ children }) {
 
   const updateProfile = async (name, email) => {
     try {
+      // Only send defined non-empty values to avoid validation issues
+      const payload = {};
+      if (name !== undefined && name !== "") {
+        payload.name = name;
+      }
+      if (email !== undefined && email !== "") {
+        payload.email = email;
+      }
+      
       // Call backend API to update profile
-      await authApi.updateProfile(userRef.current?.token, { name, email });
+      await authApi.updateProfile(userRef.current?.token, payload);
       
       setUser((prev) => ({ ...prev, name, email }));
       toast.success("Profile updated");
