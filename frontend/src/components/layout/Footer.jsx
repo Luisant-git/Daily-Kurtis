@@ -23,44 +23,8 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#1c1010] text-neutral-300 mt-20">
-      {/* Newsletter */}
-      <div className="border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid md:grid-cols-2 gap-8 items-center">
-          <div>
-            <p className="text-xs tracking-[0.3em] uppercase text-[#D4AF37]">Newsletter</p>
-            <h3 className="font-display text-2xl sm:text-3xl text-white mt-2">
-              Join the Daily Kurtis Circle
-            </h3>
-            <p className="text-sm text-neutral-400 mt-2 max-w-md">
-              Be the first to know about new collections, styling tips and member-only offers.
-            </p>
-          </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (email) {
-                toast.success("You're in! Welcome to the circle ✨");
-                setEmail("");
-              }
-            }}
-            className="w-full"
-          >
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address"
-                className="h-12 px-5 rounded-full bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm outline-none focus:border-[#D4AF37]/60 w-full sm:flex-1 sm:min-w-0"
-              />
-              <button className="h-12 px-7 rounded-full bg-[#D4AF37] hover:bg-[#b8932c] text-white text-sm uppercase tracking-wider transition w-full sm:w-auto sm:min-w-[140px]">
-                Subscribe
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+    
+      
 
       {/* Main */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
