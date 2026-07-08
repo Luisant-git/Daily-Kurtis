@@ -297,7 +297,7 @@ const AddProduct = () => {
                 value={formData.description}
                 onChange={(value) => handleInputChange('description', value)}
                 placeholder="Enter product description"
-                style={{ minHeight: '200px' }}
+                style={{ minHeight: '400px' }}
               />
             </div>
 
