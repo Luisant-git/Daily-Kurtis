@@ -33,35 +33,35 @@ export default function Contact() {
 
           <div className="mt-6 grid sm:grid-cols-2 gap-4">
             <Input label="Your Name" error={errors.name?.message}>
-              <input className="input" {...register("name", { required: "Required" })} />
+              <input placeholder="Your Name" className="input" {...register("name", { required: "Required" })} />
             </Input>
             <Input label="Email" error={errors.email?.message}>
-              <input type="email" className="input" {...register("email", { required: "Required" })} />
+              <input type="email" placeholder="Email Address" className="input" {...register("email", { required: "Required" })} />
             </Input>
             <Input label="Subject" full error={errors.subject?.message}>
-              <input className="input" {...register("subject", { required: "Required" })} />
+              <input placeholder="Subject" className="input" {...register("subject", { required: "Required" })} />
             </Input>
             <Input label="Message" full error={errors.message?.message}>
-              <textarea rows={5} className="input !h-auto !py-3 !rounded-2xl" {...register("message", { required: "Required" })} />
+              <textarea placeholder="How can we help you?" rows={5} className="input !h-auto !py-3 !rounded-2xl" {...register("message", { required: "Required" })} />
             </Input>
           </div>
 
           <Button size="lg" type="submit" className="mt-6">
             Send Message <Send size={14} />
           </Button>
-          <style>{`.input { width:100%; height:44px; padding:0 14px; background:#fff; border:1px solid #E9E5E5; border-radius:9999px; font-size:14px; outline:none; } .input:focus{ border-color:#800000;}`}</style>
+          <style>{`.input { width:100%; height:44px; padding:0 14px; background:#fff; border:1px solid #cbd5e1; border-radius:9999px; font-size:14px; outline:none; } .input:focus{ border-color:#800000;}`}</style>
         </form>
 
         {/* Info */}
         <aside className="space-y-4">
           <InfoCard Icon={Phone} title="Call Us" lines={[SITE.phone, "Mon - Sat, 10am - 7pm"]} />
           <InfoCard Icon={Mail} title="Email" lines={[SITE.email, "Reply within 24 hrs"]} />
-          <InfoCard Icon={MapPin} title="Visit Our Studio" lines={[SITE.address]} />
-          <InfoCard Icon={MessageCircle} title="WhatsApp" lines={["+91 98765 43210", "Quickest response"]} />
+          <InfoCard Icon={MapPin} title="Visit Our Studio" lines={SITE.address.split('\n')} />
+          <InfoCard Icon={MessageCircle} title="WhatsApp" lines={[SITE.phone, "Quickest response"]} />
         </aside>
       </section>
 
-      {/* Map placeholder */}
+      {/* Map placeholder
       <section className="pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative aspect-[16/7] rounded-2xl overflow-hidden border border-[#E9E5E5] bg-[#FAF6F4]">
           <iframe
@@ -71,10 +71,11 @@ export default function Contact() {
           />
           <div className="absolute bottom-5 left-5 bg-white rounded-xl px-5 py-3 shadow-lg">
             <p className="text-xs text-[#D4AF37] uppercase tracking-wider">Daily Kurtis Studio</p>
-            <p className="text-sm font-medium mt-0.5">Bandra West, Mumbai</p>
+            <p className="text-sm font-medium mt-0.5">Rasipuram, Namakkal</p>
           </div>
         </div>
       </section>
+      */}
     </div>
   );
 }
