@@ -38,6 +38,9 @@ export default function Footer() {
               Crafting timeless ethnic elegance for the modern woman. Discover our
               handpicked collection of kurthis, anarkalis and festive sets.
             </p>
+            <p className="text-sm font-medium text-[#D4AF37] mt-3">
+              Daily Kurti is a brand unit of Rathna Readymades.
+            </p>
             <div className="flex items-center gap-3 mt-6">
               {SOCIALS.map((s) => (
                 <a
@@ -117,7 +120,7 @@ export default function Footer() {
             <MapPin size={16} className="text-[#D4AF37] mt-0.5" />
             <div>
               <p className="text-neutral-500 text-xs uppercase tracking-wider">Visit</p>
-              <p className="text-white">{SITE.address}</p>
+              <p className="text-white whitespace-pre-wrap">{SITE.address}</p>
             </div>
           </div>
         </div>
