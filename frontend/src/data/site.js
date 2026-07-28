@@ -1,9 +1,9 @@
 export const SITE = {
   name: "Daily Kurtis",
   tagline: "Ethnic. Elegant. Everyday.",
-  email: "care@dailykurtis.com",
-  phone: "+91 98765 43210",
-  address: "201, Heritage Square, Linking Road, Mumbai 400052, India",
+  email: "Dailykurti@gmail.com",
+  phone: "9894822357",
+  address: "Rathna Readymades (Daily Kurti)\n38, Chinna Agraharam,\nRasipuram - 637408, Namakkal District,\nTamil Nadu, India.",
 };
 
 export const FEATURED_CATEGORIES = [
