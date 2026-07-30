@@ -374,7 +374,7 @@ export default function Checkout() {
           content_type: 'product',
           value: total,
           currency: 'INR'
-        });
+        }, { eventID: `ORDER_${res.id}` });
       }
 
       sessionStorage.removeItem('appliedCoupon');

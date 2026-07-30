@@ -6,11 +6,12 @@ import { CouponModule } from '../coupon/coupon.module';
 import { WhatsappModule } from '../whatsapp/whatsapp.module';
 import { PaymentService } from './payment.service';
 import { OrderCleanupService } from './order-cleanup.service';
+import { MetaConversionsService } from './meta-conversions.service';
 
 @Module({
   imports: [CouponModule, WhatsappModule],
   controllers: [OrderController],
-  providers: [OrderService, PrismaService, PaymentService, OrderCleanupService],
+  providers: [OrderService, PrismaService, PaymentService, OrderCleanupService, MetaConversionsService],
   exports: [OrderService]
 })
 export class OrderModule {}

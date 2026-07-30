@@ -4,14 +4,16 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { CouponService } from '../coupon/coupon.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { PaymentService } from './payment.service';
- 
+import { MetaConversionsService } from './meta-conversions.service';
+
 @Injectable()
 export class OrderService {
   constructor(
     private prisma: PrismaService,
     private couponService: CouponService,
     private whatsappService: WhatsappService,
-    private paymentService: PaymentService
+    private paymentService: PaymentService,
+    private metaConversionsService: MetaConversionsService
   ) {}
  
   async createOrder(userId: number, createOrderDto: CreateOrderDto) {
@@ -180,6 +182,15 @@ export class OrderService {
     //   // Continue with order success - WhatsApp failure should not prevent order completion
     // }
   
+    // Trigger Meta Conversions API asynchronously
+    this.prisma.user.findUnique({ where: { id: userId } }).then(user => {
+      if (user) {
+        this.metaConversionsService.sendPurchaseEvent(order, user).catch(err => {
+          console.error('Failed to send CAPI event:', err);
+        });
+      }
+    });
+
     // Return order with Razorpay order ID for online payments
     return {
       ...order,
