@@ -366,6 +366,17 @@ export default function Checkout() {
 
       const res = await orderApi.createOrder(user.token, orderData);
       
+      // Meta Pixel - Purchase
+      if (window.fbq) {
+        const contentIds = items.map(i => (i.product?.id || i.productId || i.id).toString());
+        window.fbq('track', 'Purchase', {
+          content_ids: contentIds,
+          content_type: 'product',
+          value: total,
+          currency: 'INR'
+        });
+      }
+
       sessionStorage.removeItem('appliedCoupon');
       sessionStorage.removeItem('checkoutSameAsShipping');
       clearCart();

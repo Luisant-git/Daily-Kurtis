@@ -320,9 +320,10 @@ model WhatsappMessage {
 model WhatsappSession {
   id         Int      @id @default(autoincrement())
   phone      String   @unique
-  state      String   @default("menu") // "menu", "category", "subcategory", "product"
+  state      String   @default("menu") // "menu", "category", "subcategory", "product", "checkout_quantity", "checkout_address", "checkout_payment"
   categoryId Int?
   subCategoryId Int?
+  checkoutData  Json?
   updatedAt  DateTime @updatedAt
   createdAt  DateTime @default(now())
 

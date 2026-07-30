@@ -118,6 +118,17 @@ export default function ProductDetails() {
       setColor(product.colors?.[0]?.name || "");
       setActiveImg(0);
       push(product);
+
+      // Meta Pixel - ViewContent
+      if (window.fbq) {
+        window.fbq('track', 'ViewContent', {
+          content_ids: [product.id.toString()],
+          content_type: 'product',
+          content_name: product.name,
+          currency: 'INR',
+          value: product.discountPrice || product.price
+        });
+      }
     }
   }, [product?.id]);
 
@@ -192,6 +203,19 @@ export default function ProductDetails() {
     }
     if (!size || !color || isOutOfStock) return;
     addToCart(product, size, color, qty, { showToast, openDrawer: !goToCheckout });
+    
+    // Meta Pixel - AddToCart
+    if (window.fbq) {
+      window.fbq('track', 'AddToCart', {
+        content_ids: [product.id.toString()],
+        content_type: 'product',
+        content_name: product.name,
+        currency: 'INR',
+        value: product.discountPrice || product.price,
+        quantity: qty
+      });
+    }
+
     if (goToCheckout) navigate("/checkout");
   };
 

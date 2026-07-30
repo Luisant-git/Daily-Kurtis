@@ -26,6 +26,7 @@ export class WhatsappService {
     const video = message.video;
     const document = message.document;
     const audio = message.audio;
+    const order = message.order; // Native WhatsApp Cart Checkout
  
     let mediaType: string | null = null;
     let mediaUrl: string | null = null;
@@ -48,13 +49,18 @@ export class WhatsappService {
       data: {
         messageId,
         from,
-        message: text || (mediaType ? `${mediaType} file` : null),
+        message: text || (mediaType ? `${mediaType} file` : (order ? 'WhatsApp Cart Order' : null)),
         mediaType,
         mediaUrl,
         direction: 'incoming',
         status: 'received'
       }
     });
+
+    if (order) {
+      await this.handleWhatsAppOrder(from, order);
+      return;
+    }
 
     if (text) {
       await this.sessionService.handleInteractiveMenu(from, text, async (to, msg, imageUrl) => {
@@ -693,6 +699,113 @@ export class WhatsappService {
     } catch (error) {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
+    }
+    */
+  }
+
+  async handleWhatsAppOrder(from: string, orderData: any) {
+    try {
+      const items = orderData.product_items || [];
+      let total = 0;
+      const orderItems: any[] = [];
+
+      for (const item of items) {
+         const productId = parseInt(item.item_retailer_id);
+         const qty = parseInt(item.quantity);
+         const product = await this.prisma.product.findUnique({ where: { id: productId } });
+         if (product) {
+            const price = parseFloat(product.basePrice);
+            total += price * qty;
+            const gallery = product.gallery as any;
+            const colors = product.colors as any;
+            orderItems.push({
+               productId: product.id,
+               name: product.name,
+               price: product.basePrice,
+               imageUrl: gallery?.[0]?.url || colors?.[0]?.image || '',
+               quantity: qty
+            });
+         }
+      }
+
+      if (orderItems.length === 0) return;
+
+      const user = await this.prisma.user.findFirst({ where: { phone: from } });
+      let userId = user?.id;
+
+      if (!userId) {
+         const newUser = await this.prisma.user.create({
+           data: { phone: from, name: 'WhatsApp Customer' }
+         });
+         userId = newUser.id;
+      }
+
+      const dbOrder = await this.prisma.order.create({
+        data: {
+          userId,
+          status: 'pending',
+          subtotal: total.toString(),
+          deliveryFee: "0",
+          total: total.toString(),
+          paymentMethod: 'ONLINE',
+          shippingAddress: { fullName: 'WhatsApp Customer', mobile: from, addressLine1: 'Pending Confirmation', city: '', state: '', pincode: '' },
+          deliveryOption: { method: 'Standard' },
+          items: {
+            create: orderItems
+          }
+        }
+      });
+
+      await this.sendMessage(from, `🎉 We received your WhatsApp Cart order #ORD-${dbOrder.id}!\nTotal Amount: Rs.${total}\n\nOur team will contact you shortly to confirm your delivery address and process payment. Thank you!`);
+    } catch(err) {
+      console.error('Error handling WhatsApp order:', err);
+    }
+  }
+
+  async syncProductToCatalog(product: any, deleteProduct: boolean = false) {
+    const catalogId = process.env.META_CATALOG_ID;
+    if (!catalogId || catalogId === 'YOUR_CATALOG_ID_HERE') {
+      console.warn('META_CATALOG_ID not set. Skipping catalog sync.');
+      return { success: false, reason: 'No catalog ID' };
+    }
+    
+    // TEMPORARILY DISABLED
+    return { success: true };
+    /*
+    try {
+      const url = `${this.apiUrl}/${catalogId}/items_batch`;
+      const gallery = product.gallery as any;
+      const colors = product.colors as any;
+      const imageUrl = gallery?.[0]?.url || colors?.[0]?.image || '';
+      
+      const requestBody = {
+        requests: [
+          {
+            method: deleteProduct ? 'DELETE' : 'UPDATE',
+            retailer_id: product.id.toString(),
+            data: deleteProduct ? undefined : {
+              availability: 'in stock',
+              condition: 'new',
+              description: product.description || product.name,
+              image_url: imageUrl,
+              link: `${process.env.FRONTEND_URL}/product/${product.id}`,
+              name: product.name,
+              price: `${product.basePrice}00`, // Minor units (e.g. paisa) or check Meta docs for INR format
+              currency: 'INR',
+              brand: 'Daily Kurtis',
+            }
+          }
+        ]
+      };
+      
+      const response = await axios.post(url, requestBody, {
+        headers: { 'Authorization': `Bearer ${this.accessToken}` }
+      });
+      console.log('Catalog sync success:', response.data);
+      return { success: true, data: response.data };
+    } catch(err) {
+      console.error('Catalog sync error:', err.response?.data || err.message);
+      return { success: false, error: err.message };
     }
     */
   }

@@ -3,19 +3,23 @@ import { PrismaService } from '../prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
+import { WhatsappService } from '../whatsapp/whatsapp.service';
+
 @Injectable()
 export class ProductService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private whatsapp: WhatsappService) {}
 
-  create(createProductDto: CreateProductDto) {
+  async create(createProductDto: CreateProductDto) {
     const sanitizedData = this.sanitizeProductData(createProductDto);
-    return this.prisma.product.create({
+    const product = await this.prisma.product.create({
       data: {
         ...sanitizedData,
         gallery: (sanitizedData.gallery || []) as any,
         colors: (sanitizedData.colors || []) as any,
       },
     });
+    this.whatsapp.syncProductToCatalog(product).catch(console.error);
+    return product;
   }
 
   findAll() {
@@ -55,10 +59,10 @@ export class ProductService {
     });
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
+  async update(id: number, updateProductDto: UpdateProductDto) {
     const { id: _, createdAt, updatedAt, category, subCategory, brand, ...data } = updateProductDto as any;
     const sanitized = this.sanitizeProductData(data);
-    return this.prisma.product.update({
+    const product = await this.prisma.product.update({
       where: { id },
       data: {
         ...sanitized,
@@ -66,6 +70,8 @@ export class ProductService {
         colors: (sanitized.colors || []) as any,
       },
     });
+    this.whatsapp.syncProductToCatalog(product).catch(console.error);
+    return product;
   }
 
   private sanitizeProductData(data: any) {
@@ -94,10 +100,12 @@ export class ProductService {
     return result;
   }
 
-  remove(id: number) {
-    return this.prisma.product.delete({
+  async remove(id: number) {
+    const product = await this.prisma.product.delete({
       where: { id },
     });
+    this.whatsapp.syncProductToCatalog(product, true).catch(console.error);
+    return product;
   }
 
   updateBundleOffers(id: number, bundleOffers: any[]) {
