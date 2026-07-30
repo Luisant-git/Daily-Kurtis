@@ -781,6 +781,7 @@ export class WhatsappService {
       const imageUrl = gallery?.[0]?.url || colors?.[0]?.image || '';
       
       const requestBody = {
+        item_type: 'PRODUCT',
         requests: [
           {
             method: deleteProduct ? 'DELETE' : 'UPDATE',
