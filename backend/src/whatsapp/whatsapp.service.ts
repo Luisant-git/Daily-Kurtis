@@ -768,12 +768,14 @@ export class WhatsappService {
       console.warn('META_CATALOG_ID not set. Skipping catalog sync.');
       return { success: false, reason: 'No catalog ID' };
     }
-    
-    // TEMPORARILY DISABLED
-    return { success: true };
-    /*
+    const accessToken = process.env.META_ACCESS_TOKEN;
+    if (!accessToken || accessToken === 'YOUR_GENERATED_TOKEN') {
+      console.warn('META_ACCESS_TOKEN not set. Skipping catalog sync.');
+      return { success: false, reason: 'No access token' };
+    }
+
     try {
-      const url = `${this.apiUrl}/${catalogId}/items_batch`;
+      const url = `https://graph.facebook.com/v20.0/${catalogId}/items_batch`;
       const gallery = product.gallery as any;
       const colors = product.colors as any;
       const imageUrl = gallery?.[0]?.url || colors?.[0]?.image || '';
@@ -790,7 +792,7 @@ export class WhatsappService {
               image_url: imageUrl,
               link: `${process.env.FRONTEND_URL}/product/${product.id}`,
               name: product.name,
-              price: `${product.basePrice}00`, // Minor units (e.g. paisa) or check Meta docs for INR format
+              price: parseInt(product.basePrice || '0') * 100, // Minor units (paisa)
               currency: 'INR',
               brand: 'Daily Kurtis',
             }
@@ -799,14 +801,13 @@ export class WhatsappService {
       };
       
       const response = await axios.post(url, requestBody, {
-        headers: { 'Authorization': `Bearer ${this.accessToken}` }
+        headers: { 'Authorization': `Bearer ${accessToken}` }
       });
       console.log('Catalog sync success:', response.data);
       return { success: true, data: response.data };
-    } catch(err) {
+    } catch(err: any) {
       console.error('Catalog sync error:', err.response?.data || err.message);
       return { success: false, error: err.message };
     }
-    */
   }
 }
