@@ -790,7 +790,7 @@ export class WhatsappService {
               condition: 'new',
               description: product.description || product.name,
               image_url: imageUrl,
-              link: `${process.env.FRONTEND_URL}/product/${product.id}`,
+              link: `${process.env.FRONTEND_URL || 'https://dailykurtis.com'}/product/item-${product.id}`,
               name: product.name,
               price: parseInt(product.basePrice || '0') * 100, // Minor units (paisa)
               currency: 'INR',
