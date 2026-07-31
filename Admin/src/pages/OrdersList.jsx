@@ -3024,7 +3024,12 @@ const statusCounts = getStatusCounts();
                       <div style={{ maxWidth: '100%', overflow: 'hidden' }}>
                         <p><strong>Name:</strong> {capitalizeEachWord(selectedOrder.shippingAddress.fullName || 'N/A')}</p>
                         <p><strong>Mobile:</strong> {selectedOrder.shippingAddress.mobile || 'N/A'}</p>
-                        <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}><strong>Address:</strong><br/> {capitalizeEachWord(selectedOrder.shippingAddress.addressLine1 || 'N/A')}</p>
+                        <div style={{ wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap', marginBottom: '14px' }}>
+                          <strong>Address:</strong>
+                          <div style={{ paddingTop: '4px', lineHeight: '1.4' }}>
+                            {capitalizeEachWord(selectedOrder.shippingAddress.addressLine1 || 'N/A')}
+                          </div>
+                        </div>
                         {selectedOrder.shippingAddress.addressLine2 && (
                           <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}><strong>Address Line 2:</strong> {capitalizeEachWord(selectedOrder.shippingAddress.addressLine2)}</p>
                         )}
