@@ -28,6 +28,7 @@ export class WhatsappController {
           if (change.field === 'messages') {
             const message = change.value.messages?.[0];
             if (message) {
+              message.profileName = change.value.contacts?.[0]?.profile?.name;
               await this.whatsappService.handleIncomingMessage(message);
             }
             const statuses = change.value.statuses;

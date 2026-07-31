@@ -20,6 +20,7 @@ export class WhatsappService {
  
   async handleIncomingMessage(message: any) {
     const from = message.from;
+    const profileName = message.profileName || 'WhatsApp Customer';
     const messageId = message.id;
     const text = message.text?.body;
     const image = message.image;
@@ -58,12 +59,12 @@ export class WhatsappService {
     });
 
     if (order) {
-      await this.handleWhatsAppOrder(from, order);
+      await this.handleWhatsAppOrder(from, order, profileName);
       return;
     }
 
     if (text) {
-      await this.sessionService.handleInteractiveMenu(from, text, async (to, msg, imageUrl) => {
+      await this.sessionService.handleInteractiveMenu(from, text, profileName, async (to, msg, imageUrl) => {
         if (imageUrl) {
           return this.sendMediaMessage(to, imageUrl, 'image', msg);
         }
@@ -695,7 +696,7 @@ export class WhatsappService {
     */
   }
 
-  async handleWhatsAppOrder(from: string, orderData: any) {
+  async handleWhatsAppOrder(from: string, orderData: any, profileName: string = 'WhatsApp Customer') {
     console.log('WhatsApp Order Payload received:', JSON.stringify(orderData, null, 2));
     try {
       const items = orderData.product_items || [];
@@ -742,7 +743,8 @@ export class WhatsappService {
       const checkoutData = {
         isCatalogOrder: true,
         items: orderItems,
-        total: total
+        total: total,
+        profileName: profileName
       };
 
       await this.prisma.whatsappSession.upsert({

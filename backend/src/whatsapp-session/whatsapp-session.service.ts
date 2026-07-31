@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client';
 export class WhatsappSessionService {
   constructor(private prisma: PrismaService) {}
 
-  async handleInteractiveMenu(phone: string, input: string, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
+  async handleInteractiveMenu(phone: string, input: string, profileName: string, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
     const session = await this.prisma.whatsappSession.upsert({
       where: { phone },
       create: { phone, state: 'menu' },
@@ -245,6 +245,33 @@ export class WhatsappSessionService {
        userId = newUser.id;
     }
 
+    let fullName = checkoutData.profileName || 'WhatsApp Customer';
+    let city = 'N/A';
+    let state = 'N/A';
+    let pincode = 'N/A';
+    let addressLine1 = checkoutData.address || '';
+
+    if (addressLine1) {
+      // Split by newline or comma
+      const parts = addressLine1.split(/[\n,]+/).map((p: string) => p.trim()).filter(Boolean);
+      if (parts.length >= 4) {
+        const lastPart = parts[parts.length - 1];
+        // If last part is a 6-digit number, it's a pincode
+        if (/^\d{6}$/.test(lastPart)) {
+          pincode = lastPart;
+          state = parts[parts.length - 2] || 'N/A';
+          city = parts[parts.length - 3] || 'N/A';
+          
+          if (parts.length >= 5 && !/^\d/.test(parts[0])) {
+            fullName = parts[0];
+            addressLine1 = parts.slice(1, parts.length - 3).join(', ');
+          } else {
+            addressLine1 = parts.slice(0, parts.length - 3).join(', ');
+          }
+        }
+      }
+    }
+
     const order = await this.prisma.order.create({
       data: {
         userId,
@@ -254,7 +281,7 @@ export class WhatsappSessionService {
         total: total.toString(),
         paymentMethod,
         source: checkoutData.isCatalogOrder ? 'WhatsApp Catalog' : 'WhatsApp Bot',
-        shippingAddress: { fullName: 'WhatsApp Customer', mobile: phone, addressLine1: checkoutData.address, city: '', state: '', pincode: '' },
+        shippingAddress: { fullName, mobile: phone, addressLine1, city, state, pincode },
         deliveryOption: { method: 'Standard' },
         items: {
           create: orderItemsToCreate
