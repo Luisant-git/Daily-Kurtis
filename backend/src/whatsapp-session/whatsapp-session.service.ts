@@ -270,7 +270,7 @@ export class WhatsappSessionService {
          data: { phone, name: fullName }
        });
        userId = newUser.id;
-    } else if (user.name === 'WhatsApp Customer' || !user.name) {
+    } else if (user?.name === 'WhatsApp Customer' || !user?.name) {
        await this.prisma.user.update({
          where: { id: userId },
          data: { name: fullName }
