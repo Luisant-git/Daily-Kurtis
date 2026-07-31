@@ -780,13 +780,15 @@ export class WhatsappService {
       const colors = product.colors as any;
       const imageUrl = gallery?.[0]?.url || colors?.[0]?.image || '';
       
+      const shouldDelete = deleteProduct || product.status === 'inactive';
+
       const requestBody = {
         item_type: 'PRODUCT_ITEM',
         requests: [
           {
-            method: deleteProduct ? 'DELETE' : 'UPDATE',
+            method: shouldDelete ? 'DELETE' : 'UPDATE',
             retailer_id: product.id.toString(),
-            data: deleteProduct ? undefined : {
+            data: shouldDelete ? undefined : {
               id: product.id.toString(),
               availability: 'in stock',
               condition: 'new',
