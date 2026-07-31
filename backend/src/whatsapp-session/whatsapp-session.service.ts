@@ -235,16 +235,6 @@ export class WhatsappSessionService {
       }];
     }
 
-    const user = await this.prisma.user.findFirst({ where: { phone } });
-    let userId = user?.id;
-
-    if (!userId) {
-       const newUser = await this.prisma.user.create({
-         data: { phone, name: 'WhatsApp Customer' }
-       });
-       userId = newUser.id;
-    }
-
     let fullName = checkoutData.profileName || 'WhatsApp Customer';
     let city = 'N/A';
     let state = 'N/A';
@@ -270,6 +260,21 @@ export class WhatsappSessionService {
           }
         }
       }
+    }
+
+    const user = await this.prisma.user.findFirst({ where: { phone } });
+    let userId = user?.id;
+
+    if (!userId) {
+       const newUser = await this.prisma.user.create({
+         data: { phone, name: fullName }
+       });
+       userId = newUser.id;
+    } else if (user.name === 'WhatsApp Customer' || !user.name) {
+       await this.prisma.user.update({
+         where: { id: userId },
+         data: { name: fullName }
+       });
     }
 
     const order = await this.prisma.order.create({
