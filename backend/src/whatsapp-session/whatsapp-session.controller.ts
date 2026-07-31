@@ -11,7 +11,7 @@ export class WhatsappSessionController {
       console.log(`\n📱 Message to ${to}:\n${msg}\n`);
       return { success: true };
     };
-    await this.sessionService.handleInteractiveMenu(body.phone, body.message, mockSendMessage);
+    await this.sessionService.handleInteractiveMenu(body.phone, body.message, 'Test User', mockSendMessage);
     return { success: true, message: 'Check console for output' };
   }
 
