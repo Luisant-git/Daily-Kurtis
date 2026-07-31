@@ -794,7 +794,8 @@ export class WhatsappService {
               image_link: imageUrl,
               link: `${process.env.FRONTEND_URL || 'https://dailykurtis.com'}/product/item-${product.id}`,
               title: product.name,
-              price: `${product.basePrice || '0'} INR`,
+              price: `${product.mrp || product.basePrice || '0'} INR`,
+              sale_price: `${product.basePrice || '0'} INR`,
               brand: 'Daily Kurtis',
             }
           }
