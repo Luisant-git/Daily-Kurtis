@@ -2889,7 +2889,7 @@ const statusCounts = getStatusCounts();
 
       {showViewModal && selectedOrder && (
         <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} ref={modalRef} style={{ maxWidth: '1000px', width: '95%' }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} ref={modalRef} style={{ maxWidth: '1200px', width: '98%' }}>
      <div className="modal-header">
   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
     <h2 style={{ margin: 0 }}>Order Details - #ORD-{selectedOrder.id}</h2>
