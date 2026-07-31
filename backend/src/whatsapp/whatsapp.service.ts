@@ -804,7 +804,7 @@ export class WhatsappService {
       const response = await axios.post(url, requestBody, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       });
-      console.log('Catalog sync success:', response.data);
+      console.log('Catalog sync response:', JSON.stringify(response.data, null, 2));
       return { success: true, data: response.data };
     } catch(err: any) {
       console.error('Catalog sync error:', err.response?.data || err.message);
