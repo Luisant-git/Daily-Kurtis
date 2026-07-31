@@ -751,7 +751,10 @@ export class WhatsappService {
         update: { state: 'checkout_address', checkoutData, categoryId: null, subCategoryId: null }
       });
 
-      await this.sendMessage(from, `Great! We received your WhatsApp Shopping Cart with ${orderItems.length} items.\n\nPlease reply with your full delivery address (including Name, Street, City, State, and Pincode) to proceed with your order.`);
+      const itemCount = orderItems.length;
+      const itemWord = itemCount === 1 ? 'item' : 'items';
+      const msg = `🛍️ Thank you! We received your WhatsApp Shopping Cart with **${itemCount} ${itemWord}**.\n \n📍 To place your order, please reply with your **complete delivery address**:\n \n• Full Name\n• Street / Area\n• City\n• State\n• Pincode\n \nWe'll process your order as soon as we receive your details. 😊`;
+      await this.sendMessage(from, msg);
     } catch(err) {
       console.error('Error handling WhatsApp order:', err);
     }
