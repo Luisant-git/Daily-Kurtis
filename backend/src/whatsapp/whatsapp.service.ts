@@ -123,9 +123,6 @@ export class WhatsappService {
   }
  
   async sendMessage(to: string, message: string) {
-    // TEMPORARILY DISABLED
-    return { success: true };
-    /*
     try {
       const response = await axios.post(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,
@@ -142,7 +139,7 @@ export class WhatsappService {
           }
         }
       );
- 
+
       await this.prisma.whatsappMessage.create({
         data: {
           messageId: response.data.messages[0].id,
@@ -158,13 +155,9 @@ export class WhatsappService {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
-    */
   }
  
   async sendMediaMessage(to: string, mediaUrl: string, mediaType: string, caption?: string) {
-    // TEMPORARILY DISABLED
-    return { success: true };
-    /*
     try {
       const response = await axios.post(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,
@@ -199,7 +192,6 @@ export class WhatsappService {
       console.error('WhatsApp Media API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
-    */
   }
  
   async updateMessageStatus(messageId: string, status: string) {
