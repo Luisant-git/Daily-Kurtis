@@ -710,7 +710,7 @@ export class WhatsappService {
       const orderItems: any[] = [];
 
       for (const item of items) {
-         const productId = parseInt(item.item_retailer_id);
+         const productId = parseInt(item.product_retailer_id || item.item_retailer_id);
          const qty = parseInt(item.quantity);
          const product = await this.prisma.product.findUnique({ where: { id: productId } });
          if (product) {
