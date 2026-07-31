@@ -2175,6 +2175,22 @@ const statusCounts = getStatusCounts();
         </span>
       ),
     },
+    {
+      key: "source",
+      label: "Source",
+      render: (value) => (
+        <span style={{ 
+          padding: '4px 8px', 
+          borderRadius: '4px', 
+          fontSize: '12px', 
+          fontWeight: '600',
+          backgroundColor: value === 'WhatsApp Catalog' ? '#dcf8c6' : '#e0e7ff',
+          color: value === 'WhatsApp Catalog' ? '#075e54' : '#3730a3'
+        }}>
+          {value || "Website"}
+        </span>
+      ),
+    },
   ];
 
   const columns = [

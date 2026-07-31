@@ -208,11 +208,31 @@ export class WhatsappSessionService {
     const isCod = input === '1';
     const paymentMethod = isCod ? 'COD' : 'ONLINE';
     const checkoutData = session.checkoutData as any;
-    
-    const product = await this.prisma.product.findUnique({ where: { id: checkoutData.productId } });
-    if (!product) {
-      await sendMessageFn(phone, 'Product not found. Please start over by typing "menu".');
-      return;
+    let total = 0;
+    let orderItemsToCreate = [];
+
+    if (checkoutData.isCatalogOrder) {
+      total = checkoutData.total;
+      orderItemsToCreate = checkoutData.items;
+    } else {
+      const product = await this.prisma.product.findUnique({ where: { id: checkoutData.productId } });
+      if (!product) {
+        await sendMessageFn(phone, 'Product not found. Please start over by typing "menu".');
+        return;
+      }
+      const price = parseFloat(product.basePrice);
+      total = price * checkoutData.quantity;
+      const gallery = product.gallery as any;
+      const colors = product.colors as any;
+      const imageUrl = gallery?.[0]?.url || colors?.[0]?.image || '';
+      
+      orderItemsToCreate = [{
+        productId: product.id,
+        name: product.name,
+        price: product.basePrice,
+        imageUrl,
+        quantity: checkoutData.quantity
+      }];
     }
 
     const user = await this.prisma.user.findFirst({ where: { phone } });
@@ -225,14 +245,6 @@ export class WhatsappSessionService {
        userId = newUser.id;
     }
 
-    const price = parseFloat(product.basePrice);
-    const total = price * checkoutData.quantity;
-    
-    // We get the image to store in order item
-    const gallery = product.gallery as any;
-    const colors = product.colors as any;
-    const imageUrl = gallery?.[0]?.url || colors?.[0]?.image || '';
-
     const order = await this.prisma.order.create({
       data: {
         userId,
@@ -241,18 +253,11 @@ export class WhatsappSessionService {
         deliveryFee: "0",
         total: total.toString(),
         paymentMethod,
+        source: checkoutData.isCatalogOrder ? 'WhatsApp Catalog' : 'WhatsApp Bot',
         shippingAddress: { fullName: 'WhatsApp Customer', mobile: phone, addressLine1: checkoutData.address, city: '', state: '', pincode: '' },
         deliveryOption: { method: 'Standard' },
         items: {
-          create: [
-            {
-              productId: product.id,
-              name: product.name,
-              price: product.basePrice,
-              imageUrl,
-              quantity: checkoutData.quantity
-            }
-          ]
+          create: orderItemsToCreate
         }
       }
     });

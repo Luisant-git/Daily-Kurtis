@@ -730,33 +730,19 @@ export class WhatsappService {
 
       if (orderItems.length === 0) return;
 
-      const user = await this.prisma.user.findFirst({ where: { phone: from } });
-      let userId = user?.id;
+      const checkoutData = {
+        isCatalogOrder: true,
+        items: orderItems,
+        total: total
+      };
 
-      if (!userId) {
-         const newUser = await this.prisma.user.create({
-           data: { phone: from, name: 'WhatsApp Customer' }
-         });
-         userId = newUser.id;
-      }
-
-      const dbOrder = await this.prisma.order.create({
-        data: {
-          userId,
-          status: 'pending',
-          subtotal: total.toString(),
-          deliveryFee: "0",
-          total: total.toString(),
-          paymentMethod: 'ONLINE',
-          shippingAddress: { fullName: 'WhatsApp Customer', mobile: from, addressLine1: 'Pending Confirmation', city: '', state: '', pincode: '' },
-          deliveryOption: { method: 'Standard' },
-          items: {
-            create: orderItems
-          }
-        }
+      await this.prisma.whatsappSession.upsert({
+        where: { phone: from },
+        create: { phone: from, state: 'checkout_address', checkoutData },
+        update: { state: 'checkout_address', checkoutData, categoryId: null, subCategoryId: null }
       });
 
-      await this.sendMessage(from, `🎉 We received your WhatsApp Cart order #ORD-${dbOrder.id}!\nTotal Amount: Rs.${total}\n\nOur team will contact you shortly to confirm your delivery address and process payment. Thank you!`);
+      await this.sendMessage(from, `Great! We received your WhatsApp Shopping Cart with ${orderItems.length} items.\n\nPlease reply with your full delivery address (including Name, Street, City, State, and Pincode) to proceed with your order.`);
     } catch(err) {
       console.error('Error handling WhatsApp order:', err);
     }
