@@ -235,17 +235,22 @@ const EditProduct = () => {
           <h1>Edit Product</h1>
           <p>Update product information</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button 
-            type="button" 
-            onClick={() => navigate('/product-list')}
-            className="btn btn-outline"
-          >
-            Cancel
-          </button>
-          <button type="submit" form="product-form" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Updating...' : 'Update Product'}
-          </button>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+          <div className="header-actions">
+            <button 
+              type="button" 
+              onClick={() => navigate('/product-list')}
+              className="btn btn-outline"
+            >
+              Cancel
+            </button>
+            <button type="submit" form="product-form" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Updating...' : 'Update Product'}
+            </button>
+          </div>
+          <span style={{ fontSize: '13px', color: '#10b981', fontWeight: '600' }}>
+            ✓ Auto-syncs to Meta Catalog
+          </span>
         </div>
       </div>
       

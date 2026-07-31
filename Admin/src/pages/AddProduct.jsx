@@ -265,9 +265,14 @@ const AddProduct = () => {
           <h1>Add Product</h1>
           <p>Create a new product for your store</p>
         </div>
-        <button type="submit" form="product-form" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Creating Product...' : 'Publish Product'}
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+          <button type="submit" form="product-form" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Creating Product...' : 'Publish Product'}
+          </button>
+          <span style={{ fontSize: '13px', color: '#10b981', fontWeight: '600' }}>
+            ✓ Auto-syncs to Meta Catalog
+          </span>
+        </div>
       </div>
 
       {error && <div className="error-message">{error}</div>}
