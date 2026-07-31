@@ -787,12 +787,13 @@ export class WhatsappService {
             method: deleteProduct ? 'DELETE' : 'UPDATE',
             retailer_id: product.id.toString(),
             data: deleteProduct ? undefined : {
+              id: product.id.toString(),
               availability: 'in stock',
               condition: 'new',
               description: product.description || product.name,
-              image_url: imageUrl,
+              image_link: imageUrl,
               link: `${process.env.FRONTEND_URL || 'https://dailykurtis.com'}/product/item-${product.id}`,
-              name: product.name,
+              title: product.name,
               price: parseInt(product.basePrice || '0') * 100, // Minor units (paisa)
               currency: 'INR',
               brand: 'Daily Kurtis',
