@@ -798,6 +798,7 @@ export class WhatsappService {
               title: product.name,
               price: `${product.mrp || product.basePrice || '0'} INR`,
               sale_price: `${product.basePrice || '0'} INR`,
+              inventory: 100,
               brand: 'Daily Kurtis',
             }
           }
