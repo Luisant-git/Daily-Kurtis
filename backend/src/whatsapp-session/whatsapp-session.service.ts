@@ -209,7 +209,7 @@ export class WhatsappSessionService {
     const paymentMethod = isCod ? 'COD' : 'ONLINE';
     const checkoutData = session.checkoutData as any;
     let total = 0;
-    let orderItemsToCreate = [];
+    let orderItemsToCreate: any[] = [];
 
     if (checkoutData.isCatalogOrder) {
       total = checkoutData.total;
