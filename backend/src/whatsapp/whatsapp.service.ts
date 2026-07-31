@@ -704,16 +704,28 @@ export class WhatsappService {
   }
 
   async handleWhatsAppOrder(from: string, orderData: any) {
+    console.log('WhatsApp Order Payload received:', JSON.stringify(orderData, null, 2));
     try {
       const items = orderData.product_items || [];
+      console.log('Extracted product_items:', items);
       let total = 0;
       const orderItems: any[] = [];
 
       for (const item of items) {
-         const productId = parseInt(item.product_retailer_id || item.item_retailer_id);
+         const retailerId = item.product_retailer_id || item.item_retailer_id;
+         console.log('Raw retailerId from payload:', retailerId);
+         const productId = parseInt(retailerId);
          const qty = parseInt(item.quantity);
+         console.log(`Parsed productId: ${productId}, qty: ${qty}`);
+         
+         if (isNaN(productId)) {
+            console.warn(`Invalid productId extracted: ${retailerId}`);
+            continue;
+         }
+         
          const product = await this.prisma.product.findUnique({ where: { id: productId } });
          if (product) {
+            console.log(`Product found in DB: ${product.name}`);
             const price = parseFloat(product.basePrice);
             total += price * qty;
             const gallery = product.gallery as any;
@@ -725,10 +737,15 @@ export class WhatsappService {
                imageUrl: gallery?.[0]?.url || colors?.[0]?.image || '',
                quantity: qty
             });
+         } else {
+            console.warn(`Product ID ${productId} not found in Database!`);
          }
       }
 
-      if (orderItems.length === 0) return;
+      if (orderItems.length === 0) {
+         console.warn('No valid orderItems could be processed from the cart. Ignoring.');
+         return;
+      }
 
       const checkoutData = {
         isCatalogOrder: true,
