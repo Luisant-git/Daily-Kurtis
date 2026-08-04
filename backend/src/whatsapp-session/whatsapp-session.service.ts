@@ -6,21 +6,48 @@ import { Prisma } from '@prisma/client';
 export class WhatsappSessionService {
   constructor(private prisma: PrismaService) {}
 
-  async handleInteractiveMenu(phone: string, input: string, profileName: string, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
-    const session = await this.prisma.whatsappSession.upsert({
+  async handleInteractiveMenu(phone: string, input: string, profileName: string, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>, sendCatalogFn?: (to: string) => Promise<any>) {
+    let session = await this.prisma.whatsappSession.upsert({
       where: { phone },
       create: { phone, state: 'menu' },
       update: {}
     });
 
-    const trimmedInput = input.trim();
+    const now = new Date();
+    const lastUpdate = new Date(session.updatedAt || now);
+    const diffMins = (now.getTime() - lastUpdate.getTime()) / 60000;
 
-    if (trimmedInput.toLowerCase() === 'menu' || trimmedInput === '0' || trimmedInput.toLowerCase() === 'hi' || trimmedInput.toLowerCase() === 'hello' || trimmedInput.toLowerCase() === 'start' || trimmedInput.toLowerCase() === 'restart') {
+    if (diffMins > 30 && session.state !== 'menu') {
+      session = await this.prisma.whatsappSession.update({
+        where: { phone },
+        data: { state: 'menu', categoryId: null, subCategoryId: null, checkoutData: Prisma.JsonNull }
+      });
+      await sendMessageFn(phone, 'Your previous session expired due to inactivity. Starting fresh!');
+    }
+
+    const trimmedInput = input.trim();
+    const lowerInput = trimmedInput.toLowerCase();
+
+    if (lowerInput === 'exit' || lowerInput === 'cancel') {
       await this.prisma.whatsappSession.update({
         where: { phone },
-        data: { state: 'menu', categoryId: null, subCategoryId: null }
+        data: { state: 'menu', categoryId: null, subCategoryId: null, checkoutData: Prisma.JsonNull }
       });
-      await this.sendCategoryMenu(phone, sendMessageFn);
+      await sendMessageFn(phone, 'Your current session has been cancelled. Type "hi" to start over.');
+      return;
+    }
+
+    if (lowerInput === 'menu' || lowerInput === '0' || lowerInput === 'hi' || lowerInput === 'hello' || lowerInput === 'start' || lowerInput === 'restart' || lowerInput === 'catalog') {
+      await this.prisma.whatsappSession.update({
+        where: { phone },
+        data: { state: 'menu', categoryId: null, subCategoryId: null, checkoutData: Prisma.JsonNull }
+      });
+      
+      if (sendCatalogFn && (lowerInput === 'hi' || lowerInput === 'hello' || lowerInput === 'start' || lowerInput === 'catalog')) {
+         await sendCatalogFn(phone);
+      } else {
+         await this.sendCategoryMenu(phone, sendMessageFn);
+      }
       return;
     }
 
@@ -312,7 +339,7 @@ export class WhatsappSessionService {
     });
 
     if (isCod) {
-      await sendMessageFn(phone, `🎉 Order placed successfully! Your Order ID is #ORD-${order.id}.\nTotal Amount: Rs.${total}\nPayment: Cash on Delivery.\nWe will process it shortly.`);
+      await sendMessageFn(phone, `🎉 Order placed successfully!\nYour Order ID is #ORD-${order.id}.\nTotal Amount: Rs.${total}\nPayment: Cash on Delivery.\nWe will process it shortly.`);
     } else {
       await sendMessageFn(phone, `🎉 Order #ORD-${order.id} initiated!\nTotal Amount: Rs.${total}\n\nOur team will contact you shortly with the payment link. Thank you!`);
     }

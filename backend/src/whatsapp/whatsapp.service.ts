@@ -65,12 +65,20 @@ export class WhatsappService {
     }
 
     if (text) {
-      await this.sessionService.handleInteractiveMenu(from, text, profileName, async (to, msg, imageUrl) => {
-        if (imageUrl) {
-          return this.sendMediaMessage(to, imageUrl, 'image', msg);
+      await this.sessionService.handleInteractiveMenu(
+        from, 
+        text, 
+        profileName, 
+        async (to, msg, imageUrl) => {
+          if (imageUrl) {
+            return this.sendMediaMessage(to, imageUrl, 'image', msg);
+          }
+          return this.sendMessage(to, msg);
+        },
+        async (to) => {
+          return this.sendCatalogMessage(to);
         }
-        return this.sendMessage(to, msg);
-      });
+      );
     }
  
     console.log(`Message from ${from}: ${text || mediaType}`);
@@ -155,6 +163,50 @@ export class WhatsappService {
       return { success: true, messageId: response.data.messages[0].id };
     } catch (error) {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async sendCatalogMessage(to: string, message: string = '🛍️ Welcome to our store! Browse our catalog below.') {
+    try {
+      const response = await axios.post(
+        `${this.apiUrl}/${this.phoneNumberId}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to,
+          type: 'interactive',
+          interactive: {
+            type: 'catalog_message',
+            body: {
+              text: message
+            },
+            action: {
+              name: 'catalog_message'
+            }
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      await this.prisma.whatsappMessage.create({
+        data: {
+          messageId: response.data.messages[0].id,
+          from: to,
+          message: '[Catalog Message Sent]',
+          direction: 'outgoing',
+          status: 'sent'
+        }
+      });
+ 
+      return { success: true, messageId: response.data.messages[0].id };
+    } catch (error) {
+      console.error('WhatsApp Catalog API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
   }
