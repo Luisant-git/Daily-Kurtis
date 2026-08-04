@@ -949,6 +949,7 @@ export class WhatsappService {
             method: shouldDelete ? 'DELETE' : 'UPDATE',
             retailer_id: product.id.toString(),
             data: shouldDelete ? undefined : {
+              id: product.id.toString(),
               item_group_id: product.id.toString(),
               availability: 'in stock',
               condition: 'new',
@@ -964,20 +965,21 @@ export class WhatsappService {
          });
       } else {
          for (const color of colors) {
-            const colorName = color.name;
+            const colorName = (color.name || 'Unknown').trim();
             const colorImage = color.image || imageUrl;
             
             if (color.sizes && color.sizes.length > 0) {
                for (const size of color.sizes) {
-                  const sizeName = size.size;
+                  const sizeName = (size.size || 'One Size').trim();
                   const price = size.price || product.basePrice;
-                  const variantId = size.sizeVariantId || `${colorName}-${sizeName}`;
+                  const variantId = (size.sizeVariantId || `${colorName}-${sizeName}`).trim();
                   const retailerId = `${product.id}_${variantId}`;
                   
                   requests.push({
                     method: shouldDelete ? 'DELETE' : 'UPDATE',
                     retailer_id: retailerId,
                     data: shouldDelete ? undefined : {
+                      id: retailerId,
                       item_group_id: product.id.toString(),
                       availability: 'in stock',
                       condition: 'new',
@@ -995,12 +997,13 @@ export class WhatsappService {
                   });
                }
             } else {
-               const variantId = `${colorName}`;
+               const variantId = `${colorName}`.trim();
                const retailerId = `${product.id}_${variantId}`;
                requests.push({
                  method: shouldDelete ? 'DELETE' : 'UPDATE',
                  retailer_id: retailerId,
                  data: shouldDelete ? undefined : {
+                   id: retailerId,
                    item_group_id: product.id.toString(),
                    availability: 'in stock',
                    condition: 'new',
