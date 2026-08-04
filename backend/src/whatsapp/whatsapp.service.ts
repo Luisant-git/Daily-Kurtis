@@ -819,30 +819,69 @@ export class WhatsappService {
       const orderItems: any[] = [];
 
       for (const item of items) {
-         const retailerId = item.product_retailer_id || item.item_retailer_id;
-         console.log('Raw retailerId from payload:', retailerId);
-         const productId = parseInt(retailerId);
+         const retailerIdStr = item.product_retailer_id || item.item_retailer_id;
+         console.log('Raw retailerId from payload:', retailerIdStr);
+         
+         const parts = retailerIdStr.split('_');
+         const productId = parseInt(parts[0]);
+         const variantId = parts.length > 1 ? parts.slice(1).join('_') : null;
          const qty = parseInt(item.quantity);
-         console.log(`Parsed productId: ${productId}, qty: ${qty}`);
+         console.log(`Parsed productId: ${productId}, variantId: ${variantId}, qty: ${qty}`);
          
          if (isNaN(productId)) {
-            console.warn(`Invalid productId extracted: ${retailerId}`);
+            console.warn(`Invalid productId extracted: ${retailerIdStr}`);
             continue;
          }
          
          const product = await this.prisma.product.findUnique({ where: { id: productId } });
          if (product) {
-            console.log(`Product found in DB: ${product.name}`);
-            const price = parseFloat(product.basePrice);
+            let variantName = product.name;
+            let price = parseFloat(product.basePrice);
+            let imageUrl = (product.gallery as any)?.[0]?.url || (product.colors as any)?.[0]?.image || '';
+            let selectedColor = null;
+            let selectedSize = null;
+
+            if (variantId && product.colors) {
+               const colors = product.colors as any[];
+               let found = false;
+               for (const color of colors) {
+                  if (color.sizes) {
+                     const size = color.sizes.find((s: any) => s.sizeVariantId === variantId || `${color.name}-${s.size}` === variantId);
+                     if (size) {
+                        variantName = `${product.name} - ${color.name} (${size.size})`;
+                        price = parseFloat(size.price || product.basePrice);
+                        imageUrl = color.image || imageUrl;
+                        selectedColor = color.name;
+                        selectedSize = size.size;
+                        found = true;
+                        break;
+                     }
+                  } else if (`${color.name}` === variantId) {
+                     variantName = `${product.name} - ${color.name}`;
+                     imageUrl = color.image || imageUrl;
+                     selectedColor = color.name;
+                     found = true;
+                     break;
+                  }
+               }
+               if (!found) {
+                  console.warn(`Variant ${variantId} not found in product ${productId}`);
+               }
+            }
+
+            console.log(`Product found in DB: ${variantName}`);
             total += price * qty;
-            const gallery = product.gallery as any;
-            const colors = product.colors as any;
+            
             orderItems.push({
                productId: product.id,
-               name: product.name,
-               price: product.basePrice,
-               imageUrl: gallery?.[0]?.url || colors?.[0]?.image || '',
-               quantity: qty
+               name: variantName,
+               price: price.toString(),
+               imageUrl: imageUrl,
+               quantity: qty,
+               color: selectedColor,
+               size: selectedSize,
+               colorVariantId: variantId,
+               sizeVariantId: variantId
             });
          } else {
             console.warn(`Product ID ${productId} not found in Database!`);
@@ -903,14 +942,14 @@ export class WhatsappService {
       
       const shouldDelete = deleteProduct || product.status === 'inactive';
 
-      const requestBody = {
-        item_type: 'PRODUCT_ITEM',
-        requests: [
-          {
+      const requests: any[] = [];
+      
+      if (!colors || colors.length === 0) {
+         requests.push({
             method: shouldDelete ? 'DELETE' : 'UPDATE',
             retailer_id: product.id.toString(),
             data: shouldDelete ? undefined : {
-              id: product.id.toString(),
+              item_group_id: product.id.toString(),
               availability: 'in stock',
               condition: 'new',
               description: product.description || product.name,
@@ -922,8 +961,67 @@ export class WhatsappService {
               inventory: 100,
               brand: 'Daily Kurtis',
             }
-          }
-        ]
+         });
+      } else {
+         for (const color of colors) {
+            const colorName = color.name;
+            const colorImage = color.image || imageUrl;
+            
+            if (color.sizes && color.sizes.length > 0) {
+               for (const size of color.sizes) {
+                  const sizeName = size.size;
+                  const price = size.price || product.basePrice;
+                  const variantId = size.sizeVariantId || `${colorName}-${sizeName}`;
+                  const retailerId = `${product.id}_${variantId}`;
+                  
+                  requests.push({
+                    method: shouldDelete ? 'DELETE' : 'UPDATE',
+                    retailer_id: retailerId,
+                    data: shouldDelete ? undefined : {
+                      item_group_id: product.id.toString(),
+                      availability: 'in stock',
+                      condition: 'new',
+                      description: product.description || product.name,
+                      image_link: colorImage,
+                      link: `${process.env.FRONTEND_URL || 'https://dailykurtis.com'}/product/item-${product.id}?variant=${variantId}`,
+                      title: `${product.name} - ${colorName} (${sizeName})`,
+                      price: `${price} INR`,
+                      sale_price: `${price} INR`,
+                      inventory: size.quantity > 0 ? size.quantity : 0,
+                      brand: 'Daily Kurtis',
+                      color: colorName,
+                      size: sizeName,
+                    }
+                  });
+               }
+            } else {
+               const variantId = `${colorName}`;
+               const retailerId = `${product.id}_${variantId}`;
+               requests.push({
+                 method: shouldDelete ? 'DELETE' : 'UPDATE',
+                 retailer_id: retailerId,
+                 data: shouldDelete ? undefined : {
+                   item_group_id: product.id.toString(),
+                   availability: 'in stock',
+                   condition: 'new',
+                   description: product.description || product.name,
+                   image_link: colorImage,
+                   link: `${process.env.FRONTEND_URL || 'https://dailykurtis.com'}/product/item-${product.id}?variant=${variantId}`,
+                   title: `${product.name} - ${colorName}`,
+                   price: `${product.basePrice} INR`,
+                   sale_price: `${product.basePrice} INR`,
+                   inventory: 100,
+                   brand: 'Daily Kurtis',
+                   color: colorName,
+                 }
+               });
+            }
+         }
+      }
+
+      const requestBody = {
+        item_type: 'PRODUCT_ITEM',
+        requests
       };
       
       const response = await axios.post(url, requestBody, {
