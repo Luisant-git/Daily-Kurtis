@@ -961,7 +961,7 @@ export class WhatsappService {
          requests.push({
             method: shouldDelete ? 'DELETE' : 'UPDATE',
             retailer_id: product.id.toString(),
-            data: shouldDelete ? undefined : {
+            data: shouldDelete ? { id: product.id.toString() } : {
               id: product.id.toString(),
               item_group_id: product.id.toString(),
               availability: 'in stock',
@@ -980,7 +980,8 @@ export class WhatsappService {
          // Attempt to delete the old standalone product to avoid duplicates
          requests.push({
             method: 'DELETE',
-            retailer_id: product.id.toString()
+            retailer_id: product.id.toString(),
+            data: { id: product.id.toString() }
          });
 
          for (const color of colors) {
@@ -997,7 +998,7 @@ export class WhatsappService {
                   requests.push({
                     method: shouldDelete ? 'DELETE' : 'UPDATE',
                     retailer_id: retailerId,
-                    data: shouldDelete ? undefined : {
+                    data: shouldDelete ? { id: retailerId } : {
                       id: retailerId,
                       item_group_id: product.id.toString(),
                       availability: 'in stock',
@@ -1021,7 +1022,7 @@ export class WhatsappService {
                requests.push({
                  method: shouldDelete ? 'DELETE' : 'UPDATE',
                  retailer_id: retailerId,
-                 data: shouldDelete ? undefined : {
+                 data: shouldDelete ? { id: retailerId } : {
                    id: retailerId,
                    item_group_id: product.id.toString(),
                    availability: 'in stock',
