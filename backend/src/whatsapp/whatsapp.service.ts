@@ -940,6 +940,19 @@ export class WhatsappService {
       const colors = product.colors as any;
       const imageUrl = gallery?.[0]?.url || colors?.[0]?.image || '';
       
+      let plainDescription = product.description || product.name;
+      plainDescription = plainDescription.replace(/<\/(p|div|h[1-6])>/gi, '\n');
+      plainDescription = plainDescription.replace(/<br\s*\/?>/gi, '\n');
+      plainDescription = plainDescription.replace(/<[^>]*>?/gm, '');
+      plainDescription = plainDescription.replace(/&nbsp;/gi, ' ')
+                                         .replace(/&amp;/gi, '&')
+                                         .replace(/&quot;/gi, '"')
+                                         .replace(/&lt;/gi, '<')
+                                         .replace(/&gt;/gi, '>');
+      plainDescription = plainDescription.replace(/[ \t]+/g, ' ');
+      plainDescription = plainDescription.replace(/\n\s*\n/g, '\n\n').trim();
+      if (!plainDescription) plainDescription = product.name;
+      
       const shouldDelete = deleteProduct || product.status === 'inactive';
 
       const requests: any[] = [];
@@ -953,7 +966,7 @@ export class WhatsappService {
               item_group_id: product.id.toString(),
               availability: 'in stock',
               condition: 'new',
-              description: product.description || product.name,
+              description: plainDescription,
               image_link: imageUrl,
               link: `${process.env.FRONTEND_URL || 'https://dailykurtis.com'}/product/item-${product.id}`,
               title: product.name,
@@ -989,7 +1002,7 @@ export class WhatsappService {
                       item_group_id: product.id.toString(),
                       availability: 'in stock',
                       condition: 'new',
-                      description: product.description || product.name,
+                      description: plainDescription,
                       image_link: colorImage,
                       link: `${process.env.FRONTEND_URL || 'https://dailykurtis.com'}/product/item-${product.id}?variant=${variantId}`,
                       title: `${product.name} - ${colorName} (${sizeName})`,
@@ -1013,7 +1026,7 @@ export class WhatsappService {
                    item_group_id: product.id.toString(),
                    availability: 'in stock',
                    condition: 'new',
-                   description: product.description || product.name,
+                   description: plainDescription,
                    image_link: colorImage,
                    link: `${process.env.FRONTEND_URL || 'https://dailykurtis.com'}/product/item-${product.id}?variant=${variantId}`,
                    title: `${product.name} - ${colorName}`,
