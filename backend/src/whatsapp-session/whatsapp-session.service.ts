@@ -242,21 +242,33 @@ export class WhatsappSessionService {
     let addressLine1 = checkoutData.address || '';
 
     if (addressLine1) {
-      // Split by newline or comma
-      const parts = addressLine1.split(/[\n,]+/).map((p: string) => p.trim()).filter(Boolean);
-      if (parts.length >= 4) {
-        const lastPart = parts[parts.length - 1];
-        // If last part is a 6-digit number, it's a pincode
-        if (/^\d{6}$/.test(lastPart)) {
-          pincode = lastPart;
-          state = parts[parts.length - 2] || 'N/A';
-          city = parts[parts.length - 3] || 'N/A';
-          
-          if (parts.length >= 5 && !/^\d/.test(parts[0])) {
-            fullName = parts[0];
-            addressLine1 = parts.slice(1, parts.length - 3).join(', ');
-          } else {
-            addressLine1 = parts.slice(0, parts.length - 3).join(', ');
+      try {
+        const parsed = JSON.parse(addressLine1);
+        if (parsed && typeof parsed === 'object') {
+          fullName = parsed.full_name || fullName;
+          addressLine1 = parsed.address || '';
+          city = parsed.city || city;
+          state = parsed.state || state;
+          pincode = parsed.pincode || pincode;
+        }
+      } catch (e) {
+        // Fallback to text parsing
+        // Split by newline or comma
+        const parts = addressLine1.split(/[\n,]+/).map((p: string) => p.trim()).filter(Boolean);
+        if (parts.length >= 4) {
+          const lastPart = parts[parts.length - 1];
+          // If last part is a 6-digit number, it's a pincode
+          if (/^\d{6}$/.test(lastPart)) {
+            pincode = lastPart;
+            state = parts[parts.length - 2] || 'N/A';
+            city = parts[parts.length - 3] || 'N/A';
+            
+            if (parts.length >= 5 && !/^\d/.test(parts[0])) {
+              fullName = parts[0];
+              addressLine1 = parts.slice(1, parts.length - 3).join(', ');
+            } else {
+              addressLine1 = parts.slice(0, parts.length - 3).join(', ');
+            }
           }
         }
       }

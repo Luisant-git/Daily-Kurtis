@@ -22,7 +22,8 @@ export class WhatsappService {
     const from = message.from;
     const profileName = message.profileName || 'WhatsApp Customer';
     const messageId = message.id;
-    const text = message.text?.body;
+    const interactive = message.interactive;
+    const text = message.text?.body || (interactive?.type === 'nfm_reply' ? interactive.nfm_reply.response_json : null);
     const image = message.image;
     const video = message.video;
     const document = message.document;
@@ -154,6 +155,67 @@ export class WhatsappService {
       return { success: true, messageId: response.data.messages[0].id };
     } catch (error) {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async sendFlowMessage(to: string, bodyText: string, flowId: string) {
+    try {
+      const response = await axios.post(
+        `${this.apiUrl}/${this.phoneNumberId}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to,
+          type: 'interactive',
+          interactive: {
+            type: 'flow',
+            header: {
+              type: 'text',
+              text: 'Complete Your Order'
+            },
+            body: {
+              text: bodyText
+            },
+            footer: {
+              text: 'Secure Checkout'
+            },
+            action: {
+              name: 'flow',
+              parameters: {
+                flow_message_version: '3',
+                flow_token: `order_${Date.now()}_${to}`,
+                flow_id: flowId,
+                flow_cta: 'Enter Delivery Address',
+                flow_action: 'navigate',
+                flow_action_payload: {
+                  screen: 'ADDRESS_FORM'
+                }
+              }
+            }
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      await this.prisma.whatsappMessage.create({
+        data: {
+          messageId: response.data.messages[0].id,
+          from: to,
+          message: '[Flow Form Sent]',
+          direction: 'outgoing',
+          status: 'sent'
+        }
+      });
+ 
+      return { success: true, messageId: response.data.messages[0].id };
+    } catch (error) {
+      console.error('WhatsApp API Flow Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
   }
@@ -755,8 +817,15 @@ export class WhatsappService {
 
       const itemCount = orderItems.length;
       const itemWord = itemCount === 1 ? 'item' : 'items';
-      const msg = `🛍️ Thank you! We received your WhatsApp Shopping Cart with **${itemCount} ${itemWord}**.\n \n📍 To place your order, please reply with your **complete delivery address**:\n \n• Full Name\n• Street / Area\n• City\n• State\n• Pincode\n \nWe'll process your order as soon as we receive your details. 😊`;
-      await this.sendMessage(from, msg);
+      const msgText = `🛍️ Thank you! We received your WhatsApp Shopping Cart with **${itemCount} ${itemWord}**.`;
+      const flowId = process.env.META_FLOW_ID;
+      
+      if (flowId && flowId !== 'YOUR_FLOW_ID') {
+         await this.sendFlowMessage(from, msgText, flowId);
+      } else {
+         const fallbackMsg = `${msgText}\n \n📍 To place your order, please reply with your **complete delivery address**:\n \n• Full Name\n• Street / Area\n• City\n• State\n• Pincode\n \nWe'll process your order as soon as we receive your details. 😊`;
+         await this.sendMessage(from, fallbackMsg);
+      }
     } catch(err) {
       console.error('Error handling WhatsApp order:', err);
     }
