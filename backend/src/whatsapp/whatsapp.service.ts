@@ -964,6 +964,12 @@ export class WhatsappService {
             }
          });
       } else {
+         // Attempt to delete the old standalone product to avoid duplicates
+         requests.push({
+            method: 'DELETE',
+            retailer_id: product.id.toString()
+         });
+
          for (const color of colors) {
             const colorName = (color.name || 'Unknown').trim();
             const colorImage = color.image || imageUrl;
