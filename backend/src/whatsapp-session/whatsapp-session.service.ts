@@ -272,7 +272,26 @@ export class WhatsappSessionService {
 
   async handleCheckoutAddress(phone: string, input: string, session: any, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>, sendButtonFn?: (to: string, msgText: string, buttons: Array<{id: string, title: string}>) => Promise<any>) {
     const checkoutData = session.checkoutData as any;
-    checkoutData.address = input;
+
+    if (input === 'NEW_ADDRESS') {
+      await sendMessageFn(phone, '📍 Please reply with your **complete delivery address**:\n \n• Full Name\n• Street / Area\n• City\n• State\n• Pincode');
+      return;
+    }
+
+    if (input === 'DELIVER_HERE') {
+      if (checkoutData.savedAddress) {
+        checkoutData.address = JSON.stringify(checkoutData.savedAddress);
+      } else {
+        await sendMessageFn(phone, 'Saved address not found. Please type your full delivery address.');
+        return;
+      }
+    } else {
+      if (input.trim().length < 10) {
+        await sendMessageFn(phone, 'That address looks too short. Please provide your complete delivery address including Name, Street, City, State, and Pincode.');
+        return;
+      }
+      checkoutData.address = input;
+    }
 
     await this.prisma.whatsappSession.update({
       where: { phone },
