@@ -367,8 +367,8 @@ export class WhatsappService {
   }
  
   async updateMessageStatus(messageId: string, status: string) {
-    if (!messageId) {
-      console.warn('updateMessageStatus called without a valid messageId. Status:', status);
+    if (!messageId || !status) {
+      console.warn('updateMessageStatus called without a valid messageId or status. messageId:', messageId, 'status:', status);
       return null;
     }
     try {
