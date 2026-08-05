@@ -22,6 +22,12 @@ export class WhatsappService {
     const from = message.from;
     const profileName = message.profileName || 'WhatsApp Customer';
     const messageId = message.id;
+    
+    if (!messageId || !from) {
+      console.warn('handleIncomingMessage received invalid message payload without messageId or from', JSON.stringify(message));
+      return;
+    }
+
     const interactive = message.interactive;
     const text = message.text?.body || (interactive?.type === 'nfm_reply' ? interactive.nfm_reply.response_json : (interactive?.type === 'button_reply' ? interactive.button_reply.id : null));
     const image = message.image;
