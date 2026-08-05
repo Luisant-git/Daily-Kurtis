@@ -17,12 +17,12 @@ export class WhatsappSessionService {
     const lastUpdate = new Date(session.updatedAt || now);
     const diffMins = (now.getTime() - lastUpdate.getTime()) / 60000;
 
-    if (diffMins > 30 && session.state !== 'menu') {
+    if (diffMins > 10 && session.state !== 'menu') {
       session = await this.prisma.whatsappSession.update({
         where: { phone },
         data: { state: 'menu', categoryId: null, subCategoryId: null, checkoutData: Prisma.JsonNull }
       });
-      await sendMessageFn(phone, 'Your previous session expired due to inactivity. Starting fresh!');
+      await sendMessageFn(phone, '⏳ Session timed out. Type "hi" to start a new session!');
     }
 
     const trimmedInput = input.trim();
@@ -37,13 +37,16 @@ export class WhatsappSessionService {
       return;
     }
 
-    if (lowerInput === 'menu' || lowerInput === '0' || lowerInput === 'hi' || lowerInput === 'hello' || lowerInput === 'start' || lowerInput === 'restart' || lowerInput === 'catalog') {
+    const isGreeting = /^hi+$/.test(lowerInput) || /^hey+$/.test(lowerInput) || lowerInput === 'hello' || lowerInput === 'start' || lowerInput === 'restart' || lowerInput === 'catalog' || lowerInput === 'menu' || lowerInput === '0';
+    const isCatalogTrigger = /^hi+$/.test(lowerInput) || /^hey+$/.test(lowerInput) || lowerInput === 'hello' || lowerInput === 'start' || lowerInput === 'catalog';
+
+    if (isGreeting) {
       await this.prisma.whatsappSession.update({
         where: { phone },
         data: { state: 'menu', categoryId: null, subCategoryId: null, checkoutData: Prisma.JsonNull }
       });
       
-      if (sendCatalogFn && (lowerInput === 'hi' || lowerInput === 'hello' || lowerInput === 'start' || lowerInput === 'catalog')) {
+      if (sendCatalogFn && isCatalogTrigger) {
          await sendCatalogFn(phone);
       } else {
          await this.sendCategoryMenu(phone, sendMessageFn);
@@ -218,6 +221,20 @@ export class WhatsappSessionService {
   }
 
   async handleCheckoutSavedAddress(phone: string, input: string, session: any, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>, sendFlowFn?: (to: string, msg: string, flowId: string) => Promise<any>, sendButtonFn?: (to: string, msgText: string, buttons: Array<{id: string, title: string}>) => Promise<any>) {
+    if (input !== 'DELIVER_HERE' && input !== 'NEW_ADDRESS') {
+      await sendMessageFn(phone, 'Please select an option from the buttons above, or type "menu" to start over.');
+      return;
+    }
+
+    const lock = await this.prisma.whatsappSession.updateMany({
+      where: { phone, state: 'checkout_saved_address' },
+      data: { state: 'processing' }
+    });
+    
+    if (lock.count === 0) {
+      return;
+    }
+
     if (input === 'DELIVER_HERE') {
       const checkoutData = session.checkoutData as any;
       checkoutData.address = JSON.stringify(checkoutData.savedAddress);
@@ -278,6 +295,16 @@ export class WhatsappSessionService {
       return;
     }
     
+    const lock = await this.prisma.whatsappSession.updateMany({
+      where: { phone, state: 'checkout_payment' },
+      data: { state: 'processing' }
+    });
+    
+    if (lock.count === 0) {
+      // Already processed by a concurrent request
+      return;
+    }
+
     const isCod = input === '1';
     const paymentMethod = isCod ? 'COD' : 'ONLINE';
     const checkoutData = session.checkoutData as any;

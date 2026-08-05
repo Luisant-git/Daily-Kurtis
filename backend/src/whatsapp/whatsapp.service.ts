@@ -361,6 +361,10 @@ export class WhatsappService {
   }
  
   async updateMessageStatus(messageId: string, status: string) {
+    if (!messageId) {
+      console.warn('updateMessageStatus called without a valid messageId. Status:', status);
+      return null;
+    }
     try {
       await this.prisma.whatsappMessage.updateMany({
         where: { messageId },
