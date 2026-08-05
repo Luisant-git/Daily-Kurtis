@@ -29,12 +29,14 @@ export class WhatsappController {
             const message = change.value.messages?.[0];
             if (message) {
               message.profileName = change.value.contacts?.[0]?.profile?.name;
-              await this.whatsappService.handleIncomingMessage(message);
+              // Run asynchronously so we can immediately return EVENT_RECEIVED to Meta
+              this.whatsappService.handleIncomingMessage(message).catch(err => console.error('Error processing message asynchronously:', err));
             }
             const statuses = change.value.statuses;
             if (statuses) {
               for (const status of statuses) {
-                await this.whatsappService.updateMessageStatus(status.id, status.status);
+                // Run asynchronously
+                this.whatsappService.updateMessageStatus(status.id, status.status).catch(err => console.error('Error updating status asynchronously:', err));
               }
             }
           }
