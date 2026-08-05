@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client';
 export class WhatsappSessionService {
   constructor(private prisma: PrismaService) {}
 
-  async handleInteractiveMenu(phone: string, input: string, profileName: string, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>, sendCatalogFn?: (to: string) => Promise<any>) {
+  async handleInteractiveMenu(phone: string, input: string, profileName: string, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>, sendCatalogFn?: (to: string) => Promise<any>, sendFlowFn?: (to: string, msgText: string, flowId: string) => Promise<any>, sendButtonFn?: (to: string, msgText: string, buttons: Array<{id: string, title: string}>) => Promise<any>) {
     let session = await this.prisma.whatsappSession.upsert({
       where: { phone },
       create: { phone, state: 'menu' },
@@ -72,7 +72,10 @@ export class WhatsappSessionService {
         await this.handleCheckoutQuantity(phone, trimmedInput, session, sendMessageFn);
         break;
       case 'checkout_address':
-        await this.handleCheckoutAddress(phone, trimmedInput, session, sendMessageFn);
+        await this.handleCheckoutAddress(phone, trimmedInput, session, sendMessageFn, sendButtonFn);
+        break;
+      case 'checkout_saved_address':
+        await this.handleCheckoutSavedAddress(phone, trimmedInput, session, sendMessageFn, sendFlowFn, sendButtonFn);
         break;
       case 'checkout_payment':
         await this.handleCheckoutPayment(phone, trimmedInput, session, sendMessageFn);
@@ -214,7 +217,43 @@ export class WhatsappSessionService {
     await sendMessageFn(phone, 'Great! Please reply with your full delivery address (including Name, Street, City, State, and Pincode).');
   }
 
-  async handleCheckoutAddress(phone: string, input: string, session: any, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
+  async handleCheckoutSavedAddress(phone: string, input: string, session: any, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>, sendFlowFn?: (to: string, msg: string, flowId: string) => Promise<any>, sendButtonFn?: (to: string, msgText: string, buttons: Array<{id: string, title: string}>) => Promise<any>) {
+    if (input === 'DELIVER_HERE') {
+      const checkoutData = session.checkoutData as any;
+      checkoutData.address = JSON.stringify(checkoutData.savedAddress);
+
+      await this.prisma.whatsappSession.update({
+        where: { phone },
+        data: { state: 'checkout_payment', checkoutData }
+      });
+      
+      if (sendButtonFn) {
+        await sendButtonFn(phone, 'How would you like to pay?', [
+          { id: '1', title: 'Cash on Delivery' },
+          { id: '2', title: 'Online Payment' }
+        ]);
+      } else {
+        await sendMessageFn(phone, 'How would you like to pay?\n\n1. Cash on Delivery (COD)\n2. Online Payment\n\nReply with 1 or 2.');
+      }
+    } else if (input === 'NEW_ADDRESS') {
+      const checkoutData = session.checkoutData as any;
+      await this.prisma.whatsappSession.update({
+        where: { phone },
+        data: { state: 'checkout_address', checkoutData }
+      });
+
+      const flowId = process.env.META_FLOW_ID;
+      if (sendFlowFn && flowId && flowId !== 'YOUR_FLOW_ID') {
+         await sendFlowFn(phone, 'Please enter your new delivery address.', flowId);
+      } else {
+         await sendMessageFn(phone, '📍 Please reply with your **complete delivery address**:\n \n• Full Name\n• Street / Area\n• City\n• State\n• Pincode');
+      }
+    } else {
+      await sendMessageFn(phone, 'Please select an option from the buttons above, or type "menu" to start over.');
+    }
+  }
+
+  async handleCheckoutAddress(phone: string, input: string, session: any, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>, sendButtonFn?: (to: string, msgText: string, buttons: Array<{id: string, title: string}>) => Promise<any>) {
     const checkoutData = session.checkoutData as any;
     checkoutData.address = input;
 
@@ -223,7 +262,14 @@ export class WhatsappSessionService {
       data: { state: 'checkout_payment', checkoutData }
     });
     
-    await sendMessageFn(phone, 'How would you like to pay?\n\n1. Cash on Delivery (COD)\n2. Online Payment\n\nReply with 1 or 2.');
+    if (sendButtonFn) {
+      await sendButtonFn(phone, 'How would you like to pay?', [
+        { id: '1', title: 'Cash on Delivery' },
+        { id: '2', title: 'Online Payment' }
+      ]);
+    } else {
+      await sendMessageFn(phone, 'How would you like to pay?\n\n1. Cash on Delivery (COD)\n2. Online Payment\n\nReply with 1 or 2.');
+    }
   }
 
   async handleCheckoutPayment(phone: string, input: string, session: any, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
@@ -338,10 +384,12 @@ export class WhatsappSessionService {
       data: { state: 'menu', checkoutData: Prisma.DbNull, categoryId: null, subCategoryId: null }
     });
 
+    const deliveryAddress = `${fullName}\n${addressLine1}\n${city}, ${state} - ${pincode}`;
+
     if (isCod) {
-      await sendMessageFn(phone, `🎉 Order placed successfully!\nYour Order ID is #ORD-${order.id}.\nTotal Amount: Rs.${total}\nPayment: Cash on Delivery.\nWe will process it shortly.`);
+      await sendMessageFn(phone, `🎉 Order placed successfully!\nYour Order ID is #ORD-${order.id}.\nTotal Amount: Rs.${total}\nPayment: Cash on Delivery.\n\n📍 Delivery Address:\n${deliveryAddress}\n\nWe will process it shortly.`);
     } else {
-      await sendMessageFn(phone, `🎉 Order #ORD-${order.id} initiated!\nTotal Amount: Rs.${total}\n\nOur team will contact you shortly with the payment link. Thank you!`);
+      await sendMessageFn(phone, `🎉 Order #ORD-${order.id} initiated!\nTotal Amount: Rs.${total}\n\n📍 Delivery Address:\n${deliveryAddress}\n\nOur team will contact you shortly with the payment link. Thank you!`);
     }
   }
 

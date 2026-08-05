@@ -23,7 +23,7 @@ export class WhatsappService {
     const profileName = message.profileName || 'WhatsApp Customer';
     const messageId = message.id;
     const interactive = message.interactive;
-    const text = message.text?.body || (interactive?.type === 'nfm_reply' ? interactive.nfm_reply.response_json : null);
+    const text = message.text?.body || (interactive?.type === 'nfm_reply' ? interactive.nfm_reply.response_json : (interactive?.type === 'button_reply' ? interactive.button_reply.id : null));
     const image = message.image;
     const video = message.video;
     const document = message.document;
@@ -77,6 +77,12 @@ export class WhatsappService {
         },
         async (to) => {
           return this.sendCatalogMessage(to);
+        },
+        async (to, msgText, flowId) => {
+          return this.sendFlowMessage(to, msgText, flowId);
+        },
+        async (to, msgText, buttons) => {
+          return this.sendButtonMessage(to, msgText, buttons);
         }
       );
     }
@@ -163,6 +169,51 @@ export class WhatsappService {
       return { success: true, messageId: response.data.messages[0].id };
     } catch (error) {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async sendButtonMessage(to: string, bodyText: string, buttons: Array<{id: string, title: string}>) {
+    try {
+      const response = await axios.post(
+        `${this.apiUrl}/${this.phoneNumberId}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to,
+          type: 'interactive',
+          interactive: {
+            type: 'button',
+            body: { text: bodyText },
+            action: {
+              buttons: buttons.map(b => ({
+                type: 'reply',
+                reply: { id: b.id, title: b.title }
+              }))
+            }
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      await this.prisma.whatsappMessage.create({
+        data: {
+          messageId: response.data.messages[0].id,
+          from: to,
+          message: '[Button Message]',
+          direction: 'outgoing',
+          status: 'sent'
+        }
+      });
+ 
+      return { success: true, messageId: response.data.messages[0].id };
+    } catch (error) {
+      console.error('WhatsApp Button API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
   }
@@ -911,11 +962,40 @@ export class WhatsappService {
       const msgText = `🛍️ Thank you! We received your WhatsApp Shopping Cart with **${itemCount} ${itemWord}**.`;
       const flowId = process.env.META_FLOW_ID;
       
-      if (flowId && flowId !== 'YOUR_FLOW_ID') {
-         await this.sendFlowMessage(from, msgText, flowId);
+      const lastOrder = await this.prisma.order.findFirst({
+         where: { user: { phone: from } },
+         orderBy: { createdAt: 'desc' }
+      });
+      const savedAddress = lastOrder?.shippingAddress;
+
+      if (savedAddress && (savedAddress as any).addressLine1) {
+         const addr = savedAddress as any;
+         (checkoutData as any).savedAddress = addr;
+
+         await this.prisma.whatsappSession.upsert({
+            where: { phone: from },
+            create: { phone: from, state: 'checkout_saved_address', checkoutData },
+            update: { state: 'checkout_saved_address', checkoutData, categoryId: null, subCategoryId: null }
+         });
+
+         const addressStr = `${addr.fullName}\n${addr.addressLine1}\n${addr.city}, ${addr.state} - ${addr.pincode}`;
+         await this.sendButtonMessage(from, `${msgText}\n\n📍 We found a saved address from your last order:\n\n${addressStr}\n\nWould you like to deliver here?`, [
+            { id: 'DELIVER_HERE', title: 'Deliver Here' },
+            { id: 'NEW_ADDRESS', title: 'New Address' }
+         ]);
       } else {
-         const fallbackMsg = `${msgText}\n \n📍 To place your order, please reply with your **complete delivery address**:\n \n• Full Name\n• Street / Area\n• City\n• State\n• Pincode\n \nWe'll process your order as soon as we receive your details. 😊`;
-         await this.sendMessage(from, fallbackMsg);
+         await this.prisma.whatsappSession.upsert({
+           where: { phone: from },
+           create: { phone: from, state: 'checkout_address', checkoutData },
+           update: { state: 'checkout_address', checkoutData, categoryId: null, subCategoryId: null }
+         });
+
+         if (flowId && flowId !== 'YOUR_FLOW_ID') {
+            await this.sendFlowMessage(from, msgText, flowId);
+         } else {
+            const fallbackMsg = `${msgText}\n \n📍 To place your order, please reply with your **complete delivery address**:\n \n• Full Name\n• Street / Area\n• City\n• State\n• Pincode\n \nWe'll process your order as soon as we receive your details. 😊`;
+            await this.sendMessage(from, fallbackMsg);
+         }
       }
     } catch(err) {
       console.error('Error handling WhatsApp order:', err);
