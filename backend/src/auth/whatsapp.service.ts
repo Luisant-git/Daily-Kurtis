@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { formatForWhatsApp } from '../utils/phone.util';
  
 @Injectable()
 export class WhatsAppService {
@@ -7,12 +8,13 @@ export class WhatsAppService {
   private readonly token = process.env.WHATSAPP_ACCESS_TOKEN;
  
   async sendOtp(phone: string, otp: string): Promise<boolean> {
+    const waPhone = formatForWhatsApp(phone);
     try {
       const response = await axios.post(
         `https://graph.facebook.com/v21.0/${this.phoneNumberId}/messages`,
         {
           messaging_product: 'whatsapp',
-          to: phone,
+          to: waPhone,
           type: 'template',
           template: {
             name: 'customer_otp',

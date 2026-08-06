@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma.service';
 import { WhatsAppService } from './whatsapp.service';
 import * as bcrypt from 'bcryptjs';
+import { normalizePhone } from '../utils/phone.util';
  
 @Injectable()
 export class AuthService {
@@ -49,7 +50,8 @@ export class AuthService {
     return { access_token: this.jwtService.sign(payload) };
   }
  
-  async requestOtp(phone: string) {
+  async requestOtp(rawPhone: string) {
+    const phone = normalizePhone(rawPhone);
     // Generate a 4-digit OTP
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
@@ -64,7 +66,8 @@ export class AuthService {
     return { message: 'OTP sent successfully', isNewUser: !existingUser };
   }
   
-  async verifyOtp(phone: string, otp: string) {
+  async verifyOtp(rawPhone: string, otp: string) {
+    const phone = normalizePhone(rawPhone);
     const otpRecord = await this.prisma.otp.findFirst({
       where: { 
         phone, 

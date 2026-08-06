@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { normalizePhone, formatForWhatsApp } from '../utils/phone.util';
 import { PrismaService } from '../prisma.service';
 import { WhatsappSessionService } from '../whatsapp-session/whatsapp-session.service';
  
@@ -19,7 +20,7 @@ export class WhatsappService {
   }
  
   async handleIncomingMessage(message: any) {
-    const from = message.from;
+    const from = normalizePhone(message.from);
     const profileName = message.profileName || 'WhatsApp Customer';
     const messageId = message.id;
     
