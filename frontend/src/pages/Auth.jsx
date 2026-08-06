@@ -45,7 +45,7 @@ export default function Auth() {
     try {
       const res = await authApi.requestOtp(mobile);
       setOtpSent(true);
-      setResendTimer(180);
+      setResendTimer(300);
       toast.success("OTP sent to +91 " + mobile);
       // Always go to OTP step after mobile number entry
       setLoginStep("otp");
@@ -62,7 +62,7 @@ export default function Auth() {
     try {
       await authApi.requestOtp(mobile);
       setOtp(["", "", "", ""]);
-      setResendTimer(180);
+      setResendTimer(300);
       toast.success("OTP resent to +91 " + mobile);
     } catch (error) {
       toast.error(error.message || "Failed to resend OTP");
@@ -313,9 +313,7 @@ export default function Auth() {
                         />
                       ))}
                     </div>
-                    <p className="text-[11px] text-center text-neutral-400 mt-6 bg-neutral-100/50 py-2 rounded-lg border border-neutral-100 w-fit mx-auto px-4">
-                      Demo Mode: Use code <span className="font-mono font-bold text-[#800000] text-xs">1234</span>
-                    </p>
+
                   </div>
 
                   <button
