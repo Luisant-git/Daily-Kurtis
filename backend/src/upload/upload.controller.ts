@@ -10,7 +10,7 @@ export class UploadController {
   @Post('image')
   @UseInterceptors(FileInterceptor('image', {
     storage: diskStorage({
-      destination: './uploads',
+      destination: join(process.cwd(), 'uploads'),
       filename: (req, file, cb) => {
         const originalName = file.originalname;
         if (originalName.startsWith('invoice-') || originalName.startsWith('packageslip-')) {
@@ -36,7 +36,7 @@ export class UploadController {
     try {
       const filename = url.split('/').pop()?.split('?')[0];
       if (!filename) throw new Error('Invalid URL');
-      const filePath = join('./uploads', filename);
+      const filePath = join(process.cwd(), 'uploads', filename);
       await unlink(filePath);
       return { success: true };
     } catch (error) {
@@ -47,7 +47,7 @@ export class UploadController {
   @Delete('order-files')
   async deleteOrderFiles(@Body('orderId') orderId: number) {
     try {
-      const uploadsDir = './uploads';
+      const uploadsDir = join(process.cwd(), 'uploads');
       const files = await readdir(uploadsDir);
       const invoicePattern = `invoice-${orderId}`;
       const packagePattern = `packageslip-${orderId}`;

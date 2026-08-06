@@ -6,6 +6,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import * as bodyParser from 'body-parser';
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import * as fs from 'fs';
+import { join } from 'path';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -49,8 +50,8 @@ async function bootstrap() {
     },
     skipMissingProperties: true,
   }));
-  app.useStaticAssets('uploads', { 
-    prefix: '/uploads/',
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { 
+    prefix: '/uploads',
     setHeaders: (res, path) => {
       if (path.endsWith('.pdf')) {
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
