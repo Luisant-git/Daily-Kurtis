@@ -643,10 +643,10 @@ const [orderStats, setOrderStats] = useState({
     const finalTableHeight = (yPos + 10) - tableTop;
     pdf.rect(15, tableTop, 180, finalTableHeight);
 
-    let footerY = yPos + 35;
-    if (footerY > 285) {
+    let footerY = yPos + 60;
+    if (footerY > 280) {
       pdf.addPage();
-      footerY = 280;
+      footerY = 275;
     }
     pdf.setFont(undefined, 'bold');
     pdf.text('For DAILY KURTIS:', 140, footerY - 30);
