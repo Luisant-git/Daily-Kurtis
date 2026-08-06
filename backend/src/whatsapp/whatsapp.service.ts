@@ -961,14 +961,6 @@ export class WhatsappService {
                   { type: 'text', text: trackingInfo.trackingId || 'N/A' },
                   { type: 'text', text: trackingInfo.trackingUrl || 'N/A' }
                 ]
-              },
-              {
-                type: 'button',
-                sub_type: 'url',
-                index: 0,
-                parameters: [
-                  { type: 'text', text: invoiceFilename }
-                ]
               }
             ]
           }
@@ -1023,14 +1015,6 @@ export class WhatsappService {
                   { type: 'text', text: `#ORD-${order.id}` },
                   { type: 'text', text: order.total },
                   { type: 'text', text: order.paymentMethod }
-                ]
-              },
-              {
-                type: 'button',
-                sub_type: 'url',
-                index: 0,
-                parameters: [
-                  { type: 'text', text: invoiceFilename }
                 ]
               }
             ]
