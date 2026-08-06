@@ -15,7 +15,7 @@ export class WhatsAppService {
           to: phone,
           type: 'template',
           template: {
-            name: 'otp_en3_auth',
+            name: 'customer_otp',
             language: { code: 'en' },
             components: [
               {
