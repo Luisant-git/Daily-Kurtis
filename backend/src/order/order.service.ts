@@ -173,14 +173,14 @@ export class OrderService {
       await this.deductStock((order as any).items);
     }
   
-    // TEMPORARILY DISABLED: WhatsApp order template/message sending
+    // WhatsApp order template/message sending
     // Send WhatsApp confirmation (non-critical, don't fail order if it fails)
-    // try {
-    //   await this.whatsappService.sendOrderConfirmation(order);
-    // } catch (whatsappError: any) {
-    //   console.error('WhatsApp notification failed (non-critical):', whatsappError?.message || whatsappError);
-    //   // Continue with order success - WhatsApp failure should not prevent order completion
-    // }
+    try {
+      await this.whatsappService.sendOrderConfirmation(order);
+    } catch (whatsappError: any) {
+      console.error('WhatsApp notification failed (non-critical):', whatsappError?.message || whatsappError);
+      // Continue with order success - WhatsApp failure should not prevent order completion
+    }
   
     // Trigger Meta Conversions API asynchronously
     this.prisma.user.findUnique({ where: { id: userId } }).then(user => {
@@ -491,28 +491,26 @@ async getOrderStats(startDate?: string, endDate?: string) {
     }
   }
 
-  // TEMPORARILY DISABLED: WhatsApp service integration
+  // WhatsApp service integration
   // Send WhatsApp notifications (non-critical - don't fail order processing if they fail)
-  // try {
-  //   if (status === 'Placed') {
-  //     await this.whatsappService.sendOrderConfirmation(order);
-  //   } else if (status === 'Accepted') {
-  //     await this.whatsappService.sendOrderAccepted(order);
-  //   } else if (status === 'Shipped') {
-  //     const trackingInfo = {
-  //       courier: courierName || order.courierName || 'N/A',
-  //       trackingId: trackingId || order.trackingId || 'N/A',
-  //       trackingUrl: trackingLink || order.trackingLink || 'N/A'
-  //     };
-  //     const invoiceFilename = `invoice-${order.id}.pdf`;
-  //     await this.whatsappService.sendOrderShipped(order, trackingInfo, invoiceFilename);
-  //   } else if (status === 'Delivered') {
-  //     const invoiceFilename = `invoice-${order.id}.pdf`;
-  //     await this.whatsappService.sendOrderDelivered(order, invoiceFilename);
-  //   }
-  // } catch (whatsappError: any) {
-  //   console.error('WhatsApp notification failed (non-critical):', whatsappError?.message || whatsappError);
-  // }
+  try {
+    if (status === 'Placed') {
+      await this.whatsappService.sendOrderConfirmation(order);
+    } else if (status === 'Shipped') {
+      const trackingInfo = {
+        courier: courierName || order.courierName || 'N/A',
+        trackingId: trackingId || order.trackingId || 'N/A',
+        trackingUrl: trackingLink || order.trackingLink || 'N/A'
+      };
+      const invoiceFilename = `invoice-${order.id}.pdf`;
+      await this.whatsappService.sendOrderShipped(order, trackingInfo, invoiceFilename);
+    } else if (status === 'Delivered') {
+      const invoiceFilename = `invoice-${order.id}.pdf`;
+      await this.whatsappService.sendOrderDelivered(order, invoiceFilename);
+    }
+  } catch (whatsappError: any) {
+    console.error('WhatsApp notification failed (non-critical):', whatsappError?.message || whatsappError);
+  }
 
   return order;
 }
