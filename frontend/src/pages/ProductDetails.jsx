@@ -239,7 +239,19 @@ export default function ProductDetails() {
             {galleryImages.map((img, i) => (
               <button
                 key={i}
-                onClick={() => setActiveImg(i)}
+                onClick={() => {
+                  // Sync the selected color when a gallery image belonging to a
+                  // color variant is chosen, so the selected color is shown.
+                  const matchingColor = product.colors.find(
+                    (c) => c.image && c.image === img
+                  );
+                  if (matchingColor) {
+                    setColor(matchingColor.name);
+                    setActiveImg(0);
+                  } else {
+                    setActiveImg(i);
+                  }
+                }}
                 className={`shrink-0 w-20 h-24 rounded-xl overflow-hidden border-2 transition ${
                   i === activeImg ? "border-[#800000]" : "border-transparent opacity-70 hover:opacity-100"
                 }`}
