@@ -196,6 +196,35 @@ export default function ProductDetails() {
     : (product.images?.length ? product.images : [product.thumbnail || ""]);
   const activeImage = galleryImages[activeImg] || galleryImages[0];
 
+  // Sync color selection when image changes to match the image's color
+  useEffect(() => {
+    if (!product || !activeImage || !galleryImages[activeImg]) return;
+    const img = galleryImages[activeImg];
+    // Try to find which color this image belongs to
+    let matchedColor = null;
+    // Check color images first
+    if (Array.isArray(product.colors)) {
+      for (const c of product.colors) {
+        if (c.image && c.image === img) {
+          matchedColor = c.name;
+          break;
+        }
+      }
+    }
+    // Check sizeDetails images if not found
+    if (!matchedColor && Array.isArray(product.sizeDetails)) {
+      for (const vd of product.sizeDetails) {
+        if (vd.image && vd.image === img && vd.color) {
+          matchedColor = vd.color;
+          break;
+        }
+      }
+    }
+    if (matchedColor && matchedColor !== color) {
+      setColor(matchedColor);
+    }
+  }, [activeImg, galleryImages, activeImage]);
+
   const handleAdd = ({ showToast = true, goToCheckout = false } = {}) => {
     if (!isLoggedIn) {
       openLoginModal();
