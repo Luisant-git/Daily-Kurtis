@@ -16,6 +16,7 @@ import { useAuth } from "../context/AuthContext";
 import { REVIEWS } from "../data/site.js";
 import { normalizeSize } from "../utils/productUtils";
 import DOMPurify from "dompurify";
+import { toast } from "react-toastify";
 
 export default function ProductDetails() {
   const { slug = "" } = useParams();
@@ -186,44 +187,48 @@ export default function ProductDetails() {
   const isOutOfStock = size && color && selectedSizeQuantity === 0;
   
   // For display, use selectedVariant data or fallback
-  const selectedImage = selectedVariant?.image || product.thumbnail || "";
   const selectedBasePrice = parseFloat(selectedVariant?.price || 0) || product.discountPrice;
   const selectedMrp = product.price > selectedBasePrice ? product.price : selectedBasePrice;
   const selectedDiscount = selectedMrp > selectedBasePrice ? Math.round(((selectedMrp - selectedBasePrice) / selectedMrp) * 100) : 0;
-  
-  const galleryImages = selectedImage 
-    ? [selectedImage, ...(product.images?.filter(img => img !== selectedImage) || [])]
-    : (product.images?.length ? product.images : [product.thumbnail || ""]);
-  const activeImage = galleryImages[activeImg] || galleryImages[0];
 
-  // Sync color selection when image changes to match the image's color
-  useEffect(() => {
-    if (!product || !activeImage || !galleryImages[activeImg]) return;
-    const img = galleryImages[activeImg];
-    // Try to find which color this image belongs to
-    let matchedColor = null;
-    // Check color images first
-    if (Array.isArray(product.colors)) {
-      for (const c of product.colors) {
-        if (c.image && c.image === img) {
-          matchedColor = c.name;
-          break;
-        }
-      }
-    }
-    // Check sizeDetails images if not found
-    if (!matchedColor && Array.isArray(product.sizeDetails)) {
-      for (const vd of product.sizeDetails) {
-        if (vd.image && vd.image === img && vd.color) {
-          matchedColor = vd.color;
-          break;
-        }
-      }
-    }
-    if (matchedColor && matchedColor !== color) {
-      setColor(matchedColor);
-    }
-  }, [activeImg, galleryImages, activeImage]);
+  // Gallery order must stay stable (never reordered by the selected variant),
+  // otherwise a thumbnail click points at a different image than the one shown.
+  const galleryImages = product.images?.length ? product.images : [product.thumbnail].filter(Boolean);
+  const activeImage = galleryImages[activeImg] || galleryImages[0] || "";
+
+  // Which color does a gallery image belong to? Gallery images are not tagged,
+  // so use the color image first and fall back to the per-size images.
+  const colorForImage = (img) => {
+    if (!img) return null;
+    const colorMatch = product.colors?.find((c) => c.image && c.image === img);
+    if (colorMatch) return colorMatch.name;
+    const sizeMatch = product.sizeDetails?.find((v) => v.image === img && v.color);
+    return sizeMatch?.color || null;
+  };
+
+  // Representative image for a color, used when a swatch is clicked.
+  const imageForColor = (name) => {
+    if (!name) return null;
+    const candidates = [
+      product.colors?.find((c) => c.name === name)?.image,
+      ...(product.sizeDetails?.filter((v) => v.color === name).map((v) => v.image) || []),
+    ].filter(Boolean);
+    return candidates.find((img) => galleryImages.includes(img)) || null;
+  };
+
+  // Swatch click: select the color and show its image.
+  const selectColor = (name) => {
+    setColor(name);
+    const img = imageForColor(name);
+    if (img) setActiveImg(galleryImages.indexOf(img));
+  };
+
+  // Thumbnail click: always show the clicked image, and select the color it belongs to.
+  const selectImage = (img, index) => {
+    setActiveImg(index);
+    const name = colorForImage(img);
+    if (name) setColor(name);
+  };
 
   const handleAdd = ({ showToast = true, goToCheckout = false } = {}) => {
     if (!isLoggedIn) {
@@ -268,19 +273,7 @@ export default function ProductDetails() {
             {galleryImages.map((img, i) => (
               <button
                 key={i}
-                onClick={() => {
-                  // Sync the selected color when a gallery image belonging to a
-                  // color variant is chosen, so the selected color is shown.
-                  const matchingColor = product.colors.find(
-                    (c) => c.image && c.image === img
-                  );
-                  if (matchingColor) {
-                    setColor(matchingColor.name);
-                    setActiveImg(0);
-                  } else {
-                    setActiveImg(i);
-                  }
-                }}
+                onClick={() => selectImage(img, i)}
                 className={`shrink-0 w-20 h-24 rounded-xl overflow-hidden border-2 transition ${
                   i === activeImg ? "border-[#800000]" : "border-transparent opacity-70 hover:opacity-100"
                 }`}
@@ -368,7 +361,7 @@ export default function ProductDetails() {
               {product.colors.map((c) => (
                 <button
                   key={c.name}
-                  onClick={() => setColor(c.name)}
+                  onClick={() => selectColor(c.name)}
                   title={c.name}
                   className={`w-9 h-9 rounded-full border-2 transition ${
                     color === c.name ? "border-[#800000] scale-110" : "border-[#E9E5E5]"
@@ -407,7 +400,13 @@ export default function ProductDetails() {
                 return (
                   <button
                     key={s}
-                    onClick={() => setSize(s)}
+                    onClick={() => {
+                      setSize(s);
+                      // Sizes can have their own photo; show it when available.
+                      const sizeImage = sizeVariant?.image;
+                      const sizeImageIndex = sizeImage ? galleryImages.indexOf(sizeImage) : -1;
+                      if (sizeImageIndex !== -1) setActiveImg(sizeImageIndex);
+                    }}
                     className={`h-11 min-w-11 px-4 rounded-full text-sm transition relative ${
                       isSizeOutOfStock 
                         ? "bg-gray-100 text-neutral-400 border-neutral-300 cursor-pointer opacity-60" 
